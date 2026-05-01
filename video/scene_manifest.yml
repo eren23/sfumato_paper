@@ -2,6 +2,9 @@
 # Scenes 1-3 reuse the E4 motivation (cognitive metaphor, four conditions, headline numbers).
 # Scenes 4-11 are new and follow the paper's three-axis decomposition + Track 2 design iteration.
 scenes:
+  - id: scene00_intro
+    file: scenes/scene00_intro.py
+    class: IntroScene
   - id: scene01_metaphor
     file: scenes/scene01_metaphor.py
     class: SfumatoMetaphorScene
@@ -26,6 +29,9 @@ scenes:
   - id: scene08_consensus_distill
     file: scenes/scene08_consensus_distill.py
     class: ConsensusDistillScene
+  - id: scene08b_inference
+    file: scenes/scene08b_inference.py
+    class: InferenceScene
   - id: scene09_ablation
     file: scenes/scene09_ablation.py
     class: AblationScene

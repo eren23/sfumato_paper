@@ -75,15 +75,8 @@ class SfumatoResultsScene(Scene):
         x_axis = Line(LEFT * 4.5 + DOWN * 2.6, RIGHT * 4.5 + DOWN * 2.6, color=MUTED, stroke_width=2)
         y_axis = Line(LEFT * 4.5 + DOWN * 2.6, LEFT * 4.5 + UP * 1.8, color=MUTED, stroke_width=2)
 
-        x_label = body_text("FLOPs / sample (log scale)", size=16, color=MUTED)
-        x_label.next_to(x_axis, DOWN, buff=0.20)
-        y_label = body_text("accuracy", size=16, color=MUTED)
-        y_label.rotate(90 * 3.14159265 / 180)
-        y_label.next_to(y_axis, LEFT, buff=0.18)
-
-        self.play(FadeIn(x_axis), FadeIn(y_axis), FadeIn(x_label), FadeIn(y_label), run_time=0.4)
-
-        # Y gridlines for accuracy
+        # Y gridlines + tick labels first so we can place the axis labels
+        # past them without overlap.
         y_ticks = [0.0, 0.25, 0.5, 0.75, 1.0]
         y_tick_lines = []
         y_tick_labels = []
@@ -100,6 +93,19 @@ class SfumatoResultsScene(Scene):
             lbl = body_text(f"{int(t*100)}%", size=16, color=MUTED)
             lbl.move_to(LEFT * 4.85 + UP * y_pos)
             y_tick_labels.append(lbl)
+
+        # Axis labels: y rotated and placed LEFT of the tick labels;
+        # x placed BELOW where the tick labels will land (further down).
+        y_label = body_text("accuracy", size=16, color=MUTED)
+        y_label.rotate(90 * 3.14159265 / 180)
+        y_label.move_to(LEFT * 5.55 + UP * (y_bottom + plot_h / 2))
+        # x_label drops well below the tick label row (which lands ~0.3 units
+        # below y_bottom). Hard-coded buffer chosen empirically from rendered
+        # frames so "(log scale)" never collides with the "1e13" tick label.
+        x_label = body_text("FLOPs / sample (log scale)", size=16, color=MUTED)
+        x_label.move_to(DOWN * 3.55)
+
+        self.play(FadeIn(x_axis), FadeIn(y_axis), FadeIn(x_label), FadeIn(y_label), run_time=0.4)
 
         self.play(
             *[FadeIn(t) for t in y_tick_lines],
@@ -176,7 +182,7 @@ class SfumatoResultsScene(Scene):
             color=WARN,
             weight=BOLD,
         )
-        callout.move_to(DOWN * 3.4)
+        callout.move_to(DOWN * 3.85)
         self.play(FadeIn(callout, shift=UP * 0.15), run_time=0.7)
         self.wait(3.0)
 

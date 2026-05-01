@@ -1,4 +1,5 @@
-"""Scene 6 -- Axis 2: planner-content trust is non-monotonic in LoRA capacity.
+"""Scene 6 -- Axis 2: planner-content trust is capacity-dependent in
+opposite directions across planners.
 
 Two-row layout. Each row has a Q-0.5B box and a Q-1.5B box; values come from
 PAPER_DRAFT.md Section 3.3 (the v2/v3 capacity tradeoff). The "inversion"
@@ -65,15 +66,15 @@ class Axis2PlannerTrustScene(Scene):
         self.camera.background_color = BG
 
         title = title_text(
-            "Axis 2: Planner-trust is non-monotonic in LoRA capacity",
+            "Axis 2: Planner-trust is capacity-dependent",
             size=26,
             color=ACCENT,
         )
         title.to_edge(UP, buff=0.45)
 
         sub = body_text(
-            "C3p accuracy with Qwen-{0.5B, 1.5B} planner upstream of LLaDA",
-            size=18,
+            "C3p accuracy with Qwen-{0.5B, 1.5B} planner upstream of LLaDA  /  4 of 7 vs 7 of 7 LoRA target modules",
+            size=15,
             color=MUTED,
         )
         sub.next_to(title, DOWN, buff=0.18)

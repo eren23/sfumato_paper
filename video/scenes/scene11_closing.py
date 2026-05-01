@@ -56,7 +56,7 @@ class ClosingScene(Scene):
             color=GOOD,
         )
         bullet2 = _bullet_row(
-            "Planner-trust:  non-monotonic in capacity.",
+            "Planner-trust:  capacity-dependent in opposite directions.",
             color=ACCENT,
         )
         bullet3 = _bullet_row(
