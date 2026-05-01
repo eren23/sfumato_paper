@@ -1,0 +1,33 @@
+# OS junk
+.DS_Store
+**/.DS_Store
+
+# LaTeX build intermediates
+paper/main.aux
+paper/main.bbl
+paper/main.blg
+paper/main.log
+paper/main.out
+paper/main.toc
+paper/main.fls
+paper/main.fdb_latexmk
+paper/main.synctex.gz
+paper/*.aux
+paper/sections/*.aux
+paper/appendix/*.aux
+
+# Manim render cache
+video/media/
+video/__pycache__/
+video/**/__pycache__/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor / tooling
+.idea/
+.vscode/
+.claude/
+.attocode/
