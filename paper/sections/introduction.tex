@@ -1,0 +1,171 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Hybrid pipelines that pair an autoregressive (AR) language model with
+a discrete-diffusion language model (DDLM) for chain-of-thought
+reasoning have produced contradictory empirical reports.  Some
+authors find that an AR planner improves DDLM
+denoising~\citep{ye2024diffusionofthought,zhao2025d1};
+others find that the same pattern degrades it~\citep{huang2025dcolt};
+and reports on whether DDLM sampling diversity is preserved or
+collapses under fine-tuning likewise disagree~\citep{liu2025ccdd}.
+The picture is muddied further by the fact that recent
+DDLMs~\citep{nie2025llada,gong2024diffullama,arriola2025bd3lms} share
+a tokenizer family and a semi-AR sampler but are evaluated on
+different benchmarks and at different prefix conditions, so the
+underlying disagreement is hard to isolate.
+
+We started this project from a narrow observation in our own prior
+diagnostic work (E4): on \LLaDA{}-8B-Instruct~\citep{nie2025llada},
+prepending a literal \code{"Plan: "} string to a GSM8K
+question~\citep{cobbe2021gsm8k} costs $8$\,pp of accuracy versus the
+no-prefix baseline ($74\% \rightarrow 66\%$), even though the prefix
+contains no content at all.  The damage is format-shape, not plan
+quality.  This single number was inconsistent with the simplest
+``AR plan helps DDLM'' story and is also inconsistent with the
+simplest ``AR plan hurts DDLM'' story: the cost is real, but the
+mechanism is not the planner.  It is the prefix surface itself.
+
+This paper argues that the conflicts in the literature collapse once
+the failure surface is decomposed into orthogonal axes that can be
+measured and intervened on independently.  We identify three.
+
+\begin{enumerate}
+    \item \textbf{Interface-format brittleness}: how much the DDLM's
+          accuracy drops when the question is wrapped in any
+          plan-shaped scaffold, content-free or otherwise.
+    \item \textbf{Planner-content trust}: how much the DDLM uses the
+          actual content of an upstream AR plan, conditional on the
+          prefix shape being absorbed.
+    \item \textbf{Sampling-diversity preservation}: whether
+          fine-tuning the DDLM collapses, preserves, or expands the
+          variety of branches produced by stochastic sampling, on
+          which compute-time consensus mechanisms such as
+          self-consistency~\citep{wang2023selfconsistency} depend.
+\end{enumerate}
+
+On GSM8K-test (N=200) with \LLaDA{}-8B-Instruct and
+\Qwen{\{0.5B,1.5B\}}-Instruct~\citep{qwen2024report} planners, we
+characterize each axis with a small ($r{=}8$)
+LoRA~\citep{hu2022lora,mangrulkar2022peft} and report the following.
+
+First, interface-format brittleness is trainably fixable.  A
+prefix-robust LoRA on \LLaDA{} with full FFN module coverage (v3,
+22M trainable parameters) lifts no-prefix \ctwo{} from $74\% \to
+73.0\%$ (within sampling error) while pulling the empty-prefix
+\code{"Plan: "} condition from $66\% \to 74\%$, flattening the
+no-prefix-vs-empty-prefix gap from $8$\,pp to within $1$\,pp.  A
+partial-coverage variant (v2, 4/7 modules, 10M parameters) achieves
+slightly weaker single-shot but stronger branch-vote performance,
+exposing a no-prefix-vs-\cmaj{} capacity tradeoff.
+
+Second, planner-content trust is capacity-dependent in opposite
+directions across planners.  At v2 capacity, a $1.5$B AR planner
+helps ($60\% \to 67\%$, $+7$\,pp) and a $0.5$B planner still hurts
+($64\% \to 60\%$).  At v3 capacity this inverts: the $0.5$B
+planner improves ($64\% \to 65\%$, $+5$\,pp) and the $1.5$B
+planner catastrophically regresses ($60\% \to 54\%$, $-13$\,pp).
+Capacity differentially modulates how much the model trusts
+upstream content, and the optimal capacity depends on the planner.
+
+Third, format-augmented training expands sampling diversity rather
+than collapsing it.  After the prefix-robust LoRA (v2) plus a
+late-block commit adapter, the rate at which all $5$ stochastic
+branches agree drops from $51.5\%$ to $47.5\%$ on test, and mean
+unique answers per problem rises from $1.83$ to $2.07$ ($+13\%$).
+\cmaj{} accuracy holds at $81.5\%$ on dev, and \cmajc{} reaches
+$82.0\%$ (commit v2) / $82.5\%$ (commit v3) on test.  Diversity
+goes up, accuracy is preserved or improved.
+
+Fourth, weight-space distillation of the consensus mechanism
+(\cmaj{} into a single forward pass) is design-sensitive in a way
+that is easy to miss.  A late-block, answer-span commit adapter
+fails to bridge the $6$\,pp gap between greedy \ctwo{} and \cmaj{},
+plateauing at \ctwoc{}$=70.5\%$ across two iterations and a
+$3.25\times$ capacity bump.  A multi-block, full-response variant
+recovers \ctwoc{}$=79.0\%$, within sampling error of the $80\%$
+pre-registered target.  Disentangling ablations attribute $+4$\,pp
+of the lift to where commit fires in the diffusion schedule and
+$+2$\,pp to full-response supervision; full-response training on its
+own (with last-block-only commit) adds nothing.
+
+\clearpage
+\paragraph{Contributions.}
+\begin{enumerate}
+    \item \textbf{A three-axis decomposition of hybrid AR/DDLM
+          reasoning failure.}  Interface-format brittleness,
+          planner-content trust, and sampling-diversity preservation
+          are independently measurable on GSM8K with \LLaDA{} and
+          \Qwen{\{0.5B,1.5B\}}.  The decomposition reconciles
+          conflicting reports in the literature
+          (\S\ref{sec:axis1}, \S\ref{sec:axis2}, \S\ref{sec:axis3},
+          \S\ref{sec:distill}, \S\ref{sec:discussion}).
+    \item \textbf{Interface-format brittleness is trainably fixable
+          with a small ($r{=}8$) prefix-robustness LoRA, with a
+          measurable capacity tradeoff.}  A v2 ($4/7$ FFN modules,
+          $10$M parameters) and a v3 ($7/7$ FFN modules, $22$M
+          parameters) variant trade $+2.5$\,pp on no-prefix \ctwo{}
+          for $-2.0$\,pp on \cmaj{} branch-vote, locating a
+          single-shot-vs-ensemble Pareto frontier
+          (\S\ref{sec:axis1}).
+    \item \textbf{Planner-content trust is capacity-dependent in
+          opposite directions across planners --- a
+          previously-unmeasured axis.}  A $0.5$B planner improves
+          $+5$\,pp at v3 capacity while a $1.5$B planner regresses
+          $-13$\,pp, with the directions reversed at v2 capacity
+          (\S\ref{sec:axis2}).
+    \item \textbf{Format-augmented LoRA training expands sampling
+          diversity rather than collapsing it.}  $5/5$-branch
+          agreement drops $51.5\% \to 47.5\%$ and mean unique
+          answers per problem rises $1.83 \to 2.07$, while \cmaj{}
+          accuracy is preserved.  We connect this to encoder-collapse
+          literature as the inverse phenomenon
+          (\S\ref{sec:axis3}).
+    \item \textbf{Consensus distillation into a DDLM is
+          design-sensitive, not architecture-limited.}  Late-block
+          answer-span surgery plateaus at \ctwoc{}$=70.5\%$ across
+          two iterations; multi-block ($n{=}3$) full-response
+          surgery recovers \ctwoc{}$=79.0\%$.  Disentangling
+          ablations attribute most of the lift ($+4$\,pp) to block
+          coverage; full-response loss alone (with last-block-only
+          commit) adds $+0.0$\,pp.  The two design errors mask each
+          other (\S\ref{sec:distill}).
+    \item \textbf{Param-time and compute-time consensus compose.}
+          \cmajc{} (cmaj with commit-LoRA per branch) reaches
+          $82.5\%$ on test for the v3 commit and $82.0\%$ for the
+          v2 commit, $+3.5$\,pp and $+3$\,pp respectively over
+          base test \cmaj{} of $79.0\%$.  Pre-registered
+          prediction \#3 (no double-dip) is violated upward in
+          both cases.  A \Qwen{0.5B} self-consistency
+          baseline~\citep{wang2023selfconsistency} on the same eval
+          reaches only $40.5\%$, ruling out generic self-consistency
+          as the explanation for \LLaDA{}'s diffusion \cmaj{}
+          advantage (\S\ref{sec:distill}, \S\ref{sec:rebuttal}).
+\end{enumerate}
+
+\paragraph{Framing: decomposition, not unification.}
+This paper does not propose a single architecture or training recipe.
+It argues that the empirical record on hybrid AR/DDLM reasoning is
+muddied because the failure surface is multi-dimensional and prior
+work has measured projections of it without controlling for the
+other axes.  The contribution is the decomposition itself, plus
+trainable interventions on two of the three axes that demonstrate
+the axes are real and individually addressable.  The third axis
+(planner-content trust) is characterized but not fixed; we leave a
+content-trust adapter to future work.
+
+\paragraph{Status.}
+All numbers are measured on GSM8K-test, $N{=}200$, fixed seed $0$
+unless otherwise noted, with \LLaDA{}-8B-Instruct at $k{=}64$
+denoising steps and a fixed regex answer extractor that tolerates
+both \code{Answer:} and \code{\#\#\#\#} formats.  All four LoRA
+adapters (Track 1 v2, Track 1 v3, Track 2 v2, Track 2 v3) and the
+three derived datasets are public on the Hugging Face Hub.  Total
+compute spend on a single RTX~4090 spot pod is approximately
+$\$3.50$ (\appref{app:compute}).  \appref{app:hyperparameters}
+lists exact training configurations; \appref{app:prereg} reproduces
+the pre-registration scorecard, including a prediction violated in
+the unexpected (good) direction; \appref{app:open} flags open
+exposures (multi-seed variance, \cmajc{} with the v3 commit, and a
+mechanistic LCH centroid analysis) that we did not close before
+this draft.

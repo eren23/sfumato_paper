@@ -1,0 +1,122 @@
+\section{Setup}
+\label{sec:setup}
+
+\paragraph{Models.}
+The diffusion model is \LLaDA{}-8B-Instruct~\citep{nie2025llada},
+loaded in bf16 and used with $k{=}64$ denoising steps and a
+generation length of $128$ tokens organized as four sub-blocks of
+$32$ tokens each.  Two AR planners are used without fine-tuning:
+\Qwen{0.5B}-Instruct and \Qwen{1.5B}-Instruct~\citep{qwen2024report}.
+\LLaDA{}-8B and \Qwen{0.5B} co-reside on a single RTX~4090 ($24$\,GB)
+in bf16; \LLaDA{}-8B and \Qwen{1.5B} also co-reside.  All model
+loading uses \code{trust\_remote\_code=True} for \LLaDA{}, and we
+pin \code{transformers==4.46.3} per the upstream
+recommendation.\footnote{Newer transformers releases break the
+\LLaDA{} \code{LLaDALlamaBlock} loader.}
+
+\paragraph{Evaluation.}
+GSM8K-test~\citep{cobbe2021gsm8k}, $N{=}200$ frozen problem indices
+(stored as \code{e4/data/gsm8k\_dev\_200.json}), seed $0$ unless
+otherwise noted.  Numeric-answer extraction uses a regex on the
+last numeric span in the model output and tolerates both
+\code{Answer: <num>} and \code{\#\#\#\# <num>} formats.  We report
+exact-match accuracy with no partial credit.
+
+\paragraph{Statistical reporting.}
+All headline percentages are computed over $N{=}200$ GSM8K-test
+problems unless otherwise noted.  Reported confidence intervals
+are exact (Clopper--Pearson) binomial $95\%$ intervals; we list
+them under each headline body table and in the pre-registration
+scorecard (\appref{app:prereg}).  Deltas between conditions are
+not CI'd individually, since paired-sample CIs require per-problem
+agreement data; per-problem eval JSONLs are released alongside the
+adapters for readers who want to compute paired intervals
+themselves.
+
+\paragraph{Conditions.}
+The eight conditions used throughout the paper are:
+
+\begin{itemize}
+    \item \ctwo{}: \LLaDA{} single-shot, no prefix.
+    \item \code{C2hint}: \LLaDA{} with prefix
+          \code{"Let's think step by step.{\textbackslash}n"}.
+    \item \code{C2empty}: \LLaDA{} with literal prefix
+          \code{"Plan: "} (no content).
+    \item \cthree{}\code{p X}: AR planner $X$ emits a plan, \LLaDA{}
+          conditions on it and emits the answer; no AR finalize step.
+          $X \in \{$\Qwen{0.5B}, \Qwen{1.5B}$\}$.
+    \item \code{cmaj} ($b{=}5$, $t{=}0.7$): five stochastic \LLaDA{}
+          branches, majority vote on extracted answers.
+    \item \ctwoc{}: \ctwo{} with commit-LoRA enabled (last sub-block
+          only for v2; sub-blocks 2--4 of 4 for v3).
+    \item \cmajc{}: \code{cmaj} with commit-LoRA enabled per
+          branch, then majority vote.
+\end{itemize}
+
+\paragraph{Adapters trained.}
+We train four LoRA adapters on top of frozen \LLaDA{}-8B-Instruct.
+
+\textbf{Track 1 (prefix-robustness)} trains a LoRA on the
+\code{eren23/sfumato-prefix-robust-gsm8k} dataset --- 7,473
+GSM8K-train problems crossed with eight prefix tiers (none /
+minimal / hint / xml / weak \Qwen{0.5B} plan / medium \Qwen{1.5B}
+plan / strong \Qwen{7B} plan / oracle gold rationale), $59{,}784$
+rows total, stratified $95/5$ train/validation.  Two adapter
+variants:
+
+\begin{itemize}
+    \item \textbf{v2} (10M trainable parameters): LoRA target
+          modules $[$\code{q\_proj}, \code{k\_proj}, \code{v\_proj},
+          \code{o\_proj}, \code{gate\_proj}, \code{up\_proj},
+          \code{down\_proj}$]$ --- the standard Llama target list,
+          which only matches $4$ of \LLaDA{}'s $7$ intended modules
+          because \LLaDA{}'s \code{LLaDALlamaBlock} uses olmo-style
+          names.  $r{=}8$, $\alpha{=}16$, learning rate $5\mathrm{e}{-}5$,
+          $5{,}000$ steps, $p_\text{mask} \sim U(0.1, 0.5)$.
+    \item \textbf{v3} (22M trainable parameters): LoRA target
+          modules $[$\code{q\_proj}, \code{k\_proj}, \code{v\_proj},
+          \code{attn\_out}, \code{ff\_proj}, \code{up\_proj},
+          \code{ff\_out}$]$ --- the \LLaDA{}-correct list, $7/7$
+          match.  All other hyperparameters identical to v2.
+\end{itemize}
+
+\textbf{Track 2 (commit adapter)} trains a smaller FFN-only LoRA
+that distils \cmaj{} consensus into a single forward pass.  The
+training data is \code{eren23/sfumato-commit-mixture-gsm8k}, $109$
+rows derived from running \cmaj{} on $500$ GSM8K-train problems and
+keeping three buckets: $46$ rescue rows (consensus right, greedy
+wrong), $58$ preserve-disagreement rows (both right but branches
+diverge), and $5$ pure-agreement rows.  Two variants:
+
+\begin{itemize}
+    \item \textbf{v2} (13.6M trainable parameters): FFN-only target
+          modules $[$\code{ff\_proj}, \code{up\_proj},
+          \code{ff\_out}$]$, layers $24\text{--}31$ of $32$, $r{=}8$,
+          $\alpha{=}16$, learning rate $5\mathrm{e}{-}5$, $10$ epochs,
+          $p_\text{mask} \sim U(0.3, 0.9)$, answer-span loss
+          (CE on \code{[answer\_start, answer\_end)} only).
+          Inference: commit on the last sub-block only
+          (\code{COMMIT\_N\_BLOCKS=1}).
+    \item \textbf{v3} (13.6M trainable parameters): identical to v2
+          except \code{FULL\_RESPONSE\_LOSS=1} (CE on the full
+          response span \code{[prompt\_len, response\_end)}) and
+          inference uses \code{COMMIT\_N\_BLOCKS=3} (commit on
+          sub-blocks $2\text{--}4$ of $4$).
+\end{itemize}
+
+All four adapters and the two derived datasets above are public on
+the Hugging Face Hub under the \code{eren23/} namespace.  Training
+is described per-script in \appref{app:hyperparameters}.
+
+\paragraph{Pre-registration.}
+Four predictions were registered in \code{e2/PROTOCOL.md} before
+training: (\#1) \ctwoc{} $\geq 80\%$, (\#2) base \cmaj{} within
+$\pm 1$\,pp of $80\%$, (\#3) \cmajc{} $\leq$ \cmaj{} $+ 1$\,pp
+(``no double-dip''), and (\#4) planner-quality threshold shifts
+down with the LoRA.  \appref{app:prereg} reproduces the scorecard.
+
+\paragraph{Hardware and compute.}
+All training and evaluation runs on a single RTX~4090 spot pod
+(Runpod, \$0.20/hr).  Total spend across all experiments is
+approximately \$3.50; per-phase breakdown is in
+\appref{app:compute}.

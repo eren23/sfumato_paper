@@ -1,0 +1,78 @@
+\section{Pre-Registration Scorecard}
+\label{app:prereg}
+
+Four predictions were registered in \code{e2/PROTOCOL.md} before
+training began.  Two hold cleanly, one is violated in the
+unexpected positive direction, and one is mixed (capacity-dependent
+in opposite directions across planners).
+Table~\ref{tab:prereg} reproduces the scorecard.
+
+\begin{table}[h]
+\centering
+\caption{Pre-registration scorecard.  v2 columns evaluated at
+v2 capacity ($4/7$ FFN modules, $10$M LoRA params); v3 columns at
+v3 capacity ($7/7$ modules, $22$M params).  Square brackets are
+exact (Clopper--Pearson) binomial $95\%$ CIs at $N{=}200$.  For
+predictions \#1 and \#2, the $80\%$ pre-registered target sits
+inside the v3 CI on test.}
+\label{tab:prereg}
+\smallskip
+\small
+\begin{tabular}{p{0.36\textwidth}lll}
+\toprule
+Prediction & v2 & v3 & Final \\
+\midrule
+\#1 \ctwoc{} $\geq 80\%$ &
+  $70.5\%$ \mbox{$[63.7, 76.7]$} &
+  $79.0\%$ \mbox{$[72.7, 84.4]$} &
+  \textbf{HOLDS} \\
+\#2 base \cmaj{} $b{=}5$ within $\pm 1$\,pp of $80\%$ &
+  $81.5\%$ \mbox{$[75.4, 86.6]$} (dev) &
+  $79.0\%$ \mbox{$[72.7, 84.4]$} (test) &
+  \textbf{HOLDS} \\
+\#3 \cmajc{} $\leq$ \cmaj{} $+ 1$\,pp (no double-dip) &
+  n/a &
+  $+3$\,pp (good direction) &
+  \textbf{VIOLATED UPWARD} \\
+\#4 planner-quality threshold shifts down &
+  hold, $\Delta{=}+7$\,pp &
+  inverts, $\Delta{=}-11$\,pp &
+  \textbf{MIXED} \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\paragraph{Reading.}
+Two clean holds (\#1 with the registered $80\%$ target inside the
+v3 \mbox{$[72.7, 84.4]$} CI; \#2 with $80\%$ inside the test
+\mbox{$[72.7, 84.4]$} CI).  One violation in the unexpected
+positive direction (\#3, compositionality of \cmajc{} on top of
+\ctwoc{}).  One mixed result (\#4, capacity-dependent in opposite directions
+across planners): prediction holds at v2 capacity, inverts at v3
+capacity.  The
+inversion is itself a finding (\S\ref{sec:axis2}) and is what
+made us promote planner-content trust to its own axis.
+
+\paragraph{What we did not pre-register.}
+The diversity-expansion finding (\S\ref{sec:axis3}) was not
+pre-registered as a positive prediction.  Pre-registration \#3 in
+the original protocol was that \emph{Track 2 would not damage}
+\cmaj{} diversity (a no-regression prediction).  The actual
+result --- diversity \emph{expands} after Track 1, with $5/5$-same
+rate dropping from $51.5\%$ to $47.5\%$ on test --- falls outside
+the predicted scenarios.  We treat it as a positive surprise and
+flag it as a non-pre-registered finding.
+
+\paragraph{Discipline note.}
+Track 1 v3 was pre-committed as the headline before its \cmaj{}
+number landed.  At the time the framing decision was written
+(plan file, $\sim$12:05 UTC), the v3 \cmaj{} eval was mid-run at
+step $162/200$.  The final v3 \cmaj{} test number ($79.5\%$
+\mbox{$[73.2, 84.9]$}) came in below v2's $81.5\%$ \mbox{$[75.4,
+86.6]$} on dev.  Resisting the temptation to retreat to v2 as the
+headline post-hoc was the discipline cost of pre-registration; we
+report v3 as the headline regardless.  We note that the two CIs
+overlap heavily; the $-2$\,pp difference is well within sampling
+error at $N{=}200$, so the framing decision did not depend on a
+difference our eval can resolve.

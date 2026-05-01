@@ -1,0 +1,40 @@
+# Sfumato Paper 1 video — curated story.
+# Scenes 1-3 reuse the E4 motivation (cognitive metaphor, four conditions, headline numbers).
+# Scenes 4-11 are new and follow the paper's three-axis decomposition + Track 2 design iteration.
+scenes:
+  - id: scene01_metaphor
+    file: scenes/scene01_metaphor.py
+    class: SfumatoMetaphorScene
+  - id: scene02_e4_pipelines
+    file: scenes/scene02_e4_pipelines.py
+    class: SfumatoPipelinesScene
+  - id: scene03_e4_results
+    file: scenes/scene03_e4_results.py
+    class: SfumatoResultsScene
+  - id: scene04_three_axes
+    file: scenes/scene04_three_axes.py
+    class: ThreeAxesScene
+  - id: scene05_axis1_brittleness
+    file: scenes/scene05_axis1_brittleness.py
+    class: Axis1BrittlenessScene
+  - id: scene06_axis2_planner_trust
+    file: scenes/scene06_axis2_planner_trust.py
+    class: Axis2PlannerTrustScene
+  - id: scene07_axis3_diversity
+    file: scenes/scene07_axis3_diversity.py
+    class: Axis3DiversityScene
+  - id: scene08_consensus_distill
+    file: scenes/scene08_consensus_distill.py
+    class: ConsensusDistillScene
+  - id: scene09_ablation
+    file: scenes/scene09_ablation.py
+    class: AblationScene
+  - id: scene09b_b1_vs_b5
+    file: scenes/scene09b_b1_vs_b5.py
+    class: B1VsB5Scene
+  - id: scene10_qwen_sc_rebuttal
+    file: scenes/scene10_qwen_sc_rebuttal.py
+    class: QwenSCRebuttalScene
+  - id: scene11_closing
+    file: scenes/scene11_closing.py
+    class: ClosingScene

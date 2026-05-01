@@ -1,0 +1,186 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{cobbe2021gsm8k}
+\citation{nie2025llada}
+\citation{qwen2024report}
+\citation{hu2022lora}
+\citation{wang2023selfconsistency}
+\citation{ye2024diffusionofthought,zhao2025d1}
+\citation{huang2025dcolt}
+\citation{liu2025ccdd}
+\citation{nie2025llada,gong2024diffullama,arriola2025bd3lms}
+\citation{nie2025llada}
+\citation{cobbe2021gsm8k}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\newlabel{sec:introduction}{{1}{1}{Introduction}{section.1}{}}
+\citation{wang2023selfconsistency}
+\citation{qwen2024report}
+\citation{hu2022lora,mangrulkar2022peft}
+\citation{wang2023selfconsistency}
+\citation{nie2025llada}
+\citation{qwen2024report}
+\@writefile{toc}{\contentsline {paragraph}{Contributions.}{3}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Framing: decomposition, not unification.}{3}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Status.}{3}{section*.3}\protected@file@percent }
+\citation{cobbe2021gsm8k}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Setup}{4}{section.2}\protected@file@percent }
+\newlabel{sec:setup}{{2}{4}{Setup}{section.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Models.}{4}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Evaluation.}{4}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Statistical reporting.}{4}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Conditions.}{4}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Adapters trained.}{4}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Pre-registration.}{5}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Hardware and compute.}{5}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Axis 1: Interface-Format Brittleness Is Trainably Fixable}{5}{section.3}\protected@file@percent }
+\newlabel{sec:axis1}{{3}{5}{Axis 1: Interface-Format Brittleness Is Trainably Fixable}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}The Base Hierarchy}{5}{subsection.3.1}\protected@file@percent }
+\newlabel{subsec:axis1_hierarchy}{{3.1}{5}{The Base Hierarchy}{subsection.3.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Base \textsc  {LLaDA}{} prefix-damage hierarchy on GSM8K-test, no LoRA. An empty \texttt  {"Plan: "} prefix already costs $8$\,pp; content-rich plans cost more, with the smaller \textsc  {Qwen2.5-1.5B} planner producing the worst single-shot result. The damage tracks prefix shape, not plan quality.}}{6}{table.1}\protected@file@percent }
+\newlabel{tab:axis1_base_hierarchy}{{1}{6}{Base \LLaDA {} prefix-damage hierarchy on GSM8K-test, no LoRA. An empty \code {"Plan: "} prefix already costs $8$\,pp; content-rich plans cost more, with the smaller \Qwen {1.5B} planner producing the worst single-shot result. The damage tracks prefix shape, not plan quality}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Track 1 v2: A Small LoRA Flattens Static-Prefix Damage}{6}{subsection.3.2}\protected@file@percent }
+\newlabel{subsec:axis1_v2}{{3.2}{6}{Track 1 v2: A Small LoRA Flattens Static-Prefix Damage}{subsection.3.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Track 1 v2 versus base on GSM8K-test, $N{=}200$. Static prefix damage flattens (spread across \{\texttt  {C2}{}, \texttt  {C2hint}, \texttt  {C2empty}\} drops from $8$\,pp to $3$\,pp). Q-1.5B plan helps; Q-0.5B plan still hurts. \texttt  {cmaj}{} accuracy is preserved on dev.}}{6}{table.2}\protected@file@percent }
+\newlabel{tab:axis1_v2_full}{{2}{6}{Track 1 v2 versus base on GSM8K-test, $N{=}200$. Static prefix damage flattens (spread across \{\ctwo {}, \code {C2hint}, \code {C2empty}\} drops from $8$\,pp to $3$\,pp). Q-1.5B plan helps; Q-0.5B plan still hurts. \cmaj {} accuracy is preserved on dev}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Track 1 v3: A Capacity Tradeoff}{6}{subsection.3.3}\protected@file@percent }
+\newlabel{subsec:axis1_v3}{{3.3}{6}{Track 1 v3: A Capacity Tradeoff}{subsection.3.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Track 1 v2 ($4/7$ modules, $10$M params) against v3 ($7/7$ modules, $22$M params) on GSM8K-test, $N{=}200$. Full-FFN coverage gains $+2.5$\,pp on no-prefix \texttt  {C2}{} but loses $-2.0$\,pp on \texttt  {cmaj}{} branch-vote. The Q-0.5B/Q-1.5B planner split \emph  {inverts} between the two capacities. \texttt  {cmaj}{} on test for v3 is reported apples-to-apples against base test \texttt  {cmaj}{} of $79.0\%$.}}{7}{table.3}\protected@file@percent }
+\newlabel{tab:axis1_v2_v3}{{3}{7}{Track 1 v2 ($4/7$ modules, $10$M params) against v3 ($7/7$ modules, $22$M params) on GSM8K-test, $N{=}200$. Full-FFN coverage gains $+2.5$\,pp on no-prefix \ctwo {} but loses $-2.0$\,pp on \cmaj {} branch-vote. The Q-0.5B/Q-1.5B planner split \emph {inverts} between the two capacities. \cmaj {} on test for v3 is reported apples-to-apples against base test \cmaj {} of $79.0\%$}{table.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Reading}{7}{subsection.3.4}\protected@file@percent }
+\newlabel{subsec:axis1_reading}{{3.4}{7}{Reading}{subsection.3.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Status.}{7}{section*.11}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Prefix-damage hierarchy across \{base, Track 1 v2, Track 1 v3\} on all five conditions. The \textsc  {Qwen2.5-0.5B}/\textsc  {Qwen2.5-1.5B} inversion at v3 is annotated. Static-prefix damage flattens at v2 and tightens further at v3; planner-content sensitivity widens at v3.}}{8}{figure.1}\protected@file@percent }
+\newlabel{fig:prefix_hierarchy}{{1}{8}{Prefix-damage hierarchy across \{base, Track 1 v2, Track 1 v3\} on all five conditions. The \Qwen {0.5B}/\Qwen {1.5B} inversion at v3 is annotated. Static-prefix damage flattens at v2 and tightens further at v3; planner-content sensitivity widens at v3}{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Axis 2: Planner-Content Trust Is Capacity-Dependent in Opposite Directions Across Planners}{8}{section.4}\protected@file@percent }
+\newlabel{sec:axis2}{{4}{8}{Axis 2: Planner-Content Trust Is Capacity-Dependent in Opposite Directions Across Planners}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}The Pattern}{8}{subsection.4.1}\protected@file@percent }
+\newlabel{subsec:axis2_pattern}{{4.1}{8}{The Pattern}{subsection.4.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Planner-content trust as a function of LoRA capacity. At v2 the bigger planner helps; at v3 it catastrophically regresses while the smaller planner improves. Static-prefix conditions (\texttt  {C2hint}, \texttt  {C2empty}) are unaffected by the capacity bump and are listed for contrast.}}{9}{table.4}\protected@file@percent }
+\newlabel{tab:axis2_planner_split}{{4}{9}{Planner-content trust as a function of LoRA capacity. At v2 the bigger planner helps; at v3 it catastrophically regresses while the smaller planner improves. Static-prefix conditions (\code {C2hint}, \code {C2empty}) are unaffected by the capacity bump and are listed for contrast}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Reading}{9}{subsection.4.2}\protected@file@percent }
+\newlabel{subsec:axis2_reading}{{4.2}{9}{Reading}{subsection.4.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Status.}{9}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Axis 3: Sampling Diversity Is \emph  {Expanded} by Format-Augmented Training}{9}{section.5}\protected@file@percent }
+\newlabel{sec:axis3}{{5}{9}{Axis 3: Sampling Diversity Is \emph {Expanded} by Format-Augmented Training}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Branch-Agreement Distribution}{9}{subsection.5.1}\protected@file@percent }
+\newlabel{subsec:axis3_distribution}{{5.1}{9}{Branch-Agreement Distribution}{subsection.5.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Branch-agreement distribution on GSM8K-test, $N{=}200$, $b{=}5$, $t{=}0.7$. Apples-to-apples: both columns evaluated on the same $200$ test problems. Mean unique answers per problem rises $1.83 \to 2.07$ ($+13\%$); the fraction of problems where all $5$ branches agree drops from $51.5\%$ to $47.5\%$. \texttt  {cmajc}{} accuracy on test is $82.0\%$ (commit v2) / $82.5\%$ (commit v3) --- diversity goes up while branch-vote accuracy is preserved or improved (Table~\ref {tab:distill_main}).}}{10}{table.5}\protected@file@percent }
+\newlabel{tab:axis3_branch_dist}{{5}{10}{Branch-agreement distribution on GSM8K-test, $N{=}200$, $b{=}5$, $t{=}0.7$. Apples-to-apples: both columns evaluated on the same $200$ test problems. Mean unique answers per problem rises $1.83 \to 2.07$ ($+13\%$); the fraction of problems where all $5$ branches agree drops from $51.5\%$ to $47.5\%$. \cmajc {} accuracy on test is $82.0\%$ (commit v2) / $82.5\%$ (commit v3) --- diversity goes up while branch-vote accuracy is preserved or improved (Table~\ref {tab:distill_main})}{table.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Hypothesis: Surface-to-Trajectory Generalization}{10}{subsection.5.2}\protected@file@percent }
+\newlabel{subsec:axis3_hypothesis}{{5.2}{10}{Hypothesis: Surface-to-Trajectory Generalization}{subsection.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Open Mechanism Question}{10}{subsection.5.3}\protected@file@percent }
+\newlabel{subsec:axis3_open}{{5.3}{10}{Open Mechanism Question}{subsection.5.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Branch-agreement distribution shift, $5$-bin histogram for \{base on test, Track 1 v2 + commit v2\}. The drop in $5/5$-same and the rises in $3/5$-unique and $5/5$-unique are visible. Generated by \texttt  {scripts/make\_paper\_figures.py}.}}{11}{figure.2}\protected@file@percent }
+\newlabel{fig:branch_agreement}{{2}{11}{Branch-agreement distribution shift, $5$-bin histogram for \{base on test, Track 1 v2 + commit v2\}. The drop in $5/5$-same and the rises in $3/5$-unique and $5/5$-unique are visible. Generated by \code {scripts/make\_paper\_figures.py}}{figure.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Reading.}{11}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Consensus Distillation Is Design-Sensitive, Not Architecture-Limited}{11}{section.6}\protected@file@percent }
+\newlabel{sec:distill}{{6}{11}{Consensus Distillation Is Design-Sensitive, Not Architecture-Limited}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}The Plateau: v1 and v2 at \texttt  {c2c}{} $= 70.5\%$}{12}{subsection.6.1}\protected@file@percent }
+\newlabel{subsec:distill_plateau}{{6.1}{12}{The Plateau: v1 and v2 at \ctwoc {} $= 70.5\%$}{subsection.6.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}v3: Multi-Block Commit + Full-Response Loss}{12}{subsection.6.2}\protected@file@percent }
+\newlabel{subsec:distill_v3}{{6.2}{12}{v3: Multi-Block Commit + Full-Response Loss}{subsection.6.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Disentangling: Block Coverage Versus Supervision}{12}{subsection.6.3}\protected@file@percent }
+\newlabel{subsec:distill_ablations}{{6.3}{12}{Disentangling: Block Coverage Versus Supervision}{subsection.6.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Track 2 commit-adapter results on GSM8K-test, $N{=}200$, $k{=}64$, seed $0$. v3 c2c $= 79.0\%$ is within sampling error of the $80\%$ pre-registered target (binomial CI $\pm 5$\,pp at $N{=}200$). cmajc v2 $= 82.0\%$ on test is $+3$\,pp over base test cmaj $= 79.0\%$.}}{13}{table.6}\protected@file@percent }
+\newlabel{tab:distill_main}{{6}{13}{Track 2 commit-adapter results on GSM8K-test, $N{=}200$, $k{=}64$, seed $0$. v3 c2c $= 79.0\%$ is within sampling error of the $80\%$ pre-registered target (binomial CI $\pm 5$\,pp at $N{=}200$). cmajc v2 $= 82.0\%$ on test is $+3$\,pp over base test cmaj $= 79.0\%$}{table.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Disentangling ablations. Block coverage ($n_\text  {blocks}{=}3$) drives most of the lift. Full-response loss adds $+2.0$\,pp on top, but on its own (with $n_\text  {blocks}{=}1$) adds nothing. The two design errors mask each other.}}{13}{table.7}\protected@file@percent }
+\newlabel{tab:distill_disentangle}{{7}{13}{Disentangling ablations. Block coverage ($n_\text {blocks}{=}3$) drives most of the lift. Full-response loss adds $+2.0$\,pp on top, but on its own (with $n_\text {blocks}{=}1$) adds nothing. The two design errors mask each other}{table.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Mechanism}{13}{subsection.6.4}\protected@file@percent }
+\newlabel{subsec:distill_mechanism}{{6.4}{13}{Mechanism}{subsection.6.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces c2c design-iteration disentangling. Five bars: v1/v2 baseline, v3 LoRA alone, ABL\_A (block coverage with v2 answer-span supervision), ABL\_B (full-response loss with last-block-only commit), v3 full. The pre-registered $80\%$ target and base test \texttt  {cmaj}{} of $79\%$ lines are visible. The $+0.0$ result for ABL\_B (full-response loss with $n_\text  {blocks}{=}1$) makes the ``block coverage is dominant'' story visually unambiguous. Generated by \texttt  {scripts/make\_paper\_figures.py}.}}{14}{figure.3}\protected@file@percent }
+\newlabel{fig:c2c_design}{{3}{14}{c2c design-iteration disentangling. Five bars: v1/v2 baseline, v3 LoRA alone, ABL\_A (block coverage with v2 answer-span supervision), ABL\_B (full-response loss with last-block-only commit), v3 full. The pre-registered $80\%$ target and base test \cmaj {} of $79\%$ lines are visible. The $+0.0$ result for ABL\_B (full-response loss with $n_\text {blocks}{=}1$) makes the ``block coverage is dominant'' story visually unambiguous. Generated by \code {scripts/make\_paper\_figures.py}}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Compositionality with Branch Aggregation}{14}{subsection.6.5}\protected@file@percent }
+\newlabel{subsec:distill_compose}{{6.5}{14}{Compositionality with Branch Aggregation}{subsection.6.5}{}}
+\citation{wang2023selfconsistency}
+\citation{qwen2024report}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Branch aggregation absorbs the v2$\to $v3 structural correction. At $b{=}1$ (left), the structurally-correct v3 commit beats the structurally-incorrect v2 commit by $+8.5$\,pp, well outside CI overlap. At $b{=}5$ (right), the same two adapters are statistically indistinguishable. Stochastic branch-vote already recovers the consensus quality that the late-block-only v2 commit misses, leaving the v3 commit's structural advantage with little incremental room to operate. Generated by \texttt  {scripts/make\_paper\_figures.py}.}}{15}{figure.4}\protected@file@percent }
+\newlabel{fig:b1_vs_b5}{{4}{15}{Branch aggregation absorbs the v2$\to $v3 structural correction. At $b{=}1$ (left), the structurally-correct v3 commit beats the structurally-incorrect v2 commit by $+8.5$\,pp, well outside CI overlap. At $b{=}5$ (right), the same two adapters are statistically indistinguishable. Stochastic branch-vote already recovers the consensus quality that the late-block-only v2 commit misses, leaving the v3 commit's structural advantage with little incremental room to operate. Generated by \code {scripts/make\_paper\_figures.py}}{figure.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Status.}{15}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Reviewer-Resilience: Is This Just Self-Consistency?}{15}{section.7}\protected@file@percent }
+\newlabel{sec:rebuttal}{{7}{15}{Reviewer-Resilience: Is This Just Self-Consistency?}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Baseline}{16}{subsection.7.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces AR self-consistency baseline against \textsc  {LLaDA}{} \texttt  {cmaj}{} on the same eval ($N{=}200$, GSM8K-test, $b{=}5$, $t{=}0.7$). Generic self-consistency does not explain the diffusion \texttt  {cmaj}{} advantage.}}{16}{table.8}\protected@file@percent }
+\newlabel{tab:rebuttal_sc}{{8}{16}{AR self-consistency baseline against \LLaDA {} \cmaj {} on the same eval ($N{=}200$, GSM8K-test, $b{=}5$, $t{=}0.7$). Generic self-consistency does not explain the diffusion \cmaj {} advantage}{table.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Reading}{16}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Discussion}{16}{section.8}\protected@file@percent }
+\newlabel{sec:discussion}{{8}{16}{Discussion}{section.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Reconciling the Conflicting Reports}{16}{subsection.8.1}\protected@file@percent }
+\citation{cobbe2021gsm8k}
+\citation{nie2025llada}
+\citation{cobbe2021gsm8k}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Implication: Distillation of Inference-Time Mechanisms}{17}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Future Work}{17}{subsection.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Cross-task transfer.}{17}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reranker baseline.}{17}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Diversity-mechanism test.}{17}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Content-trust adapter.}{17}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Adaptive mode router (Paper 2).}{17}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Limitations}{17}{subsection.8.4}\protected@file@percent }
+\citation{nie2025llada}
+\citation{qwen2024report}
+\bibstyle{plainnat}
+\bibdata{references}
+\bibcite{arriola2025bd3lms}{{1}{2025}{{Arriola et~al.}}{{Arriola, Gokaslan, Chiu, Yang, Qi, Han, Sahoo, and Kuleshov}}}
+\bibcite{cobbe2021gsm8k}{{2}{2021}{{Cobbe et~al.}}{{Cobbe, Kosaraju, Bavarian, Chen, Jun, Kaiser, Plappert, Tworek, Hilton, Nakano, Hesse, and Schulman}}}
+\bibcite{gong2024diffullama}{{3}{2024}{{Gong et~al.}}{{Gong, Agarwal, Zhang, Ye, Zheng, Li, An, Zhao, Bi, Han, Peng, and Kong}}}
+\bibcite{hu2022lora}{{4}{2022}{{Hu et~al.}}{{Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, and Chen}}}
+\bibcite{huang2025dcolt}{{5}{2025}{{Huang et~al.}}{{Huang, Wang, Wang, Zhao, and Wang}}}
+\bibcite{liu2025ccdd}{{6}{2025}{{Liu et~al.}}{{Liu, Li, Yu, and Wang}}}
+\bibcite{ma2025janusflow}{{7}{2025}{{Ma et~al.}}{{Ma, Liu, Chen, Liu, Wu, Wu, Pan, Xie, Zhang, Yu, Zhao, Wang, Liu, and Ruan}}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{18}{section.9}\protected@file@percent }
+\newlabel{sec:conclusion}{{9}{18}{Conclusion}{section.9}{}}
+\bibcite{mangrulkar2022peft}{{8}{2022}{{Mangrulkar et~al.}}{{Mangrulkar, Gugger, Debut, Belkada, Paul, and Bossan}}}
+\bibcite{nie2025llada}{{9}{2025}{{Nie et~al.}}{{Nie, Zhu, You, Zhang, Ou, Hu, Zhou, Lin, Wen, and Li}}}
+\bibcite{qwen2024report}{{10}{2024}{{Team}}{{}}}
+\bibcite{wang2023selfconsistency}{{11}{2023}{{Wang et~al.}}{{Wang, Wei, Schuurmans, Le, Chi, Narang, Chowdhery, and Zhou}}}
+\bibcite{xie2024showo}{{12}{2024}{{Xie et~al.}}{{Xie, Mao, Bai, Zhang, Wang, Lin, Gu, Chen, Yang, and Shou}}}
+\bibcite{ye2024diffusionofthought}{{13}{2024}{{Ye et~al.}}{{Ye, Gao, Gong, Zheng, Jiang, Li, and Kong}}}
+\bibcite{zhao2025d1}{{14}{2025}{{Zhao et~al.}}{{Zhao, Gupta, Zheng, and Grover}}}
+\bibcite{zhou2024transfusion}{{15}{2024}{{Zhou et~al.}}{{Zhou, Yu, Babu, Tirumala, Yasunaga, Shamis, Kahn, Ma, Zettlemoyer, and Levy}}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Pre-Registration Scorecard}{19}{appendix.A}\protected@file@percent }
+\newlabel{app:prereg}{{A}{19}{Pre-Registration Scorecard}{appendix.A}{}}
+\@writefile{toc}{\contentsline {paragraph}{Reading.}{19}{section*.21}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Pre-registration scorecard. v2 columns evaluated at v2 capacity ($4/7$ FFN modules, $10$M LoRA params); v3 columns at v3 capacity ($7/7$ modules, $22$M params). Square brackets are exact (Clopper--Pearson) binomial $95\%$ CIs at $N{=}200$. For predictions \#1 and \#2, the $80\%$ pre-registered target sits inside the v3 CI on test.}}{20}{table.9}\protected@file@percent }
+\newlabel{tab:prereg}{{9}{20}{Pre-registration scorecard. v2 columns evaluated at v2 capacity ($4/7$ FFN modules, $10$M LoRA params); v3 columns at v3 capacity ($7/7$ modules, $22$M params). Square brackets are exact (Clopper--Pearson) binomial $95\%$ CIs at $N{=}200$. For predictions \#1 and \#2, the $80\%$ pre-registered target sits inside the v3 CI on test}{table.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{What we did not pre-register.}{20}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Discipline note.}{20}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B}Compute Spend}{20}{appendix.B}\protected@file@percent }
+\newlabel{app:compute}{{B}{20}{Compute Spend}{appendix.B}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Compute spend on a single RTX~4090 spot pod (\$0.20/hr). Reproduces in approximately one GPU-day.}}{20}{table.10}\protected@file@percent }
+\newlabel{tab:compute}{{10}{20}{Compute spend on a single RTX~4090 spot pod (\$0.20/hr). Reproduces in approximately one GPU-day}{table.10}{}}
+\citation{nie2025llada}
+\citation{mangrulkar2022peft}
+\@writefile{toc}{\contentsline {paragraph}{Reproducibility.}{21}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C}Hyperparameters}{21}{appendix.C}\protected@file@percent }
+\newlabel{app:hyperparameters}{{C}{21}{Hyperparameters}{appendix.C}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}Common Settings}{21}{subsection.C.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Common settings across all four LoRA adapters.}}{21}{table.11}\protected@file@percent }
+\newlabel{tab:hp_common}{{11}{21}{Common settings across all four LoRA adapters}{table.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.2}Track 1 (Prefix-Robustness)}{21}{subsection.C.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{$p_\text  {mask}$ note.}{21}{section*.25}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Track 1 v2 and v3 training configurations. Only the \texttt  {target\_modules} list differs. v2's list misses three of \textsc  {LLaDA}{}'s actual block names (\texttt  {o\_proj} $\to $ \texttt  {attn\_out}, \texttt  {gate\_proj} $\to $ \texttt  {ff\_proj}, \texttt  {down\_proj} $\to $ \texttt  {ff\_out}), attaching to $4/7$ intended modules. v3's list is the \textsc  {LLaDA}{}-correct $7/7$.}}{22}{table.12}\protected@file@percent }
+\newlabel{tab:hp_track1}{{12}{22}{Track 1 v2 and v3 training configurations. Only the \code {target\_modules} list differs. v2's list misses three of \LLaDA {}'s actual block names (\code {o\_proj} $\to $ \code {attn\_out}, \code {gate\_proj} $\to $ \code {ff\_proj}, \code {down\_proj} $\to $ \code {ff\_out}), attaching to $4/7$ intended modules. v3's list is the \LLaDA {}-correct $7/7$}{table.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.3}Track 2 (Commit Adapter)}{22}{subsection.C.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Note on Track 2 v1.}{22}{section*.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Inference configuration.}{22}{section*.27}\protected@file@percent }
+\citation{mangrulkar2022peft}
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Track 2 v2 and v3 training configurations. Only \texttt  {FULL\_RESPONSE\_LOSS} (training) and \texttt  {COMMIT\_N\_BLOCKS} (inference) differ. Both v2 and v3 use the \textsc  {LLaDA}{}-correct FFN-only target list, applied to the last $8$ layers of \textsc  {LLaDA}{}-8B's $32$ ($24\text  {--}31$).}}{23}{table.13}\protected@file@percent }
+\newlabel{tab:hp_track2}{{13}{23}{Track 2 v2 and v3 training configurations. Only \code {FULL\_RESPONSE\_LOSS} (training) and \code {COMMIT\_N\_BLOCKS} (inference) differ. Both v2 and v3 use the \LLaDA {}-correct FFN-only target list, applied to the last $8$ layers of \LLaDA {}-8B's $32$ ($24\text {--}31$)}{table.13}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}Open Exposures}{23}{appendix.D}\protected@file@percent }
+\newlabel{app:open}{{D}{23}{Open Exposures}{appendix.D}{}}
+\@writefile{toc}{\contentsline {paragraph}{No multi-seed variance on the headline numbers.}{23}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{ABL\_B sanity probe deferred.}{23}{section*.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Per-problem error-set diff for v1 vs.\ v2 not done.}{23}{section*.30}\protected@file@percent }
+\citation{cobbe2021gsm8k}
+\citation{arriola2025bd3lms}
+\citation{gong2024diffullama}
+\citation{zhou2024transfusion,xie2024showo,ma2025janusflow}
+\@writefile{toc}{\contentsline {paragraph}{LCH-centroid mechanism figure for Track 1 was not produced.}{24}{section*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Track 1 v1 catastrophe is documented in \texttt  {e2/RESULTS\_TRACK1.md} but not in the body.}{24}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{No cross-task transfer.}{24}{section*.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{No comparison to BD3-LMs and DiffuLLaMA on the same eval.}{24}{section*.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Diversity-mechanism test deferred.}{24}{section*.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reranker baseline not run.}{24}{section*.36}\protected@file@percent }
+\gdef \@abspage@last{24}

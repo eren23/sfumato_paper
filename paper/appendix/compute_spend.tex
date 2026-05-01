@@ -1,0 +1,46 @@
+\section{Compute Spend}
+\label{app:compute}
+
+All training and evaluation runs on a single RTX~4090 spot pod
+from Runpod at \$0.20/hr.  Total spend across all experiments is
+approximately \$3.50.  Table~\ref{tab:compute} reproduces the
+per-phase breakdown.
+
+\begin{table}[h]
+\centering
+\caption{Compute spend on a single RTX~4090 spot pod (\$0.20/hr).
+Reproduces in approximately one GPU-day.}
+\label{tab:compute}
+\smallskip
+\begin{tabular}{lr}
+\toprule
+Phase & Cost (USD) \\
+\midrule
+Track 1 v1 train + eval & \$0.80 \\
+Track 1 v2 train + full eval suite & \$0.50 \\
+Track 1 v3 train + eval suite & \$0.30 \\
+Track 2 v1 + v2 train + eval & \$0.55 \\
+Track 2 v3 train + eval & \$0.20 \\
+Disentangling ablations (ABL\_A, ABL\_B) & \$0.20 \\
+Diagnostic experiments + branch-agreement falsifier & \$0.50 \\
+\Qwen{} self-consistency baseline & \$0.10 \\
+Buffer (debug, redos) & \$0.35 \\
+\midrule
+\textbf{Total} & $\mathbf{\sim \$3.50}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reproducibility.}
+The full experimental record (training scripts, eval scripts,
+LoRA adapters, derived datasets, raw per-problem JSONL outputs,
+and W\&B run links) is publicly available.  All four LoRA
+adapters are on the Hugging Face Hub under the \code{eren23/}
+namespace:
+\code{sfumato-llada-prefix-robust-v2},
+\code{sfumato-llada-prefix-robust-v3},
+\code{sfumato-llada-commit-v2}, and
+\code{sfumato-llada-commit-v3}.
+The two derived datasets are \code{eren23/sfumato-prefix-robust-gsm8k}
+($59{,}784$ rows) and \code{eren23/sfumato-commit-mixture-gsm8k}
+($109$ rows).

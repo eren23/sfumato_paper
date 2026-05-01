@@ -1,0 +1,159 @@
+\section{Hyperparameters}
+\label{app:hyperparameters}
+
+This appendix reproduces the exact configuration of all four LoRA
+adapters reported in the body, derived from
+\code{scripts/train\_track1\_lora.py} and
+\code{scripts/train\_track2\_commit.py}.
+
+\subsection{Common Settings}
+
+All four adapters share the following base settings:
+
+\begin{table}[h]
+\centering
+\caption{Common settings across all four LoRA adapters.}
+\label{tab:hp_common}
+\smallskip
+\begin{tabular}{ll}
+\toprule
+Setting & Value \\
+\midrule
+Base model & \code{GSAI-ML/LLaDA-8B-Instruct}~\citep{nie2025llada} \\
+Precision & bfloat16 \\
+Tokenizer & \code{AutoTokenizer.from\_pretrained(MODEL\_NAME, trust\_remote\_code=True)} \\
+Optimizer & AdamW ($\beta_1{=}0.9$, $\beta_2{=}0.95$, weight decay $0.01$) \\
+LR schedule & cosine decay with linear warmup \\
+Gradient clip (max norm) & $1.0$ \\
+Activation checkpointing & on \\
+Mask token id & $126336$ (\LLaDA{} \code{<mask>}) \\
+LoRA framework & PEFT~\citep{mangrulkar2022peft} \\
+LoRA dropout & $0.05$ \\
+LoRA bias & none \\
+Random seed & $42$ \\
+Hardware & 1$\times$RTX~4090 (spot, \$0.20/hr) \\
+Pinned dependency & \code{transformers==4.46.3} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Track 1 (Prefix-Robustness)}
+
+Both v2 and v3 train on the
+\code{eren23/sfumato-prefix-robust-gsm8k} dataset (7,473
+GSM8K-train problems crossed with $8$ prefix tiers, $59{,}784$
+rows total, $95/5$ train/validation split).  The LLaDA training
+objective is the standard masked-diffusion CE loss: sample
+$t \sim U(0,1)$, set $p_\text{mask} = (1-\epsilon)t + \epsilon$,
+mask response tokens with probability $p_\text{mask}$, replace
+with \code{MASK\_ID}, and apply CE only on masked positions
+re-weighted by $1/p_\text{mask}$.  Prompt tokens are never masked.
+
+\begin{table}[h]
+\centering
+\caption{Track 1 v2 and v3 training configurations.  Only the
+\code{target\_modules} list differs.  v2's list misses three of
+\LLaDA{}'s actual block names (\code{o\_proj} $\to$
+\code{attn\_out}, \code{gate\_proj} $\to$ \code{ff\_proj},
+\code{down\_proj} $\to$ \code{ff\_out}), attaching to $4/7$
+intended modules.  v3's list is the \LLaDA{}-correct $7/7$.}
+\label{tab:hp_track1}
+\smallskip
+\begin{tabular}{lll}
+\toprule
+Setting & Track 1 v2 & Track 1 v3 \\
+\midrule
+LoRA $r$ & $8$ & $8$ \\
+LoRA $\alpha$ & $16$ & $16$ \\
+Learning rate & $5\mathrm{e}{-}5$ & $5\mathrm{e}{-}5$ \\
+Max steps & $5{,}000$ & $5{,}000$ \\
+Warmup steps & $200$ & $200$ \\
+Batch size $\times$ grad accum & $1 \times 4$ & $1 \times 4$ \\
+$p_\text{mask}$ range & $U(0.1, 0.5)$ & $U(0.1, 0.5)$ \\
+Max sequence length & $512$ & $512$ \\
+Trainable parameters & $\approx 10$M & $\approx 22$M \\
+target\_modules &
+  \code{[q\_proj, k\_proj, v\_proj,} &
+  \code{[q\_proj, k\_proj, v\_proj,} \\
+&
+  \code{ o\_proj, gate\_proj,} &
+  \code{ attn\_out, ff\_proj,} \\
+&
+  \code{ up\_proj, down\_proj]} &
+  \code{ up\_proj, ff\_out]} \\
+Modules attached to \LLaDA{} & $4 / 7$ &  $7 / 7$ \\
+Final val/loss & $0.017$ & comparable \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{$p_\text{mask}$ note.}
+Track 1 v1 (not reported in the body except for the v1 catastrophe
+note in \appref{app:open}) used $p_\text{mask} \sim U(\epsilon,
+1{-}\epsilon)$, which over-weighted very-high-mask cases at
+training time.  At inference, where the diffusion sampler
+typically uncovers $\sim 16\text{--}32$ fresh tokens per sub-block
+at moderate $p_\text{mask}$, the v1 model defaulted to a learned
+copy-back-context heuristic (bigram repetition loops).  v2 narrowed
+the range to $U(0.1, 0.5)$ to match the regime \LLaDA{} actually
+inhabits at inference.  v3 inherits this fix.
+
+\subsection{Track 2 (Commit Adapter)}
+
+Both v2 and v3 train on the
+\code{eren23/sfumato-commit-mixture-gsm8k} dataset ($109$ rows,
+$104$ train / $5$ validation), with three buckets: $46$ rescue,
+$58$ preserve-disagreement, $5$ pure-agreement.  The trainer
+re-uses the \LLaDA{} CE loss from Track 1 but masks a configurable
+span: answer-only \code{[answer\_start, answer\_end)} for v2, full
+response \code{[prompt\_len, response\_end)} for v3.
+
+\begin{table}[h]
+\centering
+\caption{Track 2 v2 and v3 training configurations.  Only
+\code{FULL\_RESPONSE\_LOSS} (training) and
+\code{COMMIT\_N\_BLOCKS} (inference) differ.  Both v2 and v3 use
+the \LLaDA{}-correct FFN-only target list, applied to the last
+$8$ layers of \LLaDA{}-8B's $32$ ($24\text{--}31$).}
+\label{tab:hp_track2}
+\smallskip
+\begin{tabular}{lll}
+\toprule
+Setting & Track 2 v2 & Track 2 v3 \\
+\midrule
+LoRA $r$ & $8$ & $8$ \\
+LoRA $\alpha$ & $16$ & $16$ \\
+Learning rate & $5\mathrm{e}{-}5$ & $5\mathrm{e}{-}5$ \\
+Epochs & $10$ & $10$ \\
+Warmup steps & $20$ & $20$ \\
+Batch size $\times$ grad accum & $1 \times 4$ & $1 \times 4$ \\
+$p_\text{mask}$ range & $U(0.3, 0.9)$ & $U(0.3, 0.9)$ \\
+Max sequence length & $512$ & $512$ \\
+target\_modules & \code{[ff\_proj, up\_proj, ff\_out]} & \code{[ff\_proj, up\_proj, ff\_out]} \\
+layers\_to\_transform & $24\text{--}31$ ($8/32$) & $24\text{--}31$ ($8/32$) \\
+\code{FULL\_RESPONSE\_LOSS} & $0$ (answer span only) & $\mathbf{1}$ (full response) \\
+\code{COMMIT\_N\_BLOCKS} (inference) & $1$ (last block only) & $\mathbf{3}$ (blocks $2$--$4$) \\
+Trainable parameters & $13.6$M & $13.6$M \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Note on Track 2 v1.}
+Track 2 v1 (briefly mentioned in \S\ref{subsec:distill_plateau})
+used \code{target\_modules=[gate\_proj, up\_proj, down\_proj]} ---
+the standard Llama list, which only matches \code{up\_proj} on
+\LLaDA{}'s actual block.  This produced a $4.2$M-parameter adapter
+that attached to $1/3$ of FFN.  Discovering this bug while
+debugging Track 2 led to inspecting the Track 1 modules, and to
+the v3 retrain on the \LLaDA{}-correct list.  v1 results are not
+reported in the body except as the matched $70.5\%$ \ctwoc{}
+plateau on the v1/v2 row of Table~\ref{tab:distill_main}.
+
+\paragraph{Inference configuration.}
+All evaluations use $k{=}64$ denoising steps and
+\code{gen\_length=128} tokens organized as $4$ sub-blocks of $32$.
+Stochastic conditions (\code{cmaj}, \code{cmajc}) sample $b{=}5$
+branches at $t{=}0.7$ and majority-vote on extracted numeric
+answers.  Deterministic conditions (\ctwo{}, \ctwoc{},
+\code{C2hint}, \code{C2empty}, \cthree{}\code{p X}) use $t{=}0$
+greedy decoding.

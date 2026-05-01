@@ -1,0 +1,135 @@
+\begin{thebibliography}{15}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Arriola et~al.(2025)Arriola, Gokaslan, Chiu, Yang, Qi, Han, Sahoo, and
+  Kuleshov]{arriola2025bd3lms}
+Marianne Arriola, Aaron Gokaslan, Justin~T. Chiu, Zhihan Yang, Zhixuan Qi,
+  Jiaqi Han, Subham~Sekhar Sahoo, and Volodymyr Kuleshov.
+\newblock Block diffusion: Interpolating between autoregressive and diffusion
+  language models.
+\newblock \emph{arXiv preprint arXiv:2503.09573}, 2025.
+\newblock Known as BD3-LMs. arXiv:2503.09573.
+
+\bibitem[Cobbe et~al.(2021)Cobbe, Kosaraju, Bavarian, Chen, Jun, Kaiser,
+  Plappert, Tworek, Hilton, Nakano, Hesse, and Schulman]{cobbe2021gsm8k}
+Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz
+  Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano,
+  Christopher Hesse, and John Schulman.
+\newblock Training verifiers to solve math word problems.
+\newblock \emph{arXiv preprint arXiv:2110.14168}, 2021.
+\newblock Introduces GSM8K. arXiv:2110.14168.
+
+\bibitem[Gong et~al.(2024)Gong, Agarwal, Zhang, Ye, Zheng, Li, An, Zhao, Bi,
+  Han, Peng, and Kong]{gong2024diffullama}
+Shansan Gong, Shivam Agarwal, Yizhe Zhang, Jiacheng Ye, Lin Zheng, Mukai Li,
+  Chenxin An, Peilin Zhao, Wei Bi, Jiawei Han, Hao Peng, and Lingpeng Kong.
+\newblock Scaling diffusion language models via adaptation from autoregressive
+  models.
+\newblock \emph{arXiv preprint arXiv:2410.17891}, 2024.
+\newblock Known as DiffuLLaMA. arXiv:2410.17891.
+
+\bibitem[Hu et~al.(2022)Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, and
+  Chen]{hu2022lora}
+Edward~J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+  Wang, Lu~Wang, and Weizhu Chen.
+\newblock {LoRA}: Low-rank adaptation of large language models.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2022.
+\newblock arXiv:2106.09685.
+
+\bibitem[Huang et~al.(2025)Huang, Wang, Wang, Zhao, and Wang]{huang2025dcolt}
+Jiacheng Huang, Hansi Wang, Lei Wang, Han Zhao, and Zhaoran Wang.
+\newblock Beyond autoregression: Discrete diffusion for complex reasoning and
+  planning.
+\newblock \emph{arXiv preprint arXiv:2505.10446}, 2025.
+\newblock Known as DCoLT (Diffusion Chain-of-Latent-Thought). arXiv:2505.10446.
+
+\bibitem[Liu et~al.(2025)Liu, Li, Yu, and Wang]{liu2025ccdd}
+Hao Liu, Zheng Li, Tianhao Yu, and Yang Wang.
+\newblock {CCDD}: Coevolving continuous and discrete diffusion for latent
+  reasoning.
+\newblock \emph{arXiv preprint arXiv:2510.03206}, 2025.
+\newblock arXiv:2510.03206.
+
+\bibitem[Ma et~al.(2025)Ma, Liu, Chen, Liu, Wu, Wu, Pan, Xie, Zhang, Yu, Zhao,
+  Wang, Liu, and Ruan]{ma2025janusflow}
+Yiyang Ma, Xingchao Liu, Xiaokang Chen, Wen Liu, Chengyue Wu, Zhiyu Wu, Zizheng
+  Pan, Rui Xie, Haowei Zhang, Liang Yu, Yubo Zhao, Yongqiang Wang, Jiawei Liu,
+  and Chong Ruan.
+\newblock {JanusFlow}: Harmonizing autoregression and rectified flow for
+  unified multimodal understanding and generation.
+\newblock \emph{arXiv preprint arXiv:2411.07975}, 2025.
+\newblock arXiv:2411.07975.
+
+\bibitem[Mangrulkar et~al.(2022)Mangrulkar, Gugger, Debut, Belkada, Paul, and
+  Bossan]{mangrulkar2022peft}
+Sourab Mangrulkar, Sylvain Gugger, Lysandre Debut, Younes Belkada, Sayak Paul,
+  and Benjamin Bossan.
+\newblock {PEFT}: State-of-the-art parameter-efficient fine-tuning methods.
+\newblock \url{https://github.com/huggingface/peft}, 2022.
+
+\bibitem[Nie et~al.(2025)Nie, Zhu, You, Zhang, Ou, Hu, Zhou, Lin, Wen, and
+  Li]{nie2025llada}
+Shen Nie, Fengqi Zhu, Zebin You, Xiaolu Zhang, Jingyang Ou, Jun Hu, Jun Zhou,
+  Yankai Lin, Ji-Rong Wen, and Chongxuan Li.
+\newblock Large language diffusion models.
+\newblock \emph{arXiv preprint arXiv:2502.09992}, 2025.
+\newblock Introduces LLaDA-8B; we use LLaDA-8B-Instruct. arXiv:2502.09992.
+
+\bibitem[Team(2024)]{qwen2024report}
+Qwen Team.
+\newblock {Qwen2.5} technical report.
+\newblock \emph{arXiv preprint arXiv:2412.15115}, 2024.
+\newblock We use Qwen2.5-0.5B-Instruct and Qwen2.5-1.5B-Instruct.
+  arXiv:2412.15115.
+
+\bibitem[Wang et~al.(2023)Wang, Wei, Schuurmans, Le, Chi, Narang, Chowdhery,
+  and Zhou]{wang2023selfconsistency}
+Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc~V. Le, Ed~H. Chi, Sharan Narang,
+  Aakanksha Chowdhery, and Denny Zhou.
+\newblock Self-consistency improves chain of thought reasoning in language
+  models.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2023.
+\newblock arXiv:2203.11171.
+
+\bibitem[Xie et~al.(2024)Xie, Mao, Bai, Zhang, Wang, Lin, Gu, Chen, Yang, and
+  Shou]{xie2024showo}
+Jinheng Xie, Weijia Mao, Zechen Bai, David~Junhao Zhang, Weihao Wang,
+  Kevin~Qinghong Lin, Yuchao Gu, Zhijie Chen, Zhenheng Yang, and Mike~Zheng
+  Shou.
+\newblock Show-o: One single transformer to unify multimodal understanding and
+  generation.
+\newblock \emph{arXiv preprint arXiv:2408.12528}, 2024.
+\newblock arXiv:2408.12528.
+
+\bibitem[Ye et~al.(2024)Ye, Gao, Gong, Zheng, Jiang, Li, and
+  Kong]{ye2024diffusionofthought}
+Jiacheng Ye, Shansan Gao, Shansan Gong, Lin Zheng, Xin Jiang, Zhenguo Li, and
+  Lingpeng Kong.
+\newblock Diffusion of thoughts: Chain-of-thought reasoning in diffusion
+  language models.
+\newblock \emph{arXiv preprint arXiv:2402.07754}, 2024.
+\newblock arXiv:2402.07754.
+
+\bibitem[Zhao et~al.(2025)Zhao, Gupta, Zheng, and Grover]{zhao2025d1}
+Siyan Zhao, Devaansh Gupta, Qinqing Zheng, and Aditya Grover.
+\newblock d1: Scaling reasoning in diffusion large language models via
+  reinforcement learning.
+\newblock \emph{arXiv preprint arXiv:2504.12216}, 2025.
+\newblock arXiv:2504.12216.
+
+\bibitem[Zhou et~al.(2024)Zhou, Yu, Babu, Tirumala, Yasunaga, Shamis, Kahn, Ma,
+  Zettlemoyer, and Levy]{zhou2024transfusion}
+Chunting Zhou, Lili Yu, Arun Babu, Kushal Tirumala, Michihiro Yasunaga, Leonid
+  Shamis, Jacob Kahn, Xuezhe Ma, Luke Zettlemoyer, and Omer Levy.
+\newblock Transfusion: Predict the next token and diffuse images with one
+  multi-modal model.
+\newblock \emph{arXiv preprint arXiv:2408.11039}, 2024.
+\newblock arXiv:2408.11039.
+
+\end{thebibliography}

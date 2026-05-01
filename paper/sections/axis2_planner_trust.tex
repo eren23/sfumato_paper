@@ -1,0 +1,93 @@
+\section{Axis 2: Planner-Content Trust Is Capacity-Dependent in Opposite Directions Across Planners}
+\label{sec:axis2}
+
+The cleanest signal in the v2-vs-v3 comparison
+(Table~\ref{tab:axis1_v2_v3}) is the inversion of the
+\Qwen{0.5B}-vs-\Qwen{1.5B} planner split.  At v2 capacity ($4/7$
+modules, $10$M parameters), the larger planner helps and the
+smaller one hurts: \cthree{}\code{p Q-1.5B} reaches $67.0\%$ versus
+\cthree{}\code{p Q-0.5B} at $60.0\%$ ($\Delta=+7$\,pp).  At v3
+capacity ($7/7$ modules, $22$M parameters), the directions invert:
+\cthree{}\code{p Q-1.5B} drops to $54.0\%$ while
+\cthree{}\code{p Q-0.5B} rises to $65.0\%$ ($\Delta=-11$\,pp).
+This is a previously-unmeasured axis: LoRA capacity differentially
+affects how much the model \emph{trusts} the content of an
+upstream plan, and the direction of the effect is opposite for the
+two planners.  We have two capacity rungs (v2 at $10$M and v3 at
+$22$M trainable parameters); the data supports a directional split
+across planners but does not yet trace a fitted non-monotonic
+curve, and we are careful not to overclaim that here.
+
+\subsection{The Pattern}
+\label{subsec:axis2_pattern}
+
+Table~\ref{tab:axis2_planner_split} extracts the planner conditions
+from \S\ref{sec:axis1} and adds the v2 $\to$ v3 deltas.
+
+\begin{table}[h]
+\centering
+\caption{Planner-content trust as a function of LoRA capacity.
+At v2 the bigger planner helps; at v3 it catastrophically regresses
+while the smaller planner improves.  Static-prefix conditions
+(\code{C2hint}, \code{C2empty}) are unaffected by the capacity bump
+and are listed for contrast.}
+\label{tab:axis2_planner_split}
+\smallskip
+\begin{tabular}{lrrrr}
+\toprule
+Condition & Base & v2 & v3 & v2 $\to$ v3 \\
+\midrule
+\code{C2hint} (static) & $68\%$ & $73.5\%$ & $73.5\%$ & $0.0$ \\
+\code{C2empty} (static) & $66\%$ & $73.0\%$ & $74.0\%$ & $+1.0$ \\
+\cthree{}\code{p Q-0.5B} (content) & $64\%$ & $60.0\%$ & $\mathbf{65.0\%}$ & $\mathbf{+5.0}$ \\
+\cthree{}\code{p Q-1.5B} (content) & $60\%$ & $67.0\%$ & $\mathbf{54.0\%}$ & $\mathbf{-13.0}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The capacity bump is invisible on the static-prefix conditions
+(both within $1$\,pp of v2) and amplifies in opposite directions
+on the content-rich conditions.  Since the only thing that
+distinguishes \cthree{}\code{p Q-0.5B} from \cthree{}\code{p Q-1.5B}
+is the content of the prefix --- the surface shape is identical ---
+the capacity-amplified differential is an effect on plan-content
+processing, not on plan shape.
+
+\subsection{Reading}
+\label{subsec:axis2_reading}
+
+The natural interpretation: full-FFN coverage at v3 makes the
+adapter \emph{more} sensitive to the content of the prefix.  For
+\Qwen{0.5B}, the prefixes are simple and often noisy, and the
+extra sensitivity is corrective --- the LoRA learns to ignore weak
+content effectively, recovering $+5$\,pp.  For \Qwen{1.5B}, the
+prefixes are more sophisticated and contain plan-internal patterns
+that the adapter latches onto.  The increased sensitivity makes
+the model overfit to those patterns at training time and they do
+not generalize at evaluation, regressing past the base $60\%$
+baseline by $-6$\,pp net.
+
+This reading is consistent with the static-prefix conditions being
+unaffected by the capacity bump: \code{"Plan: "} and
+\code{"Let's think step by step."} have no content for the adapter
+to over-fit to, so additional capacity has no per-content
+attractor to drift toward.  Only the planner conditions, where
+the prefix carries question-specific content, expose the trust
+modulation.
+
+For deployment, the practical implication is that the v2/v3 choice
+is not a uniform Pareto frontier: it depends on the size of the
+upstream planner.  A pipeline that pairs the prefix-robustness
+LoRA with a $\sim 0.5$B planner should ship v3; a pipeline that
+pairs it with a $\sim 1.5$B planner should ship v2.  We did not
+test \Qwen{7B} planners; the trust modulation may continue or it
+may bend back at larger planner scale, and characterizing the full
+curve is left to future work.
+
+\paragraph{Status.}
+This paper characterizes the axis but does not fix it.  A
+content-trust adapter --- LoRA training that varies plan content
+quality at fixed surface shape, rather than varying surface shape
+at fixed content as our prefix-robust dataset does --- is a
+natural follow-up.  We sketch the design in
+\S\ref{sec:discussion}.

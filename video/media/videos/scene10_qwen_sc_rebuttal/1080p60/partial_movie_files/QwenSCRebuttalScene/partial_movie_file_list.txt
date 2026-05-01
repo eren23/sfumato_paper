@@ -1,0 +1,12 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/868515145_2152741298_223132457.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_293061810_1180688028.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_2534848667_2936579002.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_3736678387_2647577576.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_188533838_2639282066.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_3736678387_1038195770.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_4024051610_209186378.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_2341082278_2501397435.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_379090946_1783279454.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_3394108396_1408258300.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene10_qwen_sc_rebuttal/1080p60/partial_movie_files/QwenSCRebuttalScene/3443002123_1019781027_2229697341.mp4'

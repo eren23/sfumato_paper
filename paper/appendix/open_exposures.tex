@@ -1,0 +1,95 @@
+\section{Open Exposures}
+\label{app:open}
+
+This appendix lists the experiments and analyses that we did not
+close before this draft.  None of the items below change the
+headline numbers, but they are flagged for revision and for
+reviewers who want to know what is missing.
+
+\paragraph{No multi-seed variance on the headline numbers.}  All
+evaluations are at fixed seed $0$.  Reviewer-2-style demand for
+error bars across seeds is unmet.  Estimated cost: $\sim \$0.50$
+for $3$ seeds $\times$ $4$ headline conditions ($N{=}200$ each).
+At $N{=}200$, the exact binomial $95\%$ CI for an accuracy in the
+$70\text{--}80\%$ range spans roughly $\pm 6\text{--}7$\,pp; we
+report the per-condition CIs in every body table and in
+Table~\ref{tab:prereg}.
+
+\paragraph{ABL\_B sanity probe deferred.}  The $+0.0$\,pp result
+for ABL\_B (Table~\ref{tab:distill_disentangle}; Track 1 v3 LoRA
+$+$ commit-v3 with \code{COMMIT\_N\_BLOCKS=1}, full-response
+training) is the most surprising single number in
+\S\ref{subsec:distill_ablations}.  It is consistent with either
+(i) the adapter firing as designed but having no effect on
+extracted answers because the surgery lands downstream of the
+already-pinned reasoning (the mechanism story we tell) or (ii) a
+silent loader failure where the adapter does not modify inference
+at all.  A small logits-diff probe ($5$ spot-check problems,
+$\sim \$0.02$, $<10$\,min) would distinguish these.  We did not
+run it before this draft; released adapter checkpoints permit
+independent verification by readers.
+
+\paragraph{Per-problem error-set diff for v1 vs.\ v2 not done.}
+Track 2 v1 and v2 both produce $141/200$ correct on test
+(\S\ref{subsec:distill_plateau}).  Whether the per-problem error
+sets are identical or merely aggregate-equal is itself
+informative: identical sets support a stronger ``the late-block
+bottleneck binds the failure mode to specific problems''
+reading, while non-identical sets support a weaker ``different
+adapters fail and pass on different problems but the late-block
+bottleneck caps both at the same total'' reading.  The body
+makes the weaker claim.
+
+\paragraph{LCH-centroid mechanism figure for Track 1 was not
+produced.}  A latent-cluster-heatmap-style figure separating
+prefix-robust LoRA representations from base \LLaDA{}
+representations would harden the structural-separation thesis
+from behavioural to mechanistic.  The JVP feasibility spike
+failed because PEFT~\citep{mangrulkar2022peft} wraps LoRA in a
+\code{lora\_magnitude\_vector} ModuleDict that requires a custom
+JVP shim.  Deferred to a follow-up.
+
+\paragraph{Track 1 v1 catastrophe is documented in
+\code{e2/RESULTS\_TRACK1.md} but not in the body.}  v1 used $r{=}16$,
+$\alpha{=}32$, learning rate $1\mathrm{e}{-}4$, $p_\text{mask}
+\sim U(\epsilon, 1{-}\epsilon)$, and $14$k steps; the resulting
+adapter regressed \ctwo{} from $74\%$ to $59.5\%$ ($-14.5$\,pp)
+via bigram-repetition mode collapse (the model learned a
+copy-back-context heuristic at training time and defaulted to it
+at inference).  v2 fixed this with four hyperparameter changes
+(smaller $r$, gentler LR, narrower $p_\text{mask}$ range, fewer
+steps).  We mention v1 only in passing in
+\appref{app:hyperparameters}; the contrast with v2 is a
+publishable masked-diffusion SFT pitfall on its own and is
+preserved in the source draft for a follow-up.
+
+\paragraph{No cross-task transfer.}  All experiments are on
+GSM8K-test~\citep{cobbe2021gsm8k}.  The diversity-expansion
+finding in \S\ref{sec:axis3} in particular is suspicious-looking
+on a single benchmark and deserves a multi-task replication
+(MATH-Easy, ARC-Challenge are the natural next targets).
+
+\paragraph{No comparison to BD3-LMs and DiffuLLaMA on the same
+eval.}  The literature claims we discuss in
+\S\ref{sec:discussion} are reconciled \emph{by reading} other
+authors' results through the three-axis frame, not by re-running
+their adapters under our prefix conditions.  A formal multi-DDLM
+ablation (BD3-LMs~\citep{arriola2025bd3lms},
+DiffuLLaMA~\citep{gong2024diffullama}, \LLaDA{}, possibly hybrid
+multimodal models~\citep{zhou2024transfusion,xie2024showo,ma2025janusflow})
+on the same prefix-tier dataset would be the cleanest
+falsification target for the three-axis framing.  Out of scope
+for this draft.
+
+\paragraph{Diversity-mechanism test deferred.}  Whether the
+diversity uptick in \S\ref{sec:axis3} is an
+implicit-temperature effect or a real content-diversity effect
+is open.  The cheap test (base \LLaDA{} at $t \in \{0.8, 0.9,
+1.0\}$ on the same eval, read the $5/5$-same rate) was deferred
+to revision.
+
+\paragraph{Reranker baseline not run.}  A small classifier over
+$5$ \cmaj{} branches as a compute-time alternative to v3's
+param-time commit would test whether weight-space distillation
+is uniquely useful.  Several days of work; deferred to a
+follow-up paper.

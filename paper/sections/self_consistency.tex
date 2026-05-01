@@ -1,0 +1,63 @@
+\section{Reviewer-Resilience: Is This Just Self-Consistency?}
+\label{sec:rebuttal}
+
+The most natural alternative explanation for everything reported
+above is generic AR self-consistency~\citep{wang2023selfconsistency}:
+sample $b$ branches at temperature $t$, take the majority vote, and
+get the same accuracy lift the diffusion \cmaj{} mechanism appears
+to deliver.  If true, the diffusion-specific story --- that
+\LLaDA{}'s within-block uncertainty produces genuinely different
+reasoning paths rather than surface jitter --- would be unnecessary.
+
+We rule this out empirically with a matched baseline.
+
+\subsection{Baseline}
+
+\Qwen{0.5B}-Instruct~\citep{qwen2024report} self-consistency at
+$b{=}5$, $t{=}0.7$, on the same GSM8K-test eval ($N{=}200$, fixed
+problem indices, fixed seed):
+
+\begin{table}[h]
+\centering
+\caption{AR self-consistency baseline against \LLaDA{} \cmaj{} on
+the same eval ($N{=}200$, GSM8K-test, $b{=}5$, $t{=}0.7$).  Generic
+self-consistency does not explain the diffusion \cmaj{} advantage.}
+\label{tab:rebuttal_sc}
+\smallskip
+\begin{tabular}{lr}
+\toprule
+Setup & Accuracy \\
+\midrule
+\Qwen{0.5B} self-consistency, $b{=}5$, $t{=}0.7$ & $40.5\%$ \\
+\LLaDA{} \cmaj{} on test (base, no LoRA) & $79.0\%$ \\
+\LLaDA{} \cmaj{} (Track 1 v2 + commit v2) & $\mathbf{82.0\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The gap between \Qwen{0.5B} self-consistency and \LLaDA{}
+\cmaj{} is $38.5\text{--}41.5$\,pp.  Generic self-consistency at
+matched $b$, $t$, and eval does not explain the advantage.
+
+\subsection{Reading}
+
+The \Qwen{0.5B} planner is the same model used for the
+\cthree{}\code{p Q-0.5B} condition elsewhere in this paper.  At
+that scale, AR self-consistency does not produce enough genuinely
+different reasoning paths to vote effectively: most of the
+$5$ branches differ in surface phrasing but not in the answer.
+\LLaDA{}'s diffusion sampler resolves within-block uncertainty
+jointly across many tokens, producing trajectories that diverge
+in their \emph{reasoning} rather than only in their phrasing.
+This is consistent with the diversity-expansion finding in
+\S\ref{sec:axis3}: the diffusion sampler at $t{=}0.7$ is already
+exploring enough trajectory variety that \cmaj{} has real
+disagreement to aggregate over, and Track 1 training expands the
+distribution further rather than collapsing it.
+
+This rebuttal is narrow.  It does not show that diffusion
+\cmaj{} beats AR self-consistency at all scales --- a $7$B
+\Qwen{} planner with self-consistency would likely close some of
+the gap.  It shows that at the matched-base-model scale relevant
+to this paper, the simplest alternative explanation is empirically
+inadequate.

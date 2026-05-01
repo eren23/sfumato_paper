@@ -1,0 +1,12 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/868515145_1409900988_223132457.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_4217549388_2705570166.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_170945801_1191167946.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_2924579097_3544400577.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_943559068_1573106256.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_2924579097_2517684153.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_32525377_3247289707.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_2341082278_2621784904.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_4249182882_706358169.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_1365874367_1708725960.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene11_closing/1080p60/partial_movie_files/ClosingScene/3443002123_1986460023_3233719987.mp4'

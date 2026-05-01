@@ -1,0 +1,22 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+Hybrid AR/DDLM reasoning fails along at least three orthogonal
+axes --- interface-format brittleness, planner-content trust, and
+sampling-diversity preservation --- and the conflicting reports in
+the literature reduce to projections of this multi-axis surface.
+On GSM8K-test with \LLaDA{}-8B-Instruct~\citep{nie2025llada} and
+\Qwen{\{0.5B,1.5B\}}~\citep{qwen2024report} planners, a small
+prefix-robustness LoRA flattens the static-prefix damage from
+$8$\,pp to within $1$\,pp at v3 capacity, exposes a
+no-prefix-vs-\cmaj{} capacity tradeoff and a planner-content-trust
+modulation that is capacity-dependent in opposite directions
+across planners, and unexpectedly \emph{expands} sampling
+diversity rather than collapsing it.  A multi-block,
+full-response commit adapter recovers consensus distillation to
+\ctwoc{} $= 79.0\%$, within sampling error of the $80\%$
+pre-registered target, after two earlier design iterations
+plateaued at $70.5\%$ --- a result that diagnoses the v1/v2
+plateau as a temporal-placement bug rather than an architectural
+impossibility.  All adapters are public and the total compute
+spend is approximately \$3.50.

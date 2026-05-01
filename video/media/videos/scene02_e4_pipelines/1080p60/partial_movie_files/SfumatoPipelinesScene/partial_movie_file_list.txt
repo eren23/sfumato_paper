@@ -1,0 +1,13 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/868515145_2315055258_223132457.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_1389505194_1991044906.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_1659859469_2331780470.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_1521515096_1490223154.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_4025408147_321332976.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_1521515096_4286090772.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_1038557452_3186871206.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_1521515096_57180992.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_3760266678_1705407396.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_1521515096_4038641197.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_3394108396_2769551047.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene02_e4_pipelines/1080p60/partial_movie_files/SfumatoPipelinesScene/3443002123_3264117200_1949900171.mp4'

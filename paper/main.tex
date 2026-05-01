@@ -1,0 +1,115 @@
+\documentclass[11pt]{article}
+
+% ---------- Packages ----------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{calc,positioning,arrows.meta}
+\usepackage{hyperref}
+
+% ---------- Hyperref setup ----------
+\hypersetup{
+    colorlinks=true,
+    linkcolor={blue!70!black},
+    citecolor={green!50!black},
+    urlcolor={blue!80!black},
+}
+
+% ---------- Lightweight macros ----------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\Sfumato}{\textsc{Sfumato}}
+\newcommand{\LLaDA}{\textsc{LLaDA}}
+\newcommand{\Qwen}[1]{\textsc{Qwen2.5-#1}}
+\newcommand{\appref}[1]{Appendix~\ref{#1}}
+\newcommand{\ctwo}{\code{C2}}
+\newcommand{\cthree}{\code{C3}}
+\newcommand{\cfour}{\code{C4}}
+\newcommand{\ctwoc}{\code{c2c}}
+\newcommand{\cmaj}{\code{cmaj}}
+\newcommand{\cmajc}{\code{cmajc}}
+
+% ---------- Title ----------
+\title{Three Orthogonal Failure Axes in Hybrid AR / Diffusion Reasoning,\\
+       with Trainable Fixes for Two of Them}
+
+\author{Eren Akbulut}
+
+\date{Draft, April 2026}
+
+% ==========================================================================
+\begin{document}
+\maketitle
+
+% ---------- Abstract ----------
+\begin{abstract}
+Hybrid pipelines that combine an autoregressive (AR) language model
+with a discrete-diffusion language model (DDLM) for chain-of-thought
+reasoning have produced mixed results in the literature, with
+conflicting reports on whether AR planning helps DDLM denoising and
+whether DDLM sampling diversity is useful.  We argue these conflicts
+collapse once the failure surface is decomposed: hybrid AR/DDLM
+reasoning fails along \emph{at least three orthogonal axes} ---
+interface-format brittleness, planner-content trust, and
+sampling-diversity preservation --- that can be characterized and
+intervened on independently.  On GSM8K~\citep{cobbe2021gsm8k} with
+\LLaDA{}-8B-Instruct~\citep{nie2025llada} and
+\Qwen{\{0.5B,1.5B\}}-Instruct~\citep{qwen2024report} we show: (i)
+interface-format brittleness is fixable with a small
+($r{=}8$)~\citep{hu2022lora} prefix-robustness LoRA, with a
+measurable capacity tradeoff between no-prefix accuracy and
+branch-vote ceiling; (ii) planner-content trust is
+capacity-dependent in opposite directions across planners --- a
+$0.5$B planner improves at higher capacity ($+5$\,pp), while a
+$1.5$B planner regresses by $13$\,pp; (iii)
+format-augmented LoRA training \emph{expands} sampling diversity
+($5/5$-branch agreement $51.5\% \rightarrow 47.5\%$), rather than
+collapsing it; (iv) consensus distillation into the diffusion model
+is design-sensitive, not architecture-limited: late-block answer-span
+surgery fails to bridge the \ctwoc{}-vs-\cmaj{} gap (\ctwoc{}$=70.5\%$
+across two iterations); earlier-block full-response surgery recovers
+(\ctwoc{}$=79.0\%$, within sampling error of the $80\%$ pre-registered
+target).  Disentangling ablations attribute most of the lift
+($+4$\,pp) to where commit fires in the diffusion schedule, with
+full-response training a smaller secondary effect ($+2$\,pp).
+Branch aggregation (\cmajc{}) on top of the \ctwoc{}-fixed v3 design
+reaches $82.5\%$, $+3.5$\,pp over base test \cmaj{}, indicating
+param-time and compute-time consensus mechanisms compose rather than
+substitute.
+A \Qwen{0.5B} self-consistency baseline~\citep{wang2023selfconsistency}
+($b{=}5$, $t{=}0.7$) reaches only $40.5\%$ on the same eval, vs
+\LLaDA{}'s $79\text{--}82\%$, ruling out generic self-consistency as
+the explanation for the diffusion \cmaj{} advantage.
+
+All datasets and adapters are public on the Hugging Face Hub.
+Total compute spend on a single RTX~4090: $\approx \$3.50$ across all
+experiments.
+\end{abstract}
+
+% ---------- Main body ----------
+\input{sections/introduction}
+\input{sections/setup}
+\input{sections/axis1_brittleness}
+\input{sections/axis2_planner_trust}
+\input{sections/axis3_diversity}
+\input{sections/consensus_distillation}
+\input{sections/self_consistency}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+% ---------- References ----------
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% ---------- Appendices ----------
+\appendix
+\input{appendix/prereg_scorecard}
+\input{appendix/compute_spend}
+\input{appendix/hyperparameters}
+\input{appendix/open_exposures}
+
+\end{document}

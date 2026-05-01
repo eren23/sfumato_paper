@@ -1,0 +1,111 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Reconciling the Conflicting Reports}
+
+The three-axis decomposition lets us reconcile the conflicting
+reports in the hybrid AR/DDLM literature.  Papers that report ``AR
+planning helps DDLM'' likely measured the planner-content-trust
+axis with a well-matched planner-and-adapter capacity --- i.e.\ a
+configuration where the upstream planner produces content the DDLM
+trusts at the prevailing capacity setting.  Papers that report
+``AR planning hurts DDLM'' likely measured the format-brittleness
+axis without controlling for prefix shape: prepending a plan-shaped
+scaffold of \emph{any} content ($66\text{--}68\%$ at base, versus
+$74\%$ for no prefix) is enough to land in the
+``hurts'' regime.  Papers that report ``diffusion sampling
+diversity is preserved'' likely measured the right thing under a
+recipe that lands at v2-style capacity; papers that report
+``diversity collapses'' likely had a different recipe that pushed
+past the capacity sweet spot we identify in
+Table~\ref{tab:axis1_v2_v3}.
+
+Without the three-axis frame, these are five conflicting claims.
+Within the frame, they are five projections of a multi-axis
+failure surface, each consistent with the others when the omitted
+axes are held fixed.
+
+\subsection{Implication: Distillation of Inference-Time Mechanisms}
+
+The Track 2 design-iteration finding has a broader implication:
+weight-space distillation of inference-time mechanisms is
+design-sensitive in a way that produces clean negative results
+that masquerade as architectural impossibilities.
+
+Distilling a technique that aggregates over multiple stochastic
+samples (\cmaj{}) into a single deterministic forward pass
+requires the surgery to match the temporal structure of the
+original mechanism.  For semi-AR diffusion, ``temporal structure''
+means \emph{which sub-block fires the modification}.  Getting this
+wrong (last-block-only when the answer is upstream of the
+modification) produces \ctwoc{} $= 70.5\%$ across a $3.25\times$
+capacity bump --- a clean negative whose surface reading is ``the
+adapter cannot do this''.  Getting it right (commit on sub-blocks
+$2$--$4$ of $4$) recovers \ctwoc{} $= 79.0\%$, within sampling
+error of the target, on the same data.  The architecture did not
+change; the temporal placement did.
+
+This is a general lesson for parameter-efficient distillation of
+sampling-based mechanisms: the placement of the LoRA in the
+sampler's schedule is a first-class design variable, and a
+plateau across capacity is not by itself evidence that the
+distillation is impossible.
+
+\subsection{Future Work}
+
+\paragraph{Cross-task transfer.}  Do these axes generalize beyond
+GSM8K~\citep{cobbe2021gsm8k}?  A targeted ablation on MATH-Easy
+and ARC-Challenge would test whether the three-axis decomposition
+holds on other reasoning benchmarks.  The diversity-expansion
+finding in particular is suspicious-looking on a single benchmark
+and deserves a multi-task replication.
+
+\paragraph{Reranker baseline.}  Train a small classifier over the
+$5$ \cmaj{} branches as a \emph{compute-time} alternative to
+v3's \emph{param-time} commit.  If a reranker matches \ctwoc{}
+$= 79\%$, weight-space distillation is not uniquely useful and
+the simpler compute-time recipe is preferable.  If the reranker
+falls short, the param-time mechanism is doing something
+distinct.
+
+\paragraph{Diversity-mechanism test.}  Does base \LLaDA{} at
+$t{=}0.9$ reproduce the post-Track-1 $5/5$-same rate of $47.5\%$?
+If yes, Track 1 acts as an implicit temperature regularizer and
+the diversity-expansion finding reduces to that.  If no, the
+training-time surface randomization has produced real
+content-level diversity that temperature does not match.  One
+short eval; deferred to revision.
+
+\paragraph{Content-trust adapter.}  The planner-content-trust
+axis (\S\ref{sec:axis2}) is characterized but not fixed.  A
+content-trust LoRA --- one that varies plan content quality at
+fixed surface shape, complementing our prefix-robust dataset
+which varies surface shape at fixed content --- is a natural
+follow-up, especially with \Qwen{1.5B} and \Qwen{7B} planners
+sweeping the upstream-content axis explicitly.
+
+\paragraph{Adaptive mode router (Paper 2).}  The
+structural-separation finding motivates a learned router that
+switches between mode-specific LoRAs based on input.  The
+capacity-tradeoff curve (v2 vs.\ v3) gives the router a real
+decision space: given an input prompt, which adapter should fire?
+We sketched the design in \code{sfumato/PLAN.md} as the E1 track
+and leave it to a follow-up.
+
+\subsection{Limitations}
+
+We close with what this paper does not do.  All evaluations are
+single-seed at $N{=}200$, so our headline numbers carry binomial
+sampling noise of $\pm 3$--$5$\,pp; multi-seed variance is not
+characterized in this draft.  We did not produce a mechanistic
+LCH-centroid figure for the
+prefix-robust LoRA, which would harden the structural-separation
+thesis from behavioural to mechanistic; the JVP feasibility spike
+failed because PEFT wraps LoRA in
+\code{lora\_magnitude\_vector} ModuleDict and we deferred to a
+follow-up.  All experiments use a single base diffusion model
+(\LLaDA{}-8B-Instruct~\citep{nie2025llada}) and a single
+benchmark (GSM8K-test~\citep{cobbe2021gsm8k}); the
+generalization claims in the abstract are constrained
+accordingly.  These exposures and a few smaller ones are listed in
+\appref{app:open}.

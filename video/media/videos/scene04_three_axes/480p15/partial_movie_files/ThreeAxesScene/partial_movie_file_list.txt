@@ -1,0 +1,12 @@
+# This file is used internally by FFMPEG.
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/3167704086_3720877713_223132457.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_3565797879_3816976124.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_2848454776_2078536750.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_2924579097_299621621.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_780356617_892472461.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_2924579097_1228049671.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_351711702_3623925726.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_1960794457_1796584003.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_4269534357_2142950763.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_3394108396_4241104572.mp4'
+file 'file:/Users/eren/Documents/AI/sfumato_paper/video/media/videos/scene04_three_axes/480p15/partial_movie_files/ThreeAxesScene/1299096448_179699430_2184784055.mp4'

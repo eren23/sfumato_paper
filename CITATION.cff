@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "Three Orthogonal Failure Axes in Hybrid AR / Diffusion Reasoning, with Trainable Fixes for Two of Them"
+authors:
+  - family-names: "Akbulut"
+    given-names: "Eren"
+abstract: >-
+  Hybrid pipelines combining an autoregressive (AR) language model with
+  a discrete-diffusion language model (DDLM) for chain-of-thought
+  reasoning produce mixed results in the literature. We decompose the
+  failure surface into three orthogonal axes -- interface-format
+  brittleness, planner-content trust, and sampling-diversity
+  preservation -- and characterize each independently on GSM8K with
+  LLaDA-8B-Instruct and Qwen2.5-{0.5B,1.5B}-Instruct. (1) Interface
+  brittleness is fixable with a small (r=8) prefix-robustness LoRA,
+  with a measurable no-prefix-vs-cmaj capacity tradeoff. (2)
+  Planner-content trust is non-monotonic in LoRA capacity: a 0.5B
+  planner improves at higher capacity (+5pp); a 1.5B planner regresses
+  by 13pp. (3) Sampling diversity is expanded, not collapsed, by
+  format-augmented training (5/5-branch agreement 51.5% to 47.5%; mean
+  unique answers per problem 1.825 to 2.07). Consensus distillation is
+  design-sensitive, not architecture-limited: late-block answer-span
+  surgery fails (c2c=70.5% across two iterations); earlier-block
+  full-response surgery recovers (c2c=79.0%, within sampling error of
+  the 80% pre-registered target). Block-coverage carries +4pp of the
+  lift; full-response loss adds +2pp on top. Branch aggregation
+  (cmajc) on the c2c-fixed model adds +3pp over base test cmaj,
+  showing param-time and compute-time consensus mechanisms compose.
+  A Qwen2.5-0.5B self-consistency baseline (b=5, t=0.7) reaches only
+  40.5%, vs LLaDA cmaj 79-82%, ruling out generic self-consistency as
+  the explanation for the diffusion advantage. All datasets and
+  adapters are public on the Hugging Face Hub. Total compute: ~$3.50
+  on 1 x RTX-4090.
+version: 0.1.0
+date-released: "2026-04-30"
+url: "https://github.com/eren23/sfumato-paper"
+type: software
+keywords:
+  - discrete diffusion language model
+  - autoregressive language model
+  - LoRA
+  - hybrid reasoning
+  - chain-of-thought
+  - GSM8K
+  - LLaDA
+  - consensus distillation
+license: MIT
