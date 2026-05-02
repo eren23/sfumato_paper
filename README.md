@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/sfumato-logo.jpg" alt="Sfumato logo" width="280">
+</p>
+
 # Sfumato: Three Orthogonal Failure Axes in Hybrid AR / Diffusion Reasoning
 
 Hybrid pipelines that combine an autoregressive (AR) language model with a
