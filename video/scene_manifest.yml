@@ -1,6 +1,7 @@
 # Sfumato Paper 1 video — curated story.
 # Scenes 1-3 reuse the E4 motivation (cognitive metaphor, four conditions, headline numbers).
-# Scenes 4-11 are new and follow the paper's three-axis decomposition + Track 2 design iteration.
+# Scenes 4-11 follow the paper's three-axis decomposition + Track 2 design iteration.
+# Scenes 12-17 are the Phase 2 epilogue: voting-rule gap, 17-verifier negatives, encoder scaling, frontier judge mechanism, closing.
 scenes:
   - id: scene00_intro
     file: scenes/scene00_intro.py
@@ -44,3 +45,22 @@ scenes:
   - id: scene11_closing
     file: scenes/scene11_closing.py
     class: ClosingScene
+  # Phase 2 epilogue --- voting-rule gap and verifier aggregation (Section 6 of the paper).
+  - id: scene12_voting_gap
+    file: scenes/scene12_voting_gap.py
+    class: VotingGapScene
+  - id: scene13_verifier_fail
+    file: scenes/scene13_verifier_fail.py
+    class: VerifierFailScene
+  - id: scene14_three_negatives
+    file: scenes/scene14_three_negatives.py
+    class: ThreeNegativesScene
+  - id: scene15_encoder_scaling
+    file: scenes/scene15_encoder_scaling.py
+    class: EncoderScalingScene
+  - id: scene16_problem_1071
+    file: scenes/scene16_problem_1071.py
+    class: Problem1071Scene
+  - id: scene17_phase2_closing
+    file: scenes/scene17_phase2_closing.py
+    class: Phase2ClosingScene

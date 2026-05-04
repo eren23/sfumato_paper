@@ -1,8 +1,10 @@
 # Sfumato Paper 1 — Video Storyboard
 
-Silent companion video, ~5-6 minutes, 1080p60. Eleven scenes split into a
-short motivation (1-3) and the paper's three-axis decomposition + Track 2
-design iteration (4-11).
+Silent companion video, ~9-10 minutes, 1080p60. Seventeen scenes:
+short motivation (1-3); the paper's three-axis decomposition + Track 2
+design iteration (4-11); the Phase 2 epilogue covering the
+voting-rule gap, the 17-verifier sweep, encoder scaling, and the
+frontier-judge mechanism (12-17).
 
 ## Claim discipline
 
@@ -53,6 +55,49 @@ design iteration (4-11).
     = 79-82%. 38-41pp gap. Generic SC does not explain the diffusion advantage.
 11. `scene11_closing` (~25s): three-axis recap, two-fix tagline, compute
     footer ($3.50 on 1xRTX-4090).
+12. `scene12_voting_gap` (~30s): the Phase 2 opener. cmaj 79.5% vs oracle
+    88.0% on the v3 LoRA substrate. 8.5pp gap. Headline: majority vote
+    discards the right answer.
+13. `scene13_verifier_fail` (~50s): vertical leaderboard of 12 entries.
+    Claude Sonnet 4.5 + CoT WIN-MINOR (+6.16pp) at top; 11 LOSS rows
+    cascading below across 0.5B-72B chat-LMs, embedding models, math-tuned
+    chat, process-MLP, symbolic. Headline: every peer-class architecture
+    underperforms majority vote.
+14. `scene14_three_negatives` (~35s): three side-by-side cards. Math-tuning
+    HURTS (Math-7B -6.5 vs chat-7B -4.0). Embedding-specific worst
+    (Embedding-8B -8.0 vs chat-8B -5.5). Substrate doubling worse
+    (process-MLP N=200 -5.5 vs N=500 -6.16). Bottleneck is the
+    supervised-classification objective.
+15. `scene15_encoder_scaling` (~30s): 3 bars dropping from a "0pp cmaj
+    baseline" line. TF-IDF -14, Qwen-0.5B -8.5, Qwen-7B -4.0.
+    Dashed extrapolation toward Qwen-32B+. ~5pp gap-closure per ~10x
+    encoder scale. Trend is the publishable observation, not the
+    extrapolation.
+16. `scene16_problem_1071` (~50s): GSM8K-test problem 1071 (the Kayla
+    theater example). Question text in a frame, five branch cards
+    showing setup + answer (3 wrong "$371", 2 right "$251"), three vote
+    rows (cmaj 371 wrong, oracle 251 right, judge+CoT 251 right).
+    Mechanism payoff: failure mode is problem comprehension, not arithmetic.
+17. `scene17_phase2_closing` (~25s): three Phase-2 bullets, "problem
+    comprehension, not arithmetic" tagline, footer with new total
+    compute ($13 across both phases).
+
+## Phase 2 claim discipline (additional)
+
+- **The frontier-judge result is on N=500, not N=200.** Numbers come from
+  PHASE2_FINAL_SUMMARY.md and `phase2/spikes/strong-judge/`. The cmaj
+  baseline shifts 79.0% (N=200) -> 79.1% (N=500), within sampling noise.
+- **17 verifier architectures lost** is the load-bearing count; the
+  scene13 leaderboard shows 11 representative entries plus the top two
+  (Claude+CoT WIN, Claude YES/NO inconclusive) and pointers to the rest
+  via `phase2/RANKING.md` in the paper.
+- **Encoder-scaling trend, not extrapolation.** Scene15 shows the
+  three measured points; the dashed line gestures toward 32B+ but is
+  explicitly labelled "?" in the source. We do not claim the encoder
+  family closes the gap.
+- **Mechanism comes from hand inspection, not a learned probe.**
+  Problem 1071 is one of 15 cmaj-failed/oracle-recoverable problems
+  hand-inspected in `phase2/spikes/option3-process-reward/cmaj_failures_inspection.md`.
 
 ## Text non-overlap rules (hard constraint)
 
