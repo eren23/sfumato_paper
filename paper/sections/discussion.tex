@@ -25,6 +25,21 @@ Within the frame, they are five projections of a multi-axis
 failure surface, each consistent with the others when the omitted
 axes are held fixed.
 
+The voting-rule-gap evidence in \S\ref{sec:voting_gap} adds a
+related point: even with the three failure axes intervened on,
+\cmaj{} aggregation is itself a lossy step, leaving $8\text{--}12$\,pp
+on the table relative to an oracle ceiling.  Closing that gap
+appears to require reasoning at least as strong as the generator
+itself --- the frontier judge wins because at this scale it is
+strictly stronger at problem decomposition than \LLaDA{}-$8$B,
+which is the bottleneck the failure mode actually demands.  This
+is consistent with a verifier literature in which Cobbe et
+al.~\citep{cobbe2021verifier} used a fine-tuned GPT-3 verifier and
+Lightman et al.~\citep{lightman2023letsverify} used step-level
+human supervision: when the verification task is implicitly
+``re-solve the problem from scratch and compare'', a peer-class
+classifier with surface features cannot win.
+
 \subsection{Implication: Distillation of Inference-Time Mechanisms}
 
 The Track 2 design-iteration finding has a broader implication:
@@ -60,13 +75,23 @@ holds on other reasoning benchmarks.  The diversity-expansion
 finding in particular is suspicious-looking on a single benchmark
 and deserves a multi-task replication.
 
-\paragraph{Reranker baseline.}  Train a small classifier over the
-$5$ \cmaj{} branches as a \emph{compute-time} alternative to
-v3's \emph{param-time} commit.  If a reranker matches \ctwoc{}
-$= 79\%$, weight-space distillation is not uniquely useful and
-the simpler compute-time recipe is preferable.  If the reranker
-falls short, the param-time mechanism is doing something
-distinct.
+\paragraph{Phase-3 verifier paths.}  The voting-rule-gap section
+rules out small per-branch classifiers as a \emph{compute-time}
+alternative to v3's \emph{param-time} commit at the scales we
+tested ($17$ peer-class architectures, all LOSS).  Three paths
+remain open for closing the residual $8\text{--}12$\,pp gap:
+(i)~a $32$B$+$ chat-LM encoder, motivated by the monotone
+encoder-scaling trend ($\sim 5$\,pp gap-closure per $10\times$
+scale-up at $0.5$B--$7$B); (ii)~a process-reward verifier consuming
+per-step trajectory features (per-position entropy, commit-LoRA
+logit shifts, AR/DDLM mechanism source) over the Workstream-C
+STATUS-schema traces released alongside this paper; and
+(iii)~step-level PRM800K-style human
+supervision~\citep{lightman2023letsverify}, the proven-elsewhere
+recipe at the cost of step-level annotation.  The frontier-judge
+positive control (\S\ref{subsec:frontier_judge}) bounds the
+reachable accuracy at $\sim 85\%$ on this substrate; the question
+is whether (i)--(iii) reach the bound at lower API cost.
 
 \paragraph{Diversity-mechanism test.}  Does base \LLaDA{} at
 $t{=}0.9$ reproduce the post-Track-1 $5/5$-same rate of $47.5\%$?

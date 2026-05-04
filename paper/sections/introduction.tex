@@ -141,6 +141,39 @@ own (with last-block-only commit) adds nothing.
           reaches only $40.5\%$, ruling out generic self-consistency
           as the explanation for \LLaDA{}'s diffusion \cmaj{}
           advantage (\S\ref{sec:distill}, \S\ref{sec:rebuttal}).
+    \item \textbf{The \cmaj{} voting-rule gap is structural.}
+          The oracle ceiling exceeds majority-vote accuracy by
+          $8\text{--}12$\,pp across four LoRA configurations and
+          three seeds, with the multi-seed Phase-1 \cmajc{}
+          headline locked at $82.2\% \pm 0.29$\,pp.  The gap
+          survives every peer-class verifier we tried: $17$
+          architectures (text-bag, $0.5$B--$72$B chat-LMs,
+          embedding and reward models, process-feature MLPs,
+          step-PRMs, symbolic arithmetic) all underperform
+          majority vote, with three robust negative findings ---
+          math-tuning hurts as a verifier, embedding-specific
+          models lose worst, doubling the substrate makes
+          verifiers worse.  Encoder scaling within the chat-LM
+          family monotonically narrows the gap
+          (TF-IDF $-14$ $\to$ $0.5$B $-8.5$ $\to$ $7$B $-4.0$\,pp)
+          but does not close it at our scale
+          (\S\ref{sec:voting_gap}).
+    \item \textbf{A frontier judge with chain-of-thought closes
+          $86\%$ of the gap, and the mechanism is problem
+          comprehension.}  Claude Sonnet 4.5~\citep{anthropic2025sonnet}
+          called per-branch with a CoT-then-verdict prompt lifts
+          \cmaj{} from $79.1\%$ to $85.3\%$ on GSM8K-test
+          $N{=}500$ (oracle $86.3\%$).  Hand inspection of the
+          $15$ \cmaj{}-failed/oracle-recoverable problems shows
+          that wrong branches typically contain correct
+          arithmetic applied to incorrect problem setups; a
+          single ``LLaDA's failure mode is problem comprehension,
+          not arithmetic'' diagnosis predicts the entire
+          leaderboard, including why symbolic and peer-class
+          verifiers lose, why frontier judges win, and why CoT
+          recovers $5$ additional problems
+          ($8 \to 13$ of $15$) over the YES/NO prompt
+          (\S\ref{sec:voting_gap}).
 \end{enumerate}
 
 \paragraph{Framing: decomposition, not unification.}
@@ -158,14 +191,21 @@ content-trust adapter to future work.
 All numbers are measured on GSM8K-test, $N{=}200$, fixed seed $0$
 unless otherwise noted, with \LLaDA{}-8B-Instruct at $k{=}64$
 denoising steps and a fixed regex answer extractor that tolerates
-both \code{Answer:} and \code{\#\#\#\#} formats.  All four LoRA
-adapters (Track 1 v2, Track 1 v3, Track 2 v2, Track 2 v3) and the
-three derived datasets are public on the Hugging Face Hub.  Total
-compute spend on a single RTX~4090 spot pod is approximately
-$\$3.50$ (\appref{app:compute}).  \appref{app:hyperparameters}
-lists exact training configurations; \appref{app:prereg} reproduces
-the pre-registration scorecard, including a prediction violated in
-the unexpected (good) direction; \appref{app:open} flags open
-exposures (multi-seed variance, \cmajc{} with the v3 commit, and a
-mechanistic LCH centroid analysis) that we did not close before
-this draft.
+both \code{Answer:} and \code{\#\#\#\#} formats.  The voting-rule
+gap section (\S\ref{sec:voting_gap}) additionally uses an
+$N{=}500$ extension ($200$ frozen indices $+$ $300$ fresh) for the
+frontier-judge evaluation; the substrate change moves the base
+\cmaj{} only from $79.0\%$ to $79.1\%$, well within sampling
+noise.  All four LoRA adapters (Track 1 v2, Track 1 v3, Track 2
+v2, Track 2 v3) and the three derived datasets are public on the
+Hugging Face Hub.  Total compute spend across all experiments is
+approximately $\$13$: $\$3.50$ on a single RTX~4090 spot pod for
+the three-axis and distillation work, plus $\$9.50$ for the
+voting-rule-gap follow-up
+(\appref{app:compute}).  \appref{app:hyperparameters}
+lists exact training and verifier configurations;
+\appref{app:prereg} reproduces the pre-registration scorecard,
+including a prediction violated in the unexpected (good) direction
+and a post-hoc verifier-aggregation prediction that hardens
+\S\ref{sec:voting_gap}; \appref{app:open} flags the remaining open
+exposures that we did not close before this draft.

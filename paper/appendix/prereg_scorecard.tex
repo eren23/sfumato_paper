@@ -38,6 +38,15 @@ Prediction & v2 & v3 & Final \\
   hold, $\Delta{=}+7$\,pp &
   inverts, $\Delta{=}-11$\,pp &
   \textbf{MIXED} \\
+\midrule
+\multicolumn{4}{l}{\emph{Post-hoc, registered 2026-05-03 in
+\code{phase2/proposals/verifier-based-aggregation.md}:}} \\
+\#5 per-branch verifier $\geq 83\%$ on $N{=}200$ held-out & n/a &
+  best peer-class $76.5\%$ &
+  \textbf{VIOLATED DOWN} \\
+\#5b frontier judge $+$ CoT $\geq 83\%$ on $N{=}500$ extension & n/a &
+  $85.3\%$ \mbox{$[81.9, 88.2]$} (oracle $86.3\%$) &
+  \textbf{HOLDS} \\
 \bottomrule
 \end{tabular}
 \normalsize
@@ -54,7 +63,7 @@ capacity.  The
 inversion is itself a finding (\S\ref{sec:axis2}) and is what
 made us promote planner-content trust to its own axis.
 
-\paragraph{What we did not pre-register.}
+\paragraph{What we did not pre-register (originally).}
 The diversity-expansion finding (\S\ref{sec:axis3}) was not
 pre-registered as a positive prediction.  Pre-registration \#3 in
 the original protocol was that \emph{Track 2 would not damage}
@@ -63,6 +72,22 @@ result --- diversity \emph{expands} after Track 1, with $5/5$-same
 rate dropping from $51.5\%$ to $47.5\%$ on test --- falls outside
 the predicted scenarios.  We treat it as a positive surprise and
 flag it as a non-pre-registered finding.
+
+\paragraph{Post-hoc verifier prediction.}
+Predictions \#5 and \#5b were registered after the original
+4-prediction protocol but before the verifier sweeps and judge
+calls were run, in
+\code{phase2/proposals/verifier-based-aggregation.md} on
+2026-05-03.  \#5 (a peer-class verifier $\geq 83\%$ on $N{=}200$
+held-out) is violated downward: the strongest peer-class
+architecture across $17$ tested reaches $76.5\%$
+(\S\ref{subsec:verifier_negatives}).  \#5b (a frontier judge with
+chain-of-thought $\geq 83\%$ on the $N{=}500$ extension) holds
+at $85.3\%$ (\S\ref{subsec:frontier_judge}).  The two predictions
+were registered together because they were the alternative
+designs we wanted to disambiguate empirically; the resulting
+\textsc{violated--down}/\textsc{holds} pair is the body of
+\S\ref{sec:voting_gap}.
 
 \paragraph{Discipline note.}
 Track 1 v3 was pre-committed as the headline before its \cmaj{}

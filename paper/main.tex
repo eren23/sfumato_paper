@@ -84,10 +84,21 @@ A \Qwen{0.5B} self-consistency baseline~\citep{wang2023selfconsistency}
 ($b{=}5$, $t{=}0.7$) reaches only $40.5\%$ on the same eval, vs
 \LLaDA{}'s $79\text{--}82\%$, ruling out generic self-consistency as
 the explanation for the diffusion \cmaj{} advantage.
+Finally, \cmaj{} itself leaves $8\text{--}12$\,pp on the table
+relative to an oracle ceiling, and this gap is structural: $17$
+peer-class verifiers (text-bag, $0.5$B--$72$B chat-LMs, embedding
+and reward models, process-feature MLPs, step-PRMs, symbolic
+arithmetic) all underperform majority vote, while a
+frontier-judge baseline (Claude Sonnet 4.5 with chain-of-thought)
+closes $86\%$ of the gap (\cmaj{} $79.1\%$ $\to$ judge $85.3\%$,
+oracle $86.3\%$ on $N{=}500$).  The mechanism is that \LLaDA{}'s
+GSM8K failure mode is problem comprehension, not arithmetic.
 
 All datasets and adapters are public on the Hugging Face Hub.
-Total compute spend on a single RTX~4090: $\approx \$3.50$ across all
-experiments.
+Total compute spend across all experiments is approximately
+\$13: \$3.50 on a single RTX~4090 for the three-axis and
+distillation work, plus \$9.50 for the voting-rule-gap follow-up
+(GPU substrate $+$ OpenRouter judge calls).
 \end{abstract}
 
 % ---------- Main body ----------
@@ -98,6 +109,7 @@ experiments.
 \input{sections/axis3_diversity}
 \input{sections/consensus_distillation}
 \input{sections/self_consistency}
+\input{sections/voting_gap}
 \input{sections/discussion}
 \input{sections/conclusion}
 

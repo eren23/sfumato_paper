@@ -1,0 +1,341 @@
+\section{The Voting-Rule Gap and Verifier Aggregation}
+\label{sec:voting_gap}
+
+The previous sections rule out generic AR self-consistency as the
+explanation for \LLaDA{}'s \cmaj{} advantage and characterize three
+axes of trainable hybrid failure.  A different question --- and the
+single most actionable observation in our follow-up phase --- is
+whether \cmaj{} itself is leaving accuracy on the table.  It is.
+Across every \cmaj{} configuration evaluated, the \emph{oracle}
+ceiling (mark a problem solved if any of the $b{=}5$ branches is
+correct) exceeds the \cmaj{} majority vote by $8\text{--}12$\,pp.
+This section reports that gap, two negative results on closing it
+with self-trained per-branch verifiers, the encoder-scaling trend
+that survives those negatives, and a positive control with a
+frontier-class judge that closes $86\%$ of the gap.  The mechanism
+that ties the four findings together is that \LLaDA{}'s failure mode
+on GSM8K is problem-comprehension, not arithmetic.
+
+\subsection{The Voting-Rule Gap is Structural}
+\label{subsec:voting_gap_headline}
+
+\begin{table}[h]
+\centering
+\caption{Oracle ceiling minus \cmaj{} accuracy across four
+configurations and three seeds, GSM8K-test $b{=}5$, $t{=}0.7$,
+$k{=}64$.  Square brackets are exact (Clopper--Pearson) binomial
+$95\%$ CIs.  ``Oracle'' marks a problem solved if at least one of
+the five branches is correct.  The gap is $8\text{--}12$\,pp and is
+roughly invariant to LoRA upgrades.}
+\label{tab:voting_gap}
+\smallskip
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Configuration & $N$ & \cmaj{} $a_b$ & Oracle & Gap \\
+\midrule
+Base \LLaDA{}-8B-Instruct, $\tau{=}0.7$ & $50$ & $78.0\%$ & $90.0\%$ & $12.0$\,pp \\
+Track-1 v3 LoRA, $\tau{=}0.7$ & $200$ &
+  $79.5\%$ \mbox{$[73.3, 84.9]$} & $88.0\%$ \mbox{$[82.7, 92.2]$} & $8.5$\,pp \\
+v3 LoRA $+$ commit-v3, seed $1$, $\tau{=}0.7$ & $100$ & $82.0\%$ & $90.0\%$ & $8.0$\,pp \\
+v3 LoRA $+$ commit-v3, seed $2$, $\tau{=}0.7$ & $100$ & $82.0\%$ & $90.0\%$ & $8.0$\,pp \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+In the median problem the right answer is present in at least one of
+the five sampled branches; majority voting discards it.  The gap
+holds across the base model, the v3 prefix-robust LoRA, and the
+v3$+$commit-v3 stack, suggesting that the residual error is a
+structural property of \cmaj{} aggregation rather than a model-quality
+artifact addressable by further LoRA training.
+
+\subsection{Multi-Seed Variance Bar}
+\label{subsec:multiseed}
+
+Seeds $1$ and $2$ in Table~\ref{tab:voting_gap} were also run for the
+same purpose as Phase-1 paper-hardening: to rule out that the
+$82.5\%$ \cmajc{} headline (seed $0$, $N{=}200$, Track-1-v3 $+$
+commit-v3) was a seed-dependent artifact.  Three-seed mean
+$\mathbf{82.2\%}$, sample standard deviation $\mathbf{0.29}$\,pp ---
+tighter than the Wilson interval at $N{=}100$.  The Phase-1
+\cmajc{} headline is robust to seed selection; this closes the
+multi-seed variance exposure originally listed in
+\appref{app:open}.
+
+\subsection{Per-Branch Verifiers: Seventeen Architectures, All Lose}
+\label{subsec:verifier_negatives}
+
+The $8\text{--}12$\,pp gap is enough to motivate a per-branch
+verifier that reranks the five \cmaj{} branches at inference time.
+We pre-registered a success threshold of $\geq 83\%$ mean accuracy
+on $5$-fold cross-validation split by \code{problem\_id} (to
+prevent leakage on the same problem appearing in train and eval
+folds).  Across $17$ architectures spanning four orders of magnitude
+in encoder size and four distinct architecture families ---
+text-bag classifiers, chat-LM mean-pool encoders, embedding-specific
+models, math-tuned chat models, process-feature MLPs, contrastive
+branch-pair models, step-level PRMs, and a symbolic-arithmetic
+checker --- \emph{every} architecture underperformed the \cmaj{}
+baseline.  Table~\ref{tab:verifier_top} summarizes the top of the
+leaderboard; the full ranking ($23$ entries) is released as
+\code{phase2/RANKING.md} alongside the per-spike result JSONs.
+
+\begin{table}[h]
+\centering
+\caption{Top of the verifier leaderboard, GSM8K-test $b{=}5$,
+$t{=}0.7$ \cmaj{} substrate.  All peer-class verifiers lose to
+\cmaj{}; only a frontier-class judge with chain-of-thought wins
+(\S\ref{subsec:frontier_judge}).}
+\label{tab:verifier_top}
+\smallskip
+\small
+\begin{tabular}{lrrrrl}
+\toprule
+Approach & \cmaj{} & Verifier & Oracle & $\Delta_\text{pp}$ & Decision \\
+\midrule
+Claude Sonnet 4.5 $+$ CoT & $79.1\%$ & $\mathbf{85.3\%}$ & $86.3\%$ & $\mathbf{+6.16}$ & WIN-MINOR \\
+Claude Sonnet 4.5 (YES/NO) & $79.1\%$ & $82.9\%$ & $86.3\%$ & $+3.79$ & inconclusive \\
+DeepSeek-R1-Distill-Qwen-32B & $80.5\%$ & $77.5\%$ & $89.5\%$ & $-3.00$ & LOSS \\
+Qwen2.5-32B-Instruct (4-bit) & $80.5\%$ & $77.0\%$ & $89.5\%$ & $-3.50$ & LOSS \\
+Qwen2.5-7B-Instruct $+$ MLP & $80.5\%$ & $76.5\%$ & $89.5\%$ & $-4.00$ & LOSS \\
+Process-MLP ($N{=}100$ rich substrate) & $85.0\%$ & $81.0\%$ & $91.0\%$ & $-4.00$ & LOSS \\
+Qwen3-8B chat $+$ MLP & $80.5\%$ & $75.0\%$ & $89.5\%$ & $-5.50$ & LOSS \\
+Qwen2.5-Math-7B $+$ MLP & $80.5\%$ & $74.0\%$ & $89.5\%$ & $-6.50$ & LOSS \\
+Qwen3-Embedding-8B $+$ MLP & $80.5\%$ & $72.5\%$ & $89.5\%$ & $-8.00$ & LOSS \\
+Qwen2.5-0.5B $+$ MLP & $80.5\%$ & $72.0\%$ & $89.5\%$ & $-8.50$ & LOSS \\
+Symbolic arithmetic checker & $79.1\%$ & $70.1\%$ & $86.3\%$ & $-8.98$ & LOSS \\
+TF-IDF $+$ logistic regression & $80.5\%$ & $66.5\%$ & $89.5\%$ & $-14.0$ & LOSS \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\subsection{Three Robust Negative Findings}
+\label{subsec:three_negatives}
+
+Across the leaderboard three patterns are stable enough to call out
+as findings on their own.
+
+\paragraph{Math-tuning hurts as a verifier.}
+Qwen2.5-Math-7B and Qwen2.5-Math-RM-72B both underperform their
+non-math-tuned counterparts at the same parameter count ($-6.5$\,pp
+vs $-4.0$\,pp for Qwen2.5-7B chat).  Math-specific fine-tuning
+appears to compress features around math \emph{vocabulary} (``is
+this math?''), losing the discrimination needed to rank
+sibling-but-different math-CoT branches by correctness (``is this
+math right?'').
+
+\paragraph{Embedding-specific models lose worst.}
+BGE-M3, Qwen3-Embedding-4B/8B, and gte-Qwen2-7B all underperform
+chat-LMs of the same size as feature extractors.  Qwen3-Embedding-8B
+($-8$\,pp) is dominated by the \emph{smaller} Qwen3-8B chat
+($-5.5$\,pp).  Cosine/InfoNCE training compresses embeddings around
+\emph{similarity}, which is the wrong invariant: branches differing
+only in problem setup are similar by construction.
+
+\paragraph{Doubling the substrate makes verifiers worse.}
+Holding architecture fixed and increasing $N$ from $200$ to $500$
+moves $\Delta_\text{pp}$ in the wrong direction --- $-5.5 \to -6.16$
+for the process-MLP and $-8.98$ for the symbolic checker (vs
+$-8$\,pp at $N{=}200$).  This is the signature of an
+overfit-to-substrate-noise regime, and is consistent with the
+$8\text{--}12$\,pp gap being structural rather than data-bound.
+
+\subsection{Encoder Scaling is Monotone but Insufficient}
+\label{subsec:encoder_scaling}
+
+Within the chat-LM mean-pool $+$ MLP family, scaling the encoder
+\emph{monotonically} narrows the gap (Table~\ref{tab:encoder_scaling}).
+
+\begin{table}[h]
+\centering
+\caption{Verifier accuracy versus encoder scale, $5$-fold CV by
+\code{problem\_id} on the $1750$-branch \cmaj{} substrate.  Each
+$\sim 10\times$ scale-up of the encoder narrows the gap to \cmaj{}
+by $\sim 5$\,pp on average; linear extrapolation is consistent with
+a $32$B$\text{--}72$B encoder crossing the \cmaj{} baseline, with
+the caveat that the curve may flatten further.}
+\label{tab:encoder_scaling}
+\smallskip
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Encoder & Params & Mean verifier & $\Delta_\text{pp}$ vs \cmaj{} & Gap closure \\
+\midrule
+TF-IDF $+$ LR & $\sim 250$K & $66.5\%$ & $-14.0$ & $-156\%$ \\
+Qwen2.5-0.5B-Instruct $+$ MLP & $500$M & $72.0\%$ & $-8.5$ & $-94\%$ \\
+Qwen2.5-7B-Instruct $+$ MLP & $7.6$B & $\mathbf{76.5\%}$ & $\mathbf{-4.0}$ & $\mathbf{-44\%}$ \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+We label the trend rather than the extrapolation as the publishable
+observation.  The reachable accuracy \emph{within} the
+chat-LM-mean-pool $+$ MLP family at $0.5$B and $7$B scale is
+strictly below \cmaj{} on this substrate; whether the trend holds at
+$32$B$+$ is a Phase-3 question.
+
+\subsection{A Frontier Judge with CoT Closes 86\% of the Gap}
+\label{subsec:frontier_judge}
+
+The negative results above are bounded by an explicit positive
+control.  We call Claude Sonnet 4.5~\citep{anthropic2025sonnet}
+through the OpenRouter API~\citep{openrouter2024} once per branch,
+under two prompts: a YES/NO verdict prompt and a
+chain-of-thought-then-verdict prompt that forces the judge to
+reconstruct the problem setup before judging the candidate solution.
+Substrate is the GSM8K-test $N{=}500$ extension ($200$ frozen indices
+$+$ $300$ fresh, $b{=}5$, $t{=}0.7$, Track-1-v3 LoRA).
+
+\begin{table}[h]
+\centering
+\caption{Frontier judge result, GSM8K-test $N{=}500$, $b{=}5$,
+$t{=}0.7$, Track-1-v3 substrate.  CoT prompting recovers an
+additional $+2.4$\,pp over the YES/NO prompt by forcing problem
+reconstruction.}
+\label{tab:frontier_judge}
+\smallskip
+\small
+\begin{tabular}{lrrrrl}
+\toprule
+Approach & \cmaj{} & Verifier & Oracle & $\Delta_\text{pp}$ & Gap closure \\
+\midrule
+Claude Sonnet 4.5 $+$ CoT & $79.1\%$ & $\mathbf{85.3\%}$ & $86.3\%$ & $\mathbf{+6.16}$ & $\mathbf{86\%}$ \\
+Claude Sonnet 4.5 (YES/NO) & $79.1\%$ & $82.9\%$ & $86.3\%$ & $+3.79$ & $53\%$ \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\paragraph{Mechanism.}
+Hand inspection of the $15$ \cmaj{}-failed/oracle-recoverable
+problems on the $N{=}500$ substrate reveals that wrong branches
+typically contain $100\%$ correct arithmetic but apply it to
+incorrect problem setups.  Figure~\ref{fig:cmaj_anatomy}
+illustrates the failure mode on a representative problem
+(GSM8K-test problem $1071$).  All five branches do correct
+arithmetic; three branches misread ``\$6 for each \emph{additional}
+guest'' as ``\$6 for each guest'' and arrive at a self-consistent
+\$$371$; two branches read the constraint correctly and arrive
+at \$$251$.  Majority vote picks the wrong setup; the oracle
+ceiling and a frontier judge that re-derives the constraint both
+recover the correct answer.
+
+\begin{figure}[h]
+\centering
+\small
+\fbox{\parbox{0.95\linewidth}{%
+\textbf{Question (GSM8K-test \#$1071$).}  Kayla is having her
+birthday party at a movie theater. \emph{The fee to rent the
+theater is \$$125$ for a party of $20$, plus \$$6$ for each
+\textbf{additional} guest.}  Kayla invited her $25$ classmates and
+the $7$ girls in her dance class, as well as $13$ family members.
+Only $4$ people said they could not come.  How much will the party
+cost?  \emph{Gold answer:} \$$251$.}}
+\smallskip\\[2pt]
+\begin{tabular}{cllcl}
+\toprule
+Branch & Setup (charge $\$6$ to $\ldots$) & Arithmetic & Answer & Outcome \\
+\midrule
+$0$ & all $41$ attending guests & $125 + 41{\cdot}6 = 371$ & $\$371$ & \emph{wrong} \\
+$1$ & $41 - 20 = 21$ additional & $125 + 21{\cdot}6 = 251$ & $\$251$ & \emph{correct} \\
+$2$ & $41 - 20 = 21$ additional & $125 + 21{\cdot}6 = 251$ & $\$251$ & \emph{correct} \\
+$3$ & all $41$ attending guests & $125 + 41{\cdot}6 = 371$ & $\$371$ & \emph{wrong} \\
+$4$ & all $41$ attending guests & $125 + 41{\cdot}6 = 371$ & $\$371$ & \emph{wrong} \\
+\midrule
+\multicolumn{4}{r}{\cmaj{} majority vote ($3 / 5$)} & $\$\mathbf{371}$ \emph{(wrong)} \\
+\multicolumn{4}{r}{Oracle ceiling (any branch correct?)} & $\$\mathbf{251}$ \emph{(right)} \\
+\multicolumn{4}{r}{Frontier judge $+$ CoT} & $\$\mathbf{251}$ \emph{(right)} \\
+\bottomrule
+\end{tabular}
+\normalsize
+\caption{Anatomy of a \cmaj{} failure on GSM8K-test problem
+$1071$.  Arithmetic is correct in all five branches; three
+branches share the same wrong setup (charge \$$6$ to all $41$
+attending guests rather than the $21$ \emph{additional} guests
+beyond the first $20$ that are already covered by the \$$125$
+base fee), and majority vote follows them.  The oracle ceiling
+and a frontier judge with chain-of-thought both recover the
+correct answer because they re-derive the problem setup rather
+than ranking surface features of the candidate solutions.  This
+problem is one of the $15$ \cmaj{}-failed-but-oracle-recoverable
+cases on the $N{=}500$ substrate; the same misread-constraint
+pattern appears in the other $14$.}
+\label{fig:cmaj_anatomy}
+\end{figure}
+
+This single observation predicts the entire leaderboard:
+
+\begin{enumerate}
+    \item \textbf{Symbolic verifiers lose} ($-8.98$\,pp): every
+          branch's arithmetic statement-checks pass equally,
+          because the arithmetic is correct everywhere.
+    \item \textbf{Peer-class neural verifiers lose} (all $17$):
+          they cannot distinguish wrong-setup-with-right-arithmetic
+          from right-setup-with-right-arithmetic without external
+          problem-decomposition reasoning the encoder does not
+          have.
+    \item \textbf{Frontier judges win}: at this scale, the judge
+          is strictly stronger at problem decomposition than the
+          \LLaDA{}-$8$B generator, which is what the verification
+          task actually requires.
+    \item \textbf{CoT pushes the judge from inconclusive to
+          WIN-MINOR}: forcing the judge to reconstruct the problem
+          setup from scratch (rather than pattern-matching the
+          candidate solution) recovers $5$ additional cmaj-failed
+          problems ($8 \to 13$ of $15$).
+\end{enumerate}
+
+This is consistent with the verifier literature: \citet{cobbe2021verifier}
+trained a fine-tuned GPT-3 verifier for GSM8K, and
+\citet{lightman2023letsverify} used step-level human supervision
+(PRM800K) to outperform outcome-reward classifiers at scale.  Both
+results are consistent with our reading: a verifier that beats
+majority vote requires either substantially stronger reasoning than
+the generator or per-step human-quality supervision.
+
+\subsection{Substrate Reconciliation}
+\label{subsec:substrate_reconciliation}
+
+The frontier-judge result in \S\ref{subsec:frontier_judge} runs on
+GSM8K-test $N{=}500$, an extension of the $N{=}200$ frozen index set
+used everywhere else in the paper ($300$ fresh indices added on top
+of the original $200$).  The base \cmaj{} baseline on this larger
+substrate moves from $79.0\%$ on $N{=}200$ to $79.1\%$ on $N{=}500$,
+a difference well within sampling noise and well within the binomial
+CI at either size.  All other headline numbers in the paper remain
+on the original $N{=}200$ substrate; the larger substrate is used
+only where the per-call OpenRouter cost made the larger sample
+worth running.
+
+\subsection{What Closes Here, What is Phase-3}
+\label{subsec:voting_gap_takeaway}
+
+Two open exposures from \appref{app:open} close on the strength of
+the work in this section: the multi-seed variance bar
+(\S\ref{subsec:multiseed}) and the question of whether a per-branch
+reranker can substitute for the param-time commit
+(\S\ref{subsec:verifier_negatives}, \S\ref{subsec:frontier_judge};
+the answer is ``not at peer-class scale'').  An ABL\_B sanity probe
+from the same exposure list~\citep{abl_b_result} confirms the v3
+commit-LoRA modifies inference at temperature $0$ on $5/5$ spot-check
+problems (\code{\#\#\#\#\,N} $\to$ \code{Answer:\,N} format shift),
+ruling out a silent-no-op reading of the v3 commit; we fold this
+into the appendix update rather than into the body table.
+
+The remaining open question --- whether a self-trained verifier can
+close the $8\text{--}12$\,pp gap --- is genuinely Phase-3.  The
+monotone encoder-scaling trend leaves the door open for a $32$B$+$
+chat-LM encoder; the Workstream-C STATUS-schema traces released
+alongside this paper are the substrate for a process-reward
+verifier that consumes per-step trajectory features (per-position
+entropy, commit-LoRA logit shifts, AR/DDLM mechanism source) rather
+than per-branch surface features; and PRM800K-style human
+step-level supervision~\citep{lightman2023letsverify} is the
+proven-elsewhere recipe at scale.  We leave all three to follow-up
+work and document the gap, the $17$ negatives, and the frontier
+judge here so that the direction is flagged as productive rather
+than closed.

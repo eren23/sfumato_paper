@@ -18,5 +18,13 @@ full-response commit adapter recovers consensus distillation to
 pre-registered target, after two earlier design iterations
 plateaued at $70.5\%$ --- a result that diagnoses the v1/v2
 plateau as a temporal-placement bug rather than an architectural
-impossibility.  All adapters are public and the total compute
-spend is approximately \$3.50.
+impossibility.  Beyond the three axes, \cmaj{} aggregation itself
+is lossy by $8\text{--}12$\,pp relative to an oracle ceiling; $17$
+peer-class verifiers fail to close this gap at our substrate
+scale, while a frontier judge with chain-of-thought closes
+$86\%$ of it ($79.1\% \to 85.3\%$ on $N{=}500$), with the
+mechanism being that the failure mode is problem comprehension
+rather than arithmetic (\S\ref{sec:voting_gap}).
+All adapters are public and the total compute spend is approximately
+\$13 across the original three-axis work and the voting-rule-gap
+follow-up.

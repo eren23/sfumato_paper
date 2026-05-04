@@ -6,28 +6,30 @@ close before this draft.  None of the items below change the
 headline numbers, but they are flagged for revision and for
 reviewers who want to know what is missing.
 
-\paragraph{No multi-seed variance on the headline numbers.}  All
-evaluations are at fixed seed $0$.  Reviewer-2-style demand for
-error bars across seeds is unmet.  Estimated cost: $\sim \$0.50$
-for $3$ seeds $\times$ $4$ headline conditions ($N{=}200$ each).
-At $N{=}200$, the exact binomial $95\%$ CI for an accuracy in the
-$70\text{--}80\%$ range spans roughly $\pm 6\text{--}7$\,pp; we
-report the per-condition CIs in every body table and in
-Table~\ref{tab:prereg}.
+\paragraph{Multi-seed variance: closed.}  Earlier drafts flagged
+the absence of multi-seed error bars on the headline numbers.
+The follow-up phase ran the \cmajc{} (Track-1-v3 $+$ commit-v3,
+$b{=}5$, $\tau{=}0.7$) headline at $N{=}100$ for seeds $1$ and
+$2$ in addition to the seed-$0$ paper headline at $N{=}200$.
+Three-seed mean $82.2\%$ with sample standard deviation
+$0.29$\,pp (\S\ref{subsec:multiseed}, Table~\ref{tab:voting_gap})
+is tighter than the per-seed Wilson interval at $N{=}100$.
+The $82.5\%$ paper headline is robust to seed selection.
 
-\paragraph{ABL\_B sanity probe deferred.}  The $+0.0$\,pp result
+\paragraph{ABL\_B sanity probe: closed.}  The $+0.0$\,pp result
 for ABL\_B (Table~\ref{tab:distill_disentangle}; Track 1 v3 LoRA
 $+$ commit-v3 with \code{COMMIT\_N\_BLOCKS=1}, full-response
-training) is the most surprising single number in
-\S\ref{subsec:distill_ablations}.  It is consistent with either
-(i) the adapter firing as designed but having no effect on
-extracted answers because the surgery lands downstream of the
-already-pinned reasoning (the mechanism story we tell) or (ii) a
-silent loader failure where the adapter does not modify inference
-at all.  A small logits-diff probe ($5$ spot-check problems,
-$\sim \$0.02$, $<10$\,min) would distinguish these.  We did not
-run it before this draft; released adapter checkpoints permit
-independent verification by readers.
+training) was consistent with either (i) the adapter firing as
+designed but landing downstream of the already-pinned reasoning
+(the mechanism story we tell) or (ii) a silent loader failure
+where the adapter does not modify inference at all.  A direct
+probe~\citep{abl_b_result} compared the
+Track-1-v3-only output against the
+Track-1-v3-plus-commit-v3 output at $\tau{=}0$ on $5$ spot-check
+GSM8K-dev problems.  All $5/5$ problems show a systematic format
+shift (\code{\#\#\#\#\,N} $\to$ \code{Answer:\,N}); the commit
+adapter is loaded and modifies inference, ruling out the silent
+no-op reading.  The mechanism story stands.
 
 \paragraph{Per-problem error-set diff for v1 vs.\ v2 not done.}
 Track 2 v1 and v2 both produce $141/200$ correct on test
@@ -88,8 +90,19 @@ is open.  The cheap test (base \LLaDA{} at $t \in \{0.8, 0.9,
 1.0\}$ on the same eval, read the $5/5$-same rate) was deferred
 to revision.
 
-\paragraph{Reranker baseline not run.}  A small classifier over
-$5$ \cmaj{} branches as a compute-time alternative to v3's
-param-time commit would test whether weight-space distillation
-is uniquely useful.  Several days of work; deferred to a
-follow-up paper.
+\paragraph{Reranker baseline: closed (negatively).}  Earlier
+drafts flagged a small classifier over $5$ \cmaj{} branches as a
+compute-time alternative to v3's param-time commit.
+\S\ref{sec:voting_gap} reports the result: $17$ peer-class
+verifier architectures (text-bag, $0.5$B--$72$B chat-LMs,
+embedding and reward models, process-feature MLPs, step-PRMs,
+symbolic arithmetic) all underperform majority vote at our
+substrate scale, with three robust negative findings
+(\S\ref{subsec:three_negatives}) and a monotone but insufficient
+encoder-scaling trend (\S\ref{subsec:encoder_scaling}).  The
+reranker direction is not closed in the absolute sense --- a
+$32$B$+$ encoder, a process-reward verifier on Workstream-C
+traces, or PRM800K-style step-level supervision are still
+candidate Phase-3 paths --- but the simplest version of the
+hypothesis (small per-branch classifier substitutes for
+param-time commit) is falsified.

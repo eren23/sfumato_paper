@@ -157,3 +157,49 @@ branches at $t{=}0.7$ and majority-vote on extracted numeric
 answers.  Deterministic conditions (\ctwo{}, \ctwoc{},
 \code{C2hint}, \code{C2empty}, \cthree{}\code{p X}) use $t{=}0$
 greedy decoding.
+
+\subsection{Verifier Configurations (\S\ref{sec:voting_gap})}
+\label{app:hp_verifier}
+
+The peer-class verifiers in \S\ref{subsec:verifier_negatives} all
+share a common evaluation protocol and differ only in the
+encoder/feature side.
+
+\begin{table}[h]
+\centering
+\caption{Common protocol for peer-class verifier sweeps.}
+\label{tab:hp_verifier_common}
+\smallskip
+\begin{tabular}{ll}
+\toprule
+Setting & Value \\
+\midrule
+Substrate & GSM8K-test \cmaj{} branches, $b{=}5$, $t{=}0.7$ \\
+Substrate size & $1{,}750$ branches ($350$ problems $\times$ $5$) \\
+Cross-validation & $5$-fold by \code{problem\_id} (no leakage) \\
+Label & branch-correct: extracted answer matches gold \\
+Loss & binary cross-entropy \\
+Metric & verifier top-$1$ accuracy vs \cmaj{} majority vote \\
+Pre-reg threshold & $\geq 83\%$ mean over folds \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The chat-LM mean-pool $+$ MLP family (which produced the
+encoder-scaling trend) uses the prompt template
+\code{"Problem: \{q\}\textbackslash n\textbackslash nSolution:\textbackslash n\{branch\_text\}"},
+mean-pools the last-layer hidden states under the attention
+mask, and trains a two-layer MLP head ($d_\text{enc} \to 256 \to 1$)
+for $\sim 100$ s per fold on a single A6000.  Encoder weights are
+frozen.
+
+The frontier-judge baseline (\S\ref{subsec:frontier_judge}) calls
+Claude Sonnet 4.5~\citep{anthropic2025sonnet} via the OpenRouter
+API~\citep{openrouter2024} once per branch.  The CoT-then-verdict
+prompt instructs the judge to re-derive the problem setup from
+the natural-language question before judging the candidate
+solution; the YES/NO prompt asks for a verdict only.  We sweep
+each of the $1{,}051$ branches in the $N{=}500$ substrate.  Per-call
+timeout is $90$\,s; concurrency $32$; retries on transport
+errors only.  The driver lives at
+\code{phase2/spikes/strong-judge/}\allowbreak\code{judge\_via\_openrouter.py}.

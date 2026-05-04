@@ -20,7 +20,13 @@ GSM8K-test~\citep{cobbe2021gsm8k}, $N{=}200$ frozen problem indices
 otherwise noted.  Numeric-answer extraction uses a regex on the
 last numeric span in the model output and tolerates both
 \code{Answer: <num>} and \code{\#\#\#\# <num>} formats.  We report
-exact-match accuracy with no partial credit.
+exact-match accuracy with no partial credit.  The voting-rule gap
+section (\S\ref{sec:voting_gap}) additionally uses an extended
+$N{=}500$ substrate (the original $200$ frozen indices plus $300$
+fresh GSM8K-test indices, stored as \code{e4/data/gsm8k\_dev\_500.json})
+for the frontier-judge evaluation; base \cmaj{} on this larger
+substrate is $79.1\%$, within sampling error of the $79.0\%$ at
+$N{=}200$.  All other body numbers remain on $N{=}200$ frozen.
 
 \paragraph{Statistical reporting.}
 All headline percentages are computed over $N{=}200$ GSM8K-test
