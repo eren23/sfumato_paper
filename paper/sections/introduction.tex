@@ -174,6 +174,39 @@ own (with last-block-only commit) adds nothing.
           recovers $5$ additional problems
           ($8 \to 13$ of $15$) over the YES/NO prompt
           (\S\ref{sec:voting_gap}).
+    \item \textbf{Commit-LoRA is an inference-time discrete
+          schedule toggle.}  A K2 sweep
+          (\code{COMMIT\_N\_BLOCKS} $\in \{0, 3, 4\}$) on
+          \LLaDA{}'s four-sub-block sampler produces an
+          inverted-U: the v3 default ($k{=}3$, sub-blocks $2$--$4$)
+          beats both the adapter-off floor ($-1.7$\,pp) and the
+          always-on extreme ($-3.2$\,pp), with both off-peak
+          deltas exceeding the $0.85$\,pp multi-seed sample
+          standard deviation.  The sub-block-$1$ boundary is
+          load-bearing in both directions, and a single boolean
+          schedule mask is sufficient to capture it; this places
+          commit-LoRA as a strictly weaker (no hypernetwork, no
+          MoE routing, no training-time conditioning) sibling of
+          schedule-aware adapters such as
+          TC-LoRA~\citep{tclora2025} and TimeStep
+          Master~\citep{timestepmaster2025}
+          (\S\ref{sec:commit_lora_k2}).
+    \item \textbf{The offline-replay mode router is an honest
+          negative at our substrate scale.}  An offline-replay
+          contextual bandit over $20$ problems and $12$ conditions
+          using per-problem text features (length, numeric tokens,
+          TF-IDF) reaches LOOCV accuracy $65\%$ versus best-fixed
+          $75\%$ and oracle $85\%$, hitting the pre-registered
+          LOSS threshold.  The pathology is the same small-$N$,
+          large-action, surface-feature regime that loses on the
+          per-branch verifier sweep; the path forward is a larger
+          encoder, a process-reward verifier on trajectory
+          features, or step-level human supervision
+          (\S\ref{sec:mode_router}).  We additionally disclose in
+          the discussion that a parameter-matched AR baseline
+          (Qwen-$2.5$-$7$B) beats the hybrid \cmajc{} on this
+          benchmark at fewer active parameters
+          (\S\ref{subsec:ar_baseline}).
 \end{enumerate}
 
 \paragraph{Framing: decomposition, not unification.}

@@ -1,0 +1,131 @@
+\section{Per-Problem Mode Router: Honest Negative}
+\label{sec:mode_router}
+
+The discussion of future work in \S\ref{sec:discussion} sketches a
+``Paper 2'' direction in which a learned router selects per-input
+between mode-specific configurations.  A natural starting point is
+the offline-replay form of that router: given the all-conditions
+sweep over a fixed problem set, can a contextual classifier with
+per-problem features pick the right condition for each problem and
+beat the best fixed condition?  This section reports the Phase-2
+attempt at that question, and the answer at our budget is no.  We
+include the result here rather than in the discussion because the
+pathology is structurally parallel to the verifier-aggregation
+negative in \S\ref{sec:voting_gap}: at small $N$ with a large action
+space and surface text features, supervised classification cannot
+recover the oracle ceiling, regardless of whether the classification
+target is per-branch correctness or per-problem condition.
+
+\subsection{Setup}
+\label{subsec:mode_router_setup}
+
+The substrate is a $20$-problem $\times$ $12$-condition full
+coverage of the public showcase examples.  The twelve conditions
+span the AR-only baseline (\code{c1}), the LLaDA-only baselines
+(\code{c2}, \code{c2c}, \code{c2hint}, \code{c2empty}), the AR-plan
+$\to$ LLaDA pipelines (\code{c3}, \code{c3p}, \code{c4},
+\code{cmerge}, \code{crev}), and the branch-aggregation conditions
+(\code{cmaj}, \code{cmajc}).  Per-problem features are
+question length, count of numeric tokens, and unigram/bigram TF-IDF
+over the question text.  The classifier head is logistic regression
+or random forest, trained leave-one-problem-out cross-validation
+(LOOCV) with class weights balanced.
+
+The pre-registered decision rule was $\geq 80\%$ LOOCV accuracy
+beats the best-fixed baseline; below that, LOSS.
+
+\subsection{Result: $-10$\,pp vs Best Fixed}
+\label{subsec:mode_router_result}
+
+\begin{table}[h]
+\centering
+\caption{Per-problem mode-router accuracy on the $20$-problem
+$\times$ $12$-condition substrate, LOOCV.  The best fixed baseline
+(\code{c2empty}, also matched by \code{cmajc}) is $75\%$; the
+oracle (any-condition-correct) is $85\%$.  Both bandit variants
+underperform the best-fixed baseline by $10\text{--}15$\,pp.
+Pre-registered LOSS threshold ($<80\%$) hit.}
+\label{tab:mode_router}
+\smallskip
+\small
+\begin{tabular}{lr}
+\toprule
+Setting & Accuracy on $20$ problems \\
+\midrule
+\code{c1} (Qwen-$0.5$B AR alone) & $25\%$ \\
+\code{c2c} (LLaDA $+$ commit-LoRA) & $70\%$ \\
+\code{cmaj} (LLaDA $b{=}5$ vote) & $65\%$ \\
+\code{c2empty} (LLaDA $+$ empty prefix, best fixed) & $\mathbf{75\%}$ \\
+\code{cmajc} (sfumato-v3 default) & $75\%$ \\
+\midrule
+\textbf{Oracle} (any-condition-correct) & $\mathbf{85\%}$ \\
+\midrule
+D1 logistic-regression bandit (LOOCV) & $65\%$ \\
+D1 random-forest bandit (LOOCV) & $60\%$ \\
+\midrule
+$\Delta$ best bandit vs best fixed & $-10$\,pp \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+The bandits choose the right condition fewer than three times in
+five.  Action histograms show why: the LR bandit picks \code{c2}
+($11/20$) and \code{c1} ($6/20$) on most folds, with only
+$3/20$ folds reaching the harder ($\code{c2c}$, \code{c2empty})
+conditions; class weights notwithstanding, the LOOCV folds expose a
+single training problem per held-out fold and the policy collapses
+to the modal-easy-correct condition.
+
+The $-10$\,pp deficit relative to \code{c2empty} is large enough at
+$N{=}20$ that the LOSS verdict survives any reasonable
+binomial-error correction; at this substrate scale the offline-replay
+form of D1 is dead.
+
+\subsection{Same Pathology as the Voting-Rule Gap}
+\label{subsec:mode_router_pathology}
+
+The $20$-problem $\times$ $12$-action setting here mirrors the
+$200$-problem $\times$ $5$-branch setting of
+\S\ref{sec:voting_gap}.  Both ask supervised classification with
+surface features (question text in this section, candidate-solution
+text in \S\ref{sec:voting_gap}) to recover an oracle ceiling
+(any-correct-condition-here, any-correct-branch-there).  Both
+classifiers underperform the corresponding best fixed (best
+condition here, majority vote there) by $9\text{--}15$\,pp.  In
+both cases the bottleneck is the same: at this substrate scale,
+surface features cannot distinguish setups in which the right
+action will succeed from setups in which it will fail, because the
+distinction lives in the branch's or problem's
+\emph{problem-comprehension trajectory} rather than in its surface
+form.  The frontier-judge positive control in
+\S\ref{subsec:frontier_judge} is the converse demonstration: a
+verifier whose internal reasoning matches or exceeds the
+generator's recovers the gap, because the bottleneck is reasoning,
+not classification.
+
+We report this here because the parallel between the two negatives
+hardens the diagnosis.  The path forward in both cases is the same
+three options: a substantially larger encoder, a process-reward
+verifier consuming per-step trajectory features, or step-level
+human supervision.  Sub-block-level routing (the original D1
+proposal: route on per-sub-block trajectory features rather than
+per-problem text features) requires Workstream-C STATUS-schema
+trace data that is not yet collected at the scale this section
+would need; we leave that to follow-up work.
+
+\subsection{What This Closes}
+\label{subsec:mode_router_closes}
+
+The original \code{sfumato/PLAN.md} listed a learned dynamic mode
+router (E1) as a candidate headline contribution.  The result in
+this section closes that thread as an honest negative at the
+substrate scale we can afford.  In particular: the offline-replay,
+per-problem, surface-text-feature form of D1 is not the
+publishable mechanism.  The structural-separation argument for
+mode routing in \S\ref{sec:discussion} (Future Work, ``Adaptive
+mode router'') still stands at the design level; the empirical
+realisation does not, at this scale and with this feature set.
+A second honest negative --- a parameter-matched AR-only peer
+baseline that beats the hybrid pipeline on this benchmark --- is
+reported in the discussion (\S\ref{subsec:ar_baseline}).

@@ -114,3 +114,50 @@ These rules apply to every scene:
 5. No font smaller than size 16.
 6. Use the `assert_no_overlap(mobjects)` helper from `utils/layout.py` once
    per scene (in practice, once per phase).
+
+---
+
+## Phase 2/3 additions (scenes 18--21)
+
+These scenes follow the paper additions in `paper/sections/commit_lora_k2.tex`,
+`paper/sections/mode_router.tex`, and the AR-baseline subsection in
+`paper/sections/discussion.tex`.
+
+### Scene 18: K2 schedule-toggle sweep (mechanistic WIN)
+
+- **Source.** `paper/sections/commit_lora_k2.tex` Table~1 + Figure~1.
+  Numbers from `phase2/spikes/k2-commit-blocks-ablation/RESULT.md` and
+  the figure source `phase2/figures/fig_commit_lora_k2_sweep.py`.
+- **Layout.** Three accuracy bars (k=0 / k=3 / k=4); cmaj baseline
+  reference line at 79.5%. Off-peak deltas labelled in pp.
+- **Claim discipline.** Off-peak cells single-seed. The peak is
+  multi-seed (sigma ~ 0.85 pp) and both deltas exceed 1 sigma. We do
+  not claim a dense curve; we claim an inverted-U around the v3 default.
+
+### Scene 19: D1 mode-router honest negative
+
+- **Source.** `paper/sections/mode_router.tex` Table~1.
+  Numbers from `phase2/spikes/D1-mode-router/results.json`.
+- **Layout.** Three bars: best-fixed / D1 LR-bandit / oracle, on a
+  20-problem x 12-condition LOOCV substrate.
+- **Claim discipline.** N=20 is small; we report it as an honest
+  negative at the substrate scale we can afford and explicitly link
+  the pathology to the verifier-aggregation negative in scene13.
+
+### Scene 20: AR-baseline disclosure
+
+- **Source.** `paper/sections/discussion.tex` subsec:ar_baseline +
+  `phase2/PAPER_DRAFT.md` negative-results section.
+- **Layout.** Two bars: hybrid cmajc-v3 (~82.5%) vs plain Qwen-2.5-7B
+  AR (~86.5%); subtitle calls out planner-invariance (82-83% across
+  Qwen-0.5B -> 7B planners).
+- **Claim discipline.** We frame this as disclosure, not a target.
+  The substrate-level findings (axes 1-3, voting-rule gap, K2 toggle)
+  are about the AR/DDLM stack, not about beating peer-class AR.
+
+### Scene 21: Phase 2/3 closing
+
+- **Source.** Updated total-spend line in `paper/appendix/compute_spend.tex`
+  (now ~$17 across all phases).
+- **Layout.** Three bullets summarising the post-Phase-2 additions
+  (K2 win, D1 loss, AR-baseline disclosure), tagline, compute footer.

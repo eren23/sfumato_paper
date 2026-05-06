@@ -94,11 +94,27 @@ closes $86\%$ of the gap (\cmaj{} $79.1\%$ $\to$ judge $85.3\%$,
 oracle $86.3\%$ on $N{=}500$).  The mechanism is that \LLaDA{}'s
 GSM8K failure mode is problem comprehension, not arithmetic.
 
+A K2 sub-block ablation on the v3 commit adapter produces an
+inverted-U around the v3 default
+(\code{COMMIT\_N\_BLOCKS}: $k{=}3$ peak, $k{=}0$ adapter-off
+$-1.7$\,pp, $k{=}4$ always-on $-3.2$\,pp), locating commit-LoRA as
+a single discrete inference-time schedule toggle at the
+load-bearing sub-block-$1$ boundary --- a strictly weaker mechanism
+than continuous schedule-aware adapters
+(TC-LoRA~\citep{tclora2025},
+TimeStep Master~\citep{timestepmaster2025}).  An offline-replay
+per-problem mode router with surface text features is an honest
+negative at our budget ($-10$\,pp vs best fixed), and a
+parameter-matched plain Qwen-$2.5$-$7$B AR baseline reaches
+$\sim 86.5\%$ on this benchmark, beating the hybrid \cmajc{} at
+fewer active parameters; we surface both in the discussion as
+disclosure rather than as targets.
 All datasets and adapters are public on the Hugging Face Hub.
 Total compute spend across all experiments is approximately
-\$13: \$3.50 on a single RTX~4090 for the three-axis and
-distillation work, plus \$9.50 for the voting-rule-gap follow-up
-(GPU substrate $+$ OpenRouter judge calls).
+\$17: \$3.50 on a single RTX~4090 for the three-axis and
+distillation work, \$9.50 for the voting-rule-gap follow-up,
+and \$4.00 for the K2 sweep, mode-router bandit, and the
+S0--S4 spike chain (\appref{app:spike_chain}).
 \end{abstract}
 
 % ---------- Main body ----------
@@ -110,6 +126,8 @@ distillation work, plus \$9.50 for the voting-rule-gap follow-up
 \input{sections/consensus_distillation}
 \input{sections/self_consistency}
 \input{sections/voting_gap}
+\input{sections/commit_lora_k2}
+\input{sections/mode_router}
 \input{sections/discussion}
 \input{sections/conclusion}
 
@@ -122,6 +140,7 @@ distillation work, plus \$9.50 for the voting-rule-gap follow-up
 \input{appendix/prereg_scorecard}
 \input{appendix/compute_spend}
 \input{appendix/hyperparameters}
+\input{appendix/spike_chain}
 \input{appendix/open_exposures}
 
 \end{document}

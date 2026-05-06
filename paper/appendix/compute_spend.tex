@@ -4,9 +4,12 @@
 The three-axis and distillation work runs on a single RTX~4090
 spot pod from Runpod at \$0.20/hr; the voting-rule-gap follow-up
 (\S\ref{sec:voting_gap}) adds RTX~4090/A6000 GPU substrate and
-OpenRouter judge calls.  Total spend across all experiments is
-approximately \$13.  Table~\ref{tab:compute} reproduces the
-per-phase breakdown.
+OpenRouter judge calls.  The K2 schedule-toggle ablation
+(\S\ref{sec:commit_lora_k2}), the offline-replay mode-router
+spike (\S\ref{sec:mode_router}), and the S0--S4 spike chain
+(\appref{app:spike_chain}) add a small Phase-2/3 line.
+Total spend across all experiments is approximately \$17.
+Table~\ref{tab:compute} reproduces the per-phase breakdown.
 
 \begin{table}[h]
 \centering
@@ -14,7 +17,9 @@ per-phase breakdown.
 in approximately one GPU-day on a single RTX~4090 (\$0.20/hr).
 The voting-rule-gap follow-up adds GPU substrate, peer-class
 verifier sweeps, and OpenRouter Claude Sonnet 4.5 calls
-($4$ sweeps $\times \sim 1{,}051$ branch judgements each).}
+($4$ sweeps $\times \sim 1{,}051$ branch judgements each).
+The K2 sweep, mode-router bandit, and S0--S4 spike chain were
+batched onto two pods over a single night.}
 \label{tab:compute}
 \smallskip
 \begin{tabular}{lr}
@@ -40,7 +45,13 @@ $N{=}500$ substrate extension and rich-feature dump & \$1.10 \\
 GPU-pod orchestration overhead and retries & \$3.50 \\
 OpenRouter Claude Sonnet 4.5 (4 sweeps $\times \sim 1{,}051$ calls) & \$2.00 \\
 \midrule
-\textbf{Total} & $\mathbf{\sim \$13}$ \\
+\multicolumn{2}{l}{\emph{K2 sweep, mode router, spike chain (Phase 2/3):}} \\
+K2 \code{COMMIT\_N\_BLOCKS} sweep ($k{=}0$ retry $+$ $k{=}4$, multi-seed $k{=}3$ already on substrate) & \$1.30 \\
+S0--S4 spike chain (batched generation, ESC, merge toggle, logit-shift, Fast-dLLM) & \$2.50 \\
+D1 mode-router bandit (offline-replay, local sklearn LOOCV) & \$0.00 \\
+All-conditions sweep $\times$ showcase build (substrate for D1) & \$0.20 \\
+\midrule
+\textbf{Total} & $\mathbf{\sim \$17}$ \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -1,0 +1,73 @@
+\section{Spike Chain (S0--S4): Inference-Path Engineering}
+\label{app:spike_chain}
+
+Five small infrastructure spikes were run alongside the Phase-2
+science work to harden and accelerate the inference path.  None of
+them changes the headline accuracy claims, but two of them
+(S0 batched generation, S4 Fast-dLLM v1 drop-in) substantially
+reduce wall-clock cost for any reproduction effort, and S2--S3 are
+referenced from the body sections (\S\ref{sec:commit_lora_k2}'s
+\code{MERGE\_ADAPTER=0} note, the \code{logit\_shift\_norm}
+diagnostic field in the released trajectory traces).  We summarise
+the verdicts here for completeness.
+
+\begin{table}[h]
+\centering
+\caption{Phase-2 spike chain: each spike was pre-registered before
+implementation in \code{phase2/spikes/<name>/PRE\_REG.md}, then
+implemented and measured against the pre-registration criteria.
+Wall-clock numbers are at \code{cmaj} $b{=}5$ unless noted.
+\emph{Partial} on S4 reflects a known incompatibility between the
+Fast-dLLM fast path and the commit-LoRA toggle path; the latter is
+silently bypassed when \code{FAST\_DLLM=1}, so the speedup applies
+to \cmaj{} but not yet to \cmajc{}.}
+\label{tab:spike_chain}
+\smallskip
+\small
+\begin{tabular}{llll}
+\toprule
+Spike & Mechanism & Result & Verdict \\
+\midrule
+S0 & Branch batching: \code{cmaj}/\code{cmajc}/\code{cmerge} run as a
+     single $(B, L{+}\text{gen})$ batch & $1.53\times$ wall-clock at $N{=}200$ &
+     WIN \\
+S1 & ESC quorum-$3$ early-exit when $\geq 3$ of $5$ branches agree &
+     accuracy unchanged; inert on \LLaDA{}'s schedule (answer span only
+     in last block) & NEUTRAL \\
+S2 & On-demand \code{merge\_adapter}/\code{unmerge\_adapter} at the
+     commit-LoRA toggle boundary & $\leq 1\%$ wall-clock cost; rules
+     out merge overhead as a confound for K2 ablation & NEUTRAL \\
+S3 & Per-position \code{logit\_shift\_norm} shadow forward,
+     gated by \code{LOGIT\_SHIFT\_NORM=1} env flag &
+     populates trajectory schema slot at $\sim 1.4\times$ wall-clock
+     overhead when enabled & DIAGNOSTIC \\
+S4 & Fast-dLLM~v1 drop-in shim
+     (\code{e4/fast\_dllm\_adapter.py}, gated by
+     \code{FAST\_DLLM=1}) & $6.5\times$ wall-clock at \ctwo{} $N{=}20$;
+     bypasses commit-LoRA toggling on the fast path &
+     WIN (partial) \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\paragraph{Validation note.}
+S1's first implementation called the per-branch ``last numeric
+token'' extractor on partial chains-of-thought.  This fired the
+quorum on mid-CoT numbers (e.g., the ``$13$'' inside
+``$16 - 3 = 13$'') and pruned dissenters incorrectly, dropping
+accuracy from $0.75$ to $0.45$ on a $20$-problem smoke test.  The
+fix was a strict final-answer extractor that matches only the
+canonical \code{Answer:\,N} or \code{\#\#\#\#\,N} forms; with that
+in place, the early-exit went from harmful to safe-but-inert.  This
+is documented because it is the kind of bug a reproducer might hit
+if they implement an early-exit primitive on top of the released
+substrate.
+
+\paragraph{Reproducibility.}
+The substrate code (\code{e4/diff\_llada.py}, \code{e4/runner.py},
+\code{e4/grade.py}, \code{e4/fast\_dllm\_adapter.py}) and the
+pre-registration plus implementation logs
+(\code{phase2/spikes/}) are public; spike-chain GPU spend was
+$\sim \$5$ (S0--S4 inclusive), included in the Phase-2/3 line of
+\appref{app:compute}.

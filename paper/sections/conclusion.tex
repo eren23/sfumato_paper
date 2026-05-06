@@ -25,6 +25,19 @@ scale, while a frontier judge with chain-of-thought closes
 $86\%$ of it ($79.1\% \to 85.3\%$ on $N{=}500$), with the
 mechanism being that the failure mode is problem comprehension
 rather than arithmetic (\S\ref{sec:voting_gap}).
-All adapters are public and the total compute spend is approximately
-\$13 across the original three-axis work and the voting-rule-gap
-follow-up.
+A K2 \code{COMMIT\_N\_BLOCKS} sweep on the v3 commit adapter
+produces an inverted-U around the v3 default ($k{=}3$ peak,
+$k{=}0$ adapter-off $-1.7$\,pp, $k{=}4$ always-on $-3.2$\,pp),
+locating commit-LoRA as a discrete inference-time schedule toggle
+at the load-bearing sub-block-$1$ boundary
+(\S\ref{sec:commit_lora_k2}).  An offline-replay per-problem mode
+router with surface text features hits the same small-$N$
+large-action supervised-classification pathology as the verifier
+sweep ($-10$\,pp vs best fixed,
+\S\ref{sec:mode_router}); we report this as an honest negative
+and additionally disclose that a parameter-matched plain
+Qwen-$2.5$-$7$B AR baseline reaches $\sim 86.5\%$ on this
+evaluation, beating the hybrid at fewer active parameters
+(\S\ref{subsec:ar_baseline}).
+All adapters are public and the total compute spend across all
+phases is approximately \$17 (\appref{app:compute}).

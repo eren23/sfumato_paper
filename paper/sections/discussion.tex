@@ -40,6 +40,37 @@ human supervision: when the verification task is implicitly
 ``re-solve the problem from scratch and compare'', a peer-class
 classifier with surface features cannot win.
 
+\subsection{Honest Peer Baseline: Plain AR at Matched Scale}
+\label{subsec:ar_baseline}
+
+The hybrid pipeline this paper characterises has $\sim 9$B active
+parameters at inference (\LLaDA{}-$8$B $+$ Track-$1$-v3 LoRA $+$
+commit-v3 LoRA $+$ a Qwen-\{$0.5$B, $1.5$B\} planner) and reaches
+\cmajc{} $\approx 82.5\%$ on GSM8K-test.  A plain Qwen-$2.5$-$7$B
+AR baseline on the same evaluation reaches approximately $86.5\%$,
+beating the hybrid at strictly fewer active parameters.  Hybrid
+accuracy is also roughly invariant ($82\text{--}83\%$) across
+Qwen-$0.5$B through Qwen-$7$B planners, which is consistent with
+the diffusion substrate (\LLaDA{}-$8$B) rather than the AR planner
+being the bottleneck on this benchmark.
+
+We surface this here rather than burying it.  The three trainable
+axes (\S\ref{sec:axis1}--\S\ref{sec:axis3}), the consensus
+distillation result (\S\ref{sec:distill}), the voting-rule gap
+(\S\ref{sec:voting_gap}), and the K2 schedule toggle
+(\S\ref{sec:commit_lora_k2}) are real empirical findings about the
+AR/DDLM substrate as currently constituted.  They are not evidence
+that this hybrid pipeline beats a parameter-matched monolithic AR
+baseline on GSM8K; at the AR scales we used as planners, it does
+not.  The natural read is that the substrate-level findings should
+generalise to AR/DDLM stacks where the diffusion model is closer
+to AR peer-class scale, and that the practical accuracy claim of
+\emph{this} hybrid against a parameter-matched AR is benchmark- and
+scale-bounded.  We treat the empirical AR-baseline number as
+disclosure rather than a target, and leave a head-to-head
+controlled comparison at peer-class diffusion scale to follow-up
+work.
+
 \subsection{Implication: Distillation of Inference-Time Mechanisms}
 
 The Track 2 design-iteration finding has a broader implication:
@@ -114,8 +145,17 @@ structural-separation finding motivates a learned router that
 switches between mode-specific LoRAs based on input.  The
 capacity-tradeoff curve (v2 vs.\ v3) gives the router a real
 decision space: given an input prompt, which adapter should fire?
-We sketched the design in \code{sfumato/PLAN.md} as the E1 track
-and leave it to a follow-up.
+We sketched the design in \code{sfumato/PLAN.md} as the E1 track.
+\S\ref{sec:mode_router} reports an offline-replay, per-problem
+form of E1 evaluated within Phase 2: at $20$ problems and a
+$12$-condition action space with surface text features it
+underperforms the best fixed condition by $10$\,pp, with the same
+small-$N$/large-action/surface-feature pathology as the verifier
+sweep.  The viable form of the router is per-sub-block routing
+on trajectory features rather than per-problem routing on text
+features, and that requires the Workstream-C
+\code{STATUS}-schema trace data at scale; we leave it to follow-up
+work.
 
 \subsection{Limitations}
 
