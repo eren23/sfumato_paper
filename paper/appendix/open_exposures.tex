@@ -90,6 +90,14 @@ is open.  The cheap test (base \LLaDA{} at $t \in \{0.8, 0.9,
 1.0\}$ on the same eval, read the $5/5$-same rate) was deferred
 to revision.
 
+\paragraph{Temporal self-consistency: closed (negatively).}
+A schedule-conditional temporal-SC variant on top of \cmajc{} is
+reported in \S\ref{subsec:parallel_negatives}.  Zhang et
+al.~\citep{zhang2025timefeature}'s exponential-decay weighting on
+diffusion LMs is the direct prior; we did not match or extend it on
+\LLaDA{}-class samplers, and a positive temporal-SC result under
+their weighting on this substrate remains open.
+
 \paragraph{Reranker baseline: closed (negatively).}  Earlier
 drafts flagged a small classifier over $5$ \cmaj{} branches as a
 compute-time alternative to v3's param-time commit.

@@ -1,8 +1,13 @@
-# Sfumato Paper 1 video — curated story.
-# Scenes 1-3 reuse the E4 motivation (cognitive metaphor, four conditions, headline numbers).
-# Scenes 4-11 follow the paper's three-axis decomposition + Track 2 design iteration.
-# Scenes 12-17 are the Phase 2 epilogue: voting-rule gap, 17-verifier negatives, encoder scaling, frontier judge mechanism, closing.
-# Scenes 18-21 are the Phase 2/3 additions: K2 schedule toggle (mechanistic WIN), D1 mode-router (honest LOSS), AR-baseline disclosure, final closing.
+# Sfumato Paper 1 video --- single curated story.
+#
+# The story moves through three concerns: the three-axis decomposition
+# of hybrid AR/DDLM failures and the two trainable fixes (axes + Track 2);
+# the test-time aggregation arc (voting-rule gap, verifier sweep, mode
+# router, temporal-SC, schedule-RLHF, base-swap --- all parallel
+# negatives reinforcing the same diagnosis); and the scope arc (K2
+# schedule toggle, cross-family generality, AR-baseline disclosure).
+# Scene 11 is the mid-arc transition out of the axes story; scene 24 is
+# the unified close.
 scenes:
   - id: scene00_intro
     file: scenes/scene00_intro.py
@@ -46,7 +51,6 @@ scenes:
   - id: scene11_closing
     file: scenes/scene11_closing.py
     class: ClosingScene
-  # Phase 2 epilogue --- voting-rule gap and verifier aggregation (Section 6 of the paper).
   - id: scene12_voting_gap
     file: scenes/scene12_voting_gap.py
     class: VotingGapScene
@@ -62,19 +66,21 @@ scenes:
   - id: scene16_problem_1071
     file: scenes/scene16_problem_1071.py
     class: Problem1071Scene
-  - id: scene17_phase2_closing
-    file: scenes/scene17_phase2_closing.py
-    class: Phase2ClosingScene
-  # Phase 2/3 additions --- K2 schedule toggle, D1 mode-router, AR-baseline disclosure, final closing.
   - id: scene18_k2_sweep
     file: scenes/scene18_k2_sweep.py
     class: K2SweepScene
   - id: scene19_mode_router
     file: scenes/scene19_mode_router.py
     class: ModeRouterScene
+  - id: scene22_phase4_negatives
+    file: scenes/scene22_phase4_negatives.py
+    class: Phase4NegativesScene
+  - id: scene23_direction_a_reversal
+    file: scenes/scene23_direction_a_reversal.py
+    class: DirectionAReversalScene
   - id: scene20_ar_baseline
     file: scenes/scene20_ar_baseline.py
     class: ARBaselineScene
-  - id: scene21_phase3_closing
-    file: scenes/scene21_phase3_closing.py
-    class: Phase3ClosingScene
+  - id: scene24_phase4_closing
+    file: scenes/scene24_phase4_closing.py
+    class: Phase4ClosingScene

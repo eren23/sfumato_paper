@@ -1,4 +1,4 @@
-\section{Axis 2: Planner-Content Trust Is Capacity-Dependent in Opposite Directions Across Planners}
+\section{Phenomenon 2: Planner-Content Trust Is Capacity-Dependent in Opposite Directions Across Planners}
 \label{sec:axis2}
 
 The cleanest signal in the v2-vs-v3 comparison
@@ -10,13 +10,18 @@ smaller one hurts: \cthree{}\code{p Q-1.5B} reaches $67.0\%$ versus
 capacity ($7/7$ modules, $22$M parameters), the directions invert:
 \cthree{}\code{p Q-1.5B} drops to $54.0\%$ while
 \cthree{}\code{p Q-0.5B} rises to $65.0\%$ ($\Delta=-11$\,pp).
-This is a previously-unmeasured axis: LoRA capacity differentially
-affects how much the model \emph{trusts} the content of an
-upstream plan, and the direction of the effect is opposite for the
-two planners.  We have two capacity rungs (v2 at $10$M and v3 at
-$22$M trainable parameters); the data supports a directional split
-across planners but does not yet trace a fitted non-monotonic
-curve, and we are careful not to overclaim that here.
+This is a previously-unmeasured \emph{phenomenon}: LoRA capacity
+differentially affects how much the model \emph{trusts} the
+content of an upstream plan, and the direction of the effect is
+opposite for the two planners.  We have two capacity rungs (v2 at
+$10$M and v3 at $22$M trainable parameters); the data establishes
+that the inversion is real, but it does not yet trace a fitted
+non-monotonic curve.  We label this a phenomenon rather than an
+axis on the same footing as
+brittleness~(\S\ref{sec:axis1}) and
+diversity~(\S\ref{sec:axis3}) for that reason; a third capacity
+rung (e.g.\ $5$M or $50$M) and per-planner multi-seed runs would
+upgrade it.
 
 \subsection{The Pattern}
 \label{subsec:axis2_pattern}

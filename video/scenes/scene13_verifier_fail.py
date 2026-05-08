@@ -53,7 +53,7 @@ ROWS = [
 ]
 
 
-def _row(label, delta, color, decision, w=10.4, h=0.42):
+def _row(label, delta, color, decision, w=10.4, h=0.36):
     box = RoundedRectangle(
         width=w,
         height=h,
@@ -63,9 +63,9 @@ def _row(label, delta, color, decision, w=10.4, h=0.42):
         fill_opacity=0.10,
         stroke_width=1.4,
     )
-    name = body_text(label, size=15, color=FG)
-    val = body_text(delta, size=15, color=color, weight=BOLD)
-    dec = body_text(decision, size=14, color=color)
+    name = body_text(label, size=14, color=FG)
+    val = body_text(delta, size=14, color=color, weight=BOLD)
+    dec = body_text(decision, size=13, color=color)
     name.move_to(box.get_left() + RIGHT * 2.6)
     val.move_to(box.get_center() + RIGHT * 1.6)
     dec.move_to(box.get_right() + LEFT * 1.0)
@@ -91,18 +91,19 @@ class VerifierFailScene(Scene):
         sub.next_to(title, DOWN, buff=0.15)
 
         rows = [_row(*r) for r in ROWS]
-        stack = VGroup(*rows).arrange(DOWN, buff=0.10)
-        stack.next_to(sub, DOWN, buff=0.30)
+        stack = VGroup(*rows).arrange(DOWN, buff=0.06)
+        stack.next_to(sub, DOWN, buff=0.22)
 
         callout = body_text(
-            "Math-tuning HURTS. Embedding-specific worst. Doubling substrate worse.",
-            size=17,
+            "Math-tuning HURTS. Embedding-specific worst."
+            " Doubling substrate worse.",
+            size=16,
             color=ACCENT,
             weight=BOLD,
         )
-        callout.to_edge(DOWN, buff=0.4)
+        callout.to_edge(DOWN, buff=0.3)
 
-        assert_no_overlap([title, sub, callout])
+        assert_no_overlap([title, sub, stack, callout])
 
         self.play(FadeIn(title, shift=UP * 0.15), run_time=0.5)
         self.play(FadeIn(sub, shift=UP * 0.1), run_time=0.4)

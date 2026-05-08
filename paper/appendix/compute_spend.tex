@@ -1,15 +1,21 @@
 \section{Compute Spend}
 \label{app:compute}
 
-The three-axis and distillation work runs on a single RTX~4090
-spot pod from Runpod at \$0.20/hr; the voting-rule-gap follow-up
-(\S\ref{sec:voting_gap}) adds RTX~4090/A6000 GPU substrate and
-OpenRouter judge calls.  The K2 schedule-toggle ablation
-(\S\ref{sec:commit_lora_k2}), the offline-replay mode-router
-spike (\S\ref{sec:mode_router}), and the S0--S4 spike chain
-(\appref{app:spike_chain}) add a small Phase-2/3 line.
-Total spend across all experiments is approximately \$17.
-Table~\ref{tab:compute} reproduces the per-phase breakdown.
+The experimental program ran on a single RTX~4090 spot/on-demand
+substrate from Runpod (\$0.20/hr), with one OpenRouter judge sweep
+inside the voting-rule-gap follow-up.  Total spend across all
+phases is approximately \$20.5; Table~\ref{tab:compute} reproduces
+the per-phase breakdown.  The four phases correspond directly to
+the body of the paper: Phase~$1$ for the three-axis decomposition
+(\S\ref{sec:axis1}--\S\ref{sec:axis3}) and consensus distillation
+(\S\ref{sec:distill}); Phase~$2$ for the voting-rule gap and
+verifier sweep (\S\ref{sec:voting_gap}); Phase~$2/3$ for the K2
+schedule toggle (\S\ref{sec:commit_lora_k2}), the mode router
+(\S\ref{sec:mode_router}), and the S0--S4 spike chain
+(\appref{app:spike_chain}); and Phase~$4$ for the parallel
+aggregation negatives surfaced in
+\S\ref{subsec:parallel_negatives} and the cross-family substrate
+audit underlying \S\ref{subsec:k2_scope}.
 
 \begin{table}[h]
 \centering
@@ -51,7 +57,14 @@ S0--S4 spike chain (batched generation, ESC, merge toggle, logit-shift, Fast-dLL
 D1 mode-router bandit (offline-replay, local sklearn LOOCV) & \$0.00 \\
 All-conditions sweep $\times$ showcase build (substrate for D1) & \$0.20 \\
 \midrule
-\textbf{Total} & $\mathbf{\sim \$17}$ \\
+\multicolumn{2}{l}{\emph{Phase 4 (\S\ref{subsec:parallel_negatives}, \S\ref{subsec:k2_scope}):}} \\
+Temporal-SC harvest $+$ schedule-conditional vote scan & \$0.95 \\
+Schedule-RLHF mini-pilot ($50$-step GRPO, MATH-$500$ $N{=}20$ paired) & \$1.00 \\
+Schedule-RLHF mid-pilot ($200$-step GRPO $+$ KL anchor, MATH-$500$ $N{=}50$ paired) & \$1.30 \\
+LLaDA-$1.5$ base swap (frozen v$3$ LoRAs) & \$0.30 \\
+DiffuLLaMA cross-family substrate audit (CPU only) & \$0.00 \\
+\midrule
+\textbf{Total} & $\mathbf{\sim \$20.5}$ \\
 \bottomrule
 \end{tabular}
 \end{table}

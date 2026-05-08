@@ -99,8 +99,18 @@ class K2SweepScene(Scene):
             color=DIFF,
             stroke_width=2,
         )
-        baseline_lbl = body_text("cmaj baseline 79.5% (no commit-LoRA)", size=13, color=DIFF)
-        baseline_lbl.next_to(baseline_line.get_right(), UP, buff=0.04)
+        baseline_lbl = body_text(
+            "cmaj baseline 79.5% (no commit-LoRA)",
+            size=13,
+            color=DIFF,
+        )
+        # anchor to left edge of line so the right end of the label
+        # cannot fall off-screen.
+        baseline_lbl.move_to(
+            LEFT * 5.4 + UP * cmaj_y
+            + RIGHT * (baseline_lbl.width / 2 + 0.05)
+            + UP * (baseline_lbl.height / 2 + 0.05)
+        )
 
         usable_left, usable_right = chart_left + 0.6, chart_right - 0.6
         n = len(ROWS)

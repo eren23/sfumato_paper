@@ -206,6 +206,39 @@ For deployment, the v2-vs-v3 choice depends on whether the
 downstream pipeline uses single-shot (v3 wins by $+2.5$\,pp on
 \ctwo{}) or branch-vote (v2 wins by $+2.0$\,pp on \cmaj{}).
 
+\subsection{A Note on the v1 Recipe Catastrophe}
+\label{subsec:axis1_v1_catastrophe}
+
+Both v2 and v3 above followed a recipe revision motivated by a
+straightforward, publishable failure of the first attempt (v1) at
+this same training objective.  v1 used $r{=}16$, $\alpha{=}32$,
+learning rate $1\mathrm{e}{-}4$, mask-sampling
+$p_{\text{mask}} \sim U(\epsilon, 1{-}\epsilon)$, and $14$\,k
+training steps.  The resulting adapter regressed \ctwo{} from
+$74\%$ to $59.5\%$ ($-14.5$\,pp) via a clean bigram-repetition
+mode collapse: at inference, the denoised CoT block degenerated
+into copy-back-context loops (\textit{e.g.\ }\code{"He sold the
+house for 50000+80000=\$<<50000+80000=1He sold the house for
+50000+80000=\$<<50000+80000=130000>>130,000"}, with the prefix
+phrase repeated verbatim).  v2 fixed this with four
+hyperparameter changes from a single design lesson: the
+mask-sampling distribution
+$p_{\text{mask}} \sim U(\epsilon, 1{-}\epsilon)$ over-weights the
+high-mask cases, training the model to predict tokens from very
+little context, which in turn corrupts low-mask inference --- the
+regime GSM8K reasoning actually exercises.  Narrowing the support
+to $U(0.1, 0.5)$, dropping the LoRA rank to $r{=}8$, and reducing
+the LR and step count yielded the v2/v3 recipes reported above.
+
+We surface this in the body rather than burying it in
+\appref{app:hyperparameters} because it is itself a
+publishable masked-diffusion SFT pitfall: a recipe that looks
+fine on validation loss can produce an adapter that catastrophes
+at the inference distribution due to a mismatched mask-sampling
+prior.  The contrast between v1 ($-14.5$\,pp) and v2 ($+0$\,pp on
+\ctwo{} but lifts on every prefixed condition) is a generally
+useful warning for masked-diffusion adapter recipes elsewhere.
+
 \paragraph{Status.}
 Track 1's prefix-robustness fix is robust on GSM8K-test
 $N{=}200$, single seed, with the prefix-tier distribution

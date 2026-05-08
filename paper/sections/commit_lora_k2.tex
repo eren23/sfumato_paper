@@ -131,3 +131,28 @@ on-demand merge toggle from S2 of the spike chain,
 number reported in Table~\ref{tab:k2_sweep}.  This is documented for
 reproducibility: at $k{=}0$ the merge toggle should be left off
 because there is nothing to merge.
+
+\subsection{Scope: Block-Structured Mask Diffusion}
+\label{subsec:k2_scope}
+
+The K2 inverted-U identity is defined on a substrate where the
+sampler exposes a fixed sub-block partition --- in our setting,
+\LLaDA{}'s semi-AR $4{\times}32$-token schedule.  The same
+discrete-on/off-at-known-position toggle generalizes to other
+sub-block-structured mask-diffusion samplers (\textit{e.g.\
+}BD3-LMs~\citep{arriola2025bd3lms} and the planned-block samplers
+in that family) without redefinition.
+
+We confirmed the boundary of this claim with a Phase-$1$
+substrate audit of DiffuLLaMA~\citep{gong2024diffullama}, which is
+a vanilla \code{LlamaForCausalLM} trained with a flat random-keep
+diffusion schedule and no native sub-block partition.  On a flat
+schedule, the K2 toggle's discrete-on/off-at-known-position
+identity has no direct analogue without either (a) forcing an
+off-policy sub-block partition onto a model that was not trained
+under it (confounded), (b) redefining K2 as a fraction-of-steps
+milestone (a different claim), or (c) retraining the adapter under
+the native flat schedule (which drifts from the \LLaDA{} recipe).
+We therefore frame the K2 result specifically as a property of
+block-structured mask diffusion, and leave flat-schedule
+generalization to follow-up work.

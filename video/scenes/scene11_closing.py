@@ -1,7 +1,9 @@
-"""Scene 11 -- closing recap.
+"""Scene 11 -- mid-arc transition out of the axes / distillation story.
 
-Title, three short bullets, and a compute footer. All claims trace back to
-PAPER_DRAFT.md.
+Title, three short bullets recapping the axes + distillation findings,
+and a one-line bridge into the aggregation arc that follows. No spend
+footer here -- the cumulative tally lives in the unified close (scene 24).
+All claims trace back to PAPER_DRAFT.md.
 """
 from __future__ import annotations
 
@@ -44,8 +46,8 @@ class ClosingScene(Scene):
         self.camera.background_color = BG
 
         title = title_text(
-            "Sfumato -- three axes, two trainable fixes",
-            size=32,
+            "Three axes characterized, two trainably fixed",
+            size=30,
             color=ACCENT,
         )
         title.to_edge(UP, buff=0.6)
@@ -69,16 +71,17 @@ class ClosingScene(Scene):
         )
         bullets.move_to(0 * RIGHT + DOWN * 0.1)
 
-        # Footer.
-        footer = body_text(
-            "Total compute: ~$3.50 on 1x RTX-4090.\n"
-            "All adapters + datasets public on HF Hub.",
-            size=18,
-            color=MUTED,
+        # Bridge into the aggregation arc.
+        bridge = body_text(
+            "But cmaj itself leaves 8-12 pp on the table --"
+            " what is going on with aggregation?",
+            size=20,
+            color=ACCENT,
+            weight=BOLD,
         )
-        footer.to_edge(DOWN, buff=0.6)
+        bridge.to_edge(DOWN, buff=0.6)
 
-        assert_no_overlap([title, bullet1, bullet2, bullet3, footer])
+        assert_no_overlap([title, bullet1, bullet2, bullet3, bridge])
 
         self.play(FadeIn(title, shift=UP * 0.15), run_time=0.55)
         self.wait(0.2)
@@ -88,7 +91,7 @@ class ClosingScene(Scene):
         self.wait(0.3)
         self.play(FadeIn(bullet3, shift=UP * 0.1), run_time=0.55)
         self.wait(0.5)
-        self.play(FadeIn(footer, shift=UP * 0.1), run_time=0.5)
-        self.wait(4.0)
+        self.play(FadeIn(bridge, shift=UP * 0.1), run_time=0.55)
+        self.wait(3.0)
 
         fade_out_all(self)

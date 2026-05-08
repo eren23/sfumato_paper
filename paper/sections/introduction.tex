@@ -97,148 +97,145 @@ own (with last-block-only commit) adds nothing.
           planner-content trust, and sampling-diversity preservation
           are independently measurable on GSM8K with \LLaDA{} and
           \Qwen{\{0.5B,1.5B\}}.  The decomposition reconciles
-          conflicting reports in the literature
-          (\S\ref{sec:axis1}, \S\ref{sec:axis2}, \S\ref{sec:axis3},
-          \S\ref{sec:distill}, \S\ref{sec:discussion}).
-    \item \textbf{Interface-format brittleness is trainably fixable
-          with a small ($r{=}8$) prefix-robustness LoRA, with a
-          measurable capacity tradeoff.}  A v2 ($4/7$ FFN modules,
-          $10$M parameters) and a v3 ($7/7$ FFN modules, $22$M
-          parameters) variant trade $+2.5$\,pp on no-prefix \ctwo{}
-          for $-2.0$\,pp on \cmaj{} branch-vote, locating a
+          conflicting reports in the literature.  Axis 2 is
+          characterized as a \emph{phenomenon} over a two-rung
+          capacity sweep, not yet a fully-resolved axis on equal
+          footing with axes 1 and 3
+          (\S\ref{sec:axis1}--\S\ref{sec:axis3},
+          \S\ref{sec:discussion}).
+    \item \textbf{Trainable interventions on two of the three
+          axes.}  Interface-format brittleness is fixable with a
+          small ($r{=}8$) prefix-robustness LoRA, with a measurable
+          capacity tradeoff: v2 ($4/7$ FFN modules, $10$M
+          parameters) and v3 ($7/7$ FFN modules, $22$M parameters)
+          trade $+2.5$\,pp on no-prefix \ctwo{} for $-2.0$\,pp on
+          \cmaj{} branch-vote, locating a
           single-shot-vs-ensemble Pareto frontier
-          (\S\ref{sec:axis1}).
-    \item \textbf{Planner-content trust is capacity-dependent in
-          opposite directions across planners --- a
-          previously-unmeasured axis.}  A $0.5$B planner improves
-          $+5$\,pp at v3 capacity while a $1.5$B planner regresses
-          $-13$\,pp, with the directions reversed at v2 capacity
-          (\S\ref{sec:axis2}).
-    \item \textbf{Format-augmented LoRA training expands sampling
-          diversity rather than collapsing it.}  $5/5$-branch
-          agreement drops $51.5\% \to 47.5\%$ and mean unique
-          answers per problem rises $1.83 \to 2.07$, while \cmaj{}
-          accuracy is preserved.  We connect this to encoder-collapse
-          literature as the inverse phenomenon
-          (\S\ref{sec:axis3}).
+          (\S\ref{sec:axis1}).  Format-augmented training also
+          \emph{expands} sampling diversity rather than collapsing
+          it ($5/5$-branch agreement $51.5\% \to 47.5\%$, mean
+          unique answers $1.83 \to 2.07$), inverting the canonical
+          fine-tuning prediction (\S\ref{sec:axis3}).  A separate
+          commit-LoRA distills the consensus mechanism into a
+          single forward pass (\S\ref{sec:distill}).
     \item \textbf{Consensus distillation into a DDLM is
-          design-sensitive, not architecture-limited.}  Late-block
-          answer-span surgery plateaus at \ctwoc{}$=70.5\%$ across
-          two iterations; multi-block ($n{=}3$) full-response
-          surgery recovers \ctwoc{}$=79.0\%$.  Disentangling
-          ablations attribute most of the lift ($+4$\,pp) to block
-          coverage; full-response loss alone (with last-block-only
-          commit) adds $+0.0$\,pp.  The two design errors mask each
-          other (\S\ref{sec:distill}).
-    \item \textbf{Param-time and compute-time consensus compose.}
-          \cmajc{} (cmaj with commit-LoRA per branch) reaches
-          $82.5\%$ on test for the v3 commit and $82.0\%$ for the
-          v2 commit, $+3.5$\,pp and $+3$\,pp respectively over
-          base test \cmaj{} of $79.0\%$.  Pre-registered
-          prediction \#3 (no double-dip) is violated upward in
-          both cases.  A \Qwen{0.5B} self-consistency
-          baseline~\citep{wang2023selfconsistency} on the same eval
-          reaches only $40.5\%$, ruling out generic self-consistency
-          as the explanation for \LLaDA{}'s diffusion \cmaj{}
-          advantage (\S\ref{sec:distill}, \S\ref{sec:rebuttal}).
-    \item \textbf{The \cmaj{} voting-rule gap is structural.}
-          The oracle ceiling exceeds majority-vote accuracy by
-          $8\text{--}12$\,pp across four LoRA configurations and
-          three seeds, with the multi-seed Phase-1 \cmajc{}
-          headline locked at $82.2\% \pm 0.29$\,pp.  The gap
-          survives every peer-class verifier we tried: $17$
+          design-sensitive, not architecture-limited, and the
+          mechanism is block coverage.}  Late-block answer-span
+          surgery plateaus at \ctwoc{}$=70.5\%$ across two
+          iterations and a $3.25\times$ capacity bump --- a clean
+          negative whose surface reading is ``the adapter cannot
+          do this''.  A multi-block ($n{=}3$) full-response
+          variant recovers \ctwoc{}$=79.0\%$, within sampling
+          error of an $80\%$ pre-registered target.  Disentangling
+          ablations attribute most of the lift ($+4$\,pp) to where
+          commit fires in the diffusion schedule and $+2$\,pp to
+          full-response training; full-response training alone
+          (with last-block-only commit) adds $+0.0$\,pp.  Two
+          design errors mask each other; block coverage is the
+          dominant lever (\S\ref{sec:distill}).
+    \item \textbf{\cmaj{} aggregation is structurally lossy by
+          $8\text{--}12$\,pp; the failure mode is problem
+          comprehension, not arithmetic.}  The oracle ceiling
+          exceeds majority-vote accuracy by $8\text{--}12$\,pp
+          across four LoRA configurations and three seeds.  The
+          gap survives every peer-class verifier we try: $17$
           architectures (text-bag, $0.5$B--$72$B chat-LMs,
           embedding and reward models, process-feature MLPs,
           step-PRMs, symbolic arithmetic) all underperform
-          majority vote, with three robust negative findings ---
-          math-tuning hurts as a verifier, embedding-specific
-          models lose worst, doubling the substrate makes
-          verifiers worse.  Encoder scaling within the chat-LM
-          family monotonically narrows the gap
-          (TF-IDF $-14$ $\to$ $0.5$B $-8.5$ $\to$ $7$B $-4.0$\,pp)
-          but does not close it at our scale
+          majority vote.  A frontier judge with chain-of-thought
+          (Claude Sonnet 4.5~\citep{anthropic2025sonnet}) closes
+          $86\%$ of the gap (\cmaj{} $79.1\%$ $\to$ judge
+          $85.3\%$, oracle $86.3\%$ on $N{=}500$).  Hand inspection
+          of the $15$ \cmaj{}-failed/oracle-recoverable problems
+          shows wrong branches contain locally correct arithmetic
+          applied to incorrect problem setups, predicting the
+          entire verifier leaderboard from a single diagnosis
           (\S\ref{sec:voting_gap}).
-    \item \textbf{A frontier judge with chain-of-thought closes
-          $86\%$ of the gap, and the mechanism is problem
-          comprehension.}  Claude Sonnet 4.5~\citep{anthropic2025sonnet}
-          called per-branch with a CoT-then-verdict prompt lifts
-          \cmaj{} from $79.1\%$ to $85.3\%$ on GSM8K-test
-          $N{=}500$ (oracle $86.3\%$).  Hand inspection of the
-          $15$ \cmaj{}-failed/oracle-recoverable problems shows
-          that wrong branches typically contain correct
-          arithmetic applied to incorrect problem setups; a
-          single ``LLaDA's failure mode is problem comprehension,
-          not arithmetic'' diagnosis predicts the entire
-          leaderboard, including why symbolic and peer-class
-          verifiers lose, why frontier judges win, and why CoT
-          recovers $5$ additional problems
-          ($8 \to 13$ of $15$) over the YES/NO prompt
-          (\S\ref{sec:voting_gap}).
-    \item \textbf{Commit-LoRA is an inference-time discrete
-          schedule toggle.}  A K2 sweep
-          (\code{COMMIT\_N\_BLOCKS} $\in \{0, 3, 4\}$) on
-          \LLaDA{}'s four-sub-block sampler produces an
-          inverted-U: the v3 default ($k{=}3$, sub-blocks $2$--$4$)
-          beats both the adapter-off floor ($-1.7$\,pp) and the
-          always-on extreme ($-3.2$\,pp), with both off-peak
-          deltas exceeding the $0.85$\,pp multi-seed sample
-          standard deviation.  The sub-block-$1$ boundary is
-          load-bearing in both directions, and a single boolean
-          schedule mask is sufficient to capture it; this places
-          commit-LoRA as a strictly weaker (no hypernetwork, no
-          MoE routing, no training-time conditioning) sibling of
-          schedule-aware adapters such as
-          TC-LoRA~\citep{tclora2025} and TimeStep
-          Master~\citep{timestepmaster2025}
-          (\S\ref{sec:commit_lora_k2}).
-    \item \textbf{The offline-replay mode router is an honest
-          negative at our substrate scale.}  An offline-replay
-          contextual bandit over $20$ problems and $12$ conditions
-          using per-problem text features (length, numeric tokens,
-          TF-IDF) reaches LOOCV accuracy $65\%$ versus best-fixed
-          $75\%$ and oracle $85\%$, hitting the pre-registered
-          LOSS threshold.  The pathology is the same small-$N$,
-          large-action, surface-feature regime that loses on the
-          per-branch verifier sweep; the path forward is a larger
-          encoder, a process-reward verifier on trajectory
-          features, or step-level human supervision
-          (\S\ref{sec:mode_router}).  We additionally disclose in
-          the discussion that a parameter-matched AR baseline
-          (Qwen-$2.5$-$7$B) beats the hybrid \cmajc{} on this
-          benchmark at fewer active parameters
-          (\S\ref{subsec:ar_baseline}).
 \end{enumerate}
 
-\paragraph{Framing: decomposition, not unification.}
-This paper does not propose a single architecture or training recipe.
-It argues that the empirical record on hybrid AR/DDLM reasoning is
-muddied because the failure surface is multi-dimensional and prior
-work has measured projections of it without controlling for the
-other axes.  The contribution is the decomposition itself, plus
-trainable interventions on two of the three axes that demonstrate
-the axes are real and individually addressable.  The third axis
-(planner-content trust) is characterized but not fixed; we leave a
-content-trust adapter to future work.
+Beyond these four headline contributions, additional findings
+and honest negatives are surfaced as prose inside the relevant
+sections rather than as standalone bullets: a K2 schedule-toggle
+ablation locating commit-LoRA as a discrete inference-time toggle
+on block-structured mask diffusion (\S\ref{sec:commit_lora_k2}),
+an offline-replay per-problem mode router that hits a
+pre-registered LOSS threshold (\S\ref{sec:mode_router}), three
+parallel aggregation negatives (temporal-SC voting, KL-anchored
+schedule-RLHF, LLaDA-$1.5$ base swap;
+\S\ref{subsec:parallel_negatives}), a parameter-matched
+plain-Qwen-$7$B AR baseline that beats the hybrid \cmajc{} at
+fewer active parameters
+(\S\ref{subsec:ar_baseline}), a \Qwen{0.5B} self-consistency
+rebuttal that rules out generic self-consistency as the
+explanation for the diffusion \cmaj{} advantage
+(\S\ref{sec:rebuttal}), and the compositionality of param-time
+and compute-time consensus (\cmajc{}$=82.5\%$ vs base test
+\cmaj{}$=79.0\%$, $+3.5$\,pp; \S\ref{sec:distill}).
 
-\paragraph{Status.}
-All numbers are measured on GSM8K-test, $N{=}200$, fixed seed $0$
-unless otherwise noted, with \LLaDA{}-8B-Instruct at $k{=}64$
+\paragraph{Framing: substrate properties, not benchmark wins.}
+This paper is about \emph{substrate properties} of current-generation
+discrete-diffusion language models for chain-of-thought reasoning
+--- what fails, what is fixable, what is structural --- not about
+whether a hybrid AR/DDLM stack beats a parameter-matched
+monolithic AR baseline on a math benchmark.  At the AR scales we use
+as planners, on this benchmark, it does not: a plain
+Qwen-$2.5$-$7$B AR baseline reaches $\sim 86.5\%$ on GSM8K-test,
+beating our hybrid \cmajc{} of $82.5\%$ at fewer active parameters,
+and hybrid accuracy is approximately invariant ($82\text{--}83\%$)
+across a $14\times$ planner-scale range from Qwen-$0.5$B to
+Qwen-$7$B (\S\ref{subsec:ar_baseline}).  The natural read is that
+the substrate-level findings reported here should generalize to
+AR/DDLM stacks where the diffusion model is closer to AR
+peer-class scale, and that the practical accuracy claim of
+\emph{this} hybrid against parameter-matched AR is benchmark- and
+scale-bounded.  We take that bet upfront so it does not ambush the
+discussion.  Two of the three axes admit trainable interventions
+(\S\ref{sec:axis1}, \S\ref{sec:distill}); the third is
+characterized as a phenomenon over a two-rung capacity sweep
+(\S\ref{sec:axis2}) and we are explicit that a third rung would
+upgrade it from a phenomenon to a fully-resolved axis.
+
+\paragraph{Scope and statistical caveats.}
+All numbers are measured on GSM8K-test at $N{=}200$, single-seed
+$0$ unless otherwise noted, with \LLaDA{}-8B-Instruct at $k{=}64$
 denoising steps and a fixed regex answer extractor that tolerates
-both \code{Answer:} and \code{\#\#\#\#} formats.  The voting-rule
-gap section (\S\ref{sec:voting_gap}) additionally uses an
-$N{=}500$ extension ($200$ frozen indices $+$ $300$ fresh) for the
-frontier-judge evaluation; the substrate change moves the base
-\cmaj{} only from $79.0\%$ to $79.1\%$, well within sampling
-noise.  All four LoRA adapters (Track 1 v2, Track 1 v3, Track 2
-v2, Track 2 v3) and the three derived datasets are public on the
-Hugging Face Hub.  Total compute spend across all experiments is
-approximately $\$13$: $\$3.50$ on a single RTX~4090 spot pod for
-the three-axis and distillation work, plus $\$9.50$ for the
-voting-rule-gap follow-up
-(\appref{app:compute}).  \appref{app:hyperparameters}
-lists exact training and verifier configurations;
-\appref{app:prereg} reproduces the pre-registration scorecard,
-including a prediction violated in the unexpected (good) direction
-and a post-hoc verifier-aggregation prediction that hardens
-\S\ref{sec:voting_gap}; \appref{app:open} flags the remaining open
-exposures that we did not close before this draft.
+both \code{Answer:} and \code{\#\#\#\#} formats.  At $N{=}200$,
+binomial sampling noise is approximately $\pm 5\text{--}7$\,pp,
+which is the right scale to keep in mind when reading the
+deltas reported in \S\ref{sec:axis1}--\S\ref{sec:distill}.  The
+multi-seed Phase-1 \cmajc{} headline is locked at
+$82.2\% \pm 0.29$\,pp ($\sigma$ across $3$ seeds at $N{=}100$),
+tighter than the per-seed Wilson interval at $N{=}100$; the other
+single-seed deltas in the body should be read as point estimates
+and are flagged as such throughout.  The voting-rule gap section
+(\S\ref{sec:voting_gap}) additionally uses an $N{=}500$ extension
+($200$ frozen indices $+$ $300$ fresh) for the frontier-judge
+evaluation; the substrate change moves the base \cmaj{} only from
+$79.0\%$ to $79.1\%$, well within sampling noise.
+All experiments use a single benchmark (GSM8K-test) and a single
+base diffusion model (\LLaDA{}-8B-Instruct); a multi-task
+replication (e.g.\ MATH-Easy, ARC-Challenge) and a multi-DDLM
+substrate replication (BD3-LMs~\citep{arriola2025bd3lms},
+DiffuLLaMA~\citep{gong2024diffullama}) would harden every claim
+made here, and we say so plainly in
+\S\ref{sec:discussion}-Limitations and \appref{app:open}.
+
+\paragraph{Reproducibility and cost.}
+Total compute spend across all four phases of this work is
+approximately $\$20.5$ on a single RTX~$4090$ substrate at
+\$$0.20$/hr (Runpod), batched into $\sim 100$ pod-hours
+(\appref{app:compute}).  All four LoRA adapters (Track 1 v2,
+Track 1 v3, Track 2 v2, Track 2 v3) and the three derived datasets
+are public on the Hugging Face Hub; the full pipeline
+re-runs end-to-end in under a single GPU-day.  Lab-independent
+reproducibility on consumer hardware is itself part of the
+contribution: the substrate-level findings in this paper do not
+require a research-cluster budget to verify, and we view the cost
+ceiling as a feature of the design rather than a footnote.
+\appref{app:hyperparameters} lists exact training and verifier
+configurations; \appref{app:prereg} reproduces the
+pre-registration scorecard, including a prediction violated in the
+unexpected (good) direction and a post-hoc verifier-aggregation
+prediction that hardens \S\ref{sec:voting_gap};
+\appref{app:open} flags the remaining open exposures that we did
+not close before this draft.

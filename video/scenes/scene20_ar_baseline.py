@@ -1,6 +1,7 @@
 """Scene 20 -- honest AR-baseline disclosure.
 
-Head-to-head bars on GSM8K-test:
+Head-to-head bars on GSM8K-test, with a truncated y-axis (acc 50-92)
+so the +4.0 pp delta is visible without bars colliding with the title:
   hybrid sfumato cmajc-v3 (LLaDA-8B + Qwen 0.5-1.5B planner): 82.5%
   plain Qwen-2.5-7B AR alone:                                  ~86.5%
 
@@ -23,6 +24,7 @@ from manim import (
     FadeIn,
     GrowFromEdge,
     LEFT,
+    Line,
     RIGHT,
     RoundedRectangle,
     Scene,
@@ -51,6 +53,14 @@ ROWS = [
     ("Qwen-2.5-7B AR",  "plain monolithic AR, no diffusion, no planner",   "86.5%", 86.5, GOOD),
 ]
 
+# Truncated y-axis -- acc range mapped onto a fixed pixel band
+# leaves headroom above the bars for value labels + delta arrow
+# without colliding with the title/subtitle band.
+ACC_FLOOR = 50.0
+ACC_CEIL  = 92.0
+BAR_FLOOR = -2.0
+BAR_CEIL  =  1.05
+
 
 def _bar(height_abs, color, width):
     return RoundedRectangle(
@@ -64,86 +74,123 @@ def _bar(height_abs, color, width):
     )
 
 
+def _y_for(acc: float) -> float:
+    return BAR_FLOOR + (acc - ACC_FLOOR) * (BAR_CEIL - BAR_FLOOR) / (ACC_CEIL - ACC_FLOOR)
+
+
 class ARBaselineScene(Scene):
     def construct(self) -> None:
         self.camera.background_color = BG
 
         title = title_text(
             "Peer baseline -- AR alone beats the hybrid at fewer active params",
-            size=24,
+            size=22,
             color=ACCENT,
         )
         title.to_edge(UP, buff=0.45)
 
         sub = body_text(
             "GSM8K-test, same eval. Hybrid is ~9B active at inference; AR is 7B.",
-            size=16,
+            size=15,
             color=MUTED,
         )
         sub.next_to(title, DOWN, buff=0.16)
 
         chart_left, chart_right = -4.5, 4.5
-        floor_y = -1.7
-        unit = 0.06
-
-        def y_for(acc):
-            return floor_y + acc * unit
-
         usable_left, usable_right = chart_left + 0.5, chart_right - 0.5
         n = len(ROWS)
         slot_w = (usable_right - usable_left) / n
         bar_w = 2.0
 
+        # truncated-axis indicator on the left edge
+        axis_line = Line(
+            LEFT * 5.4 + UP * BAR_FLOOR,
+            LEFT * 5.4 + UP * BAR_CEIL,
+            color=MUTED,
+            stroke_width=1.5,
+        )
+        axis_lo = body_text(f"{int(ACC_FLOOR)}%", size=12, color=MUTED)
+        axis_lo.move_to(LEFT * 5.7 + UP * BAR_FLOOR)
+        axis_hi = body_text(f"{int(ACC_CEIL)}%", size=12, color=MUTED)
+        axis_hi.move_to(LEFT * 5.7 + UP * BAR_CEIL)
+        # "axis break" tick marks indicating the truncation
+        break_lo = Line(
+            LEFT * 5.55 + UP * (BAR_FLOOR - 0.18),
+            LEFT * 5.25 + UP * (BAR_FLOOR - 0.08),
+            color=MUTED,
+            stroke_width=1.5,
+        )
+        break_hi = Line(
+            LEFT * 5.55 + UP * (BAR_FLOOR - 0.10),
+            LEFT * 5.25 + UP * (BAR_FLOOR + 0.00),
+            color=MUTED,
+            stroke_width=1.5,
+        )
+
         bar_groups = []
         labels = []
         for i, (label, sub_lbl, val_str, val, color) in enumerate(ROWS):
             x_pos = usable_left + slot_w * (i + 0.5)
-            top_y = y_for(val)
-            h_abs = top_y - floor_y
+            top_y = _y_for(val)
+            h_abs = top_y - BAR_FLOOR
             bar = _bar(h_abs, color, width=bar_w)
-            bar.move_to(RIGHT * x_pos + UP * (floor_y + h_abs / 2))
+            bar.move_to(RIGHT * x_pos + UP * (BAR_FLOOR + h_abs / 2))
 
-            val_lbl = body_text(val_str, size=30, color=color, weight=BOLD)
-            val_lbl.next_to(bar, UP, buff=0.12)
+            val_lbl = body_text(val_str, size=26, color=color, weight=BOLD)
+            val_lbl.next_to(bar, UP, buff=0.10)
 
             cond = body_text(label, size=20, color=FG, weight=BOLD)
-            cond.move_to(RIGHT * x_pos + UP * (floor_y - 0.45))
+            cond.move_to(RIGHT * x_pos + UP * (BAR_FLOOR - 0.42))
 
             tag = body_text(sub_lbl, size=12, color=MUTED)
-            tag.move_to(RIGHT * x_pos + UP * (floor_y - 0.82))
+            tag.move_to(RIGHT * x_pos + UP * (BAR_FLOOR - 0.78))
 
             bar_groups.append(VGroup(bar, val_lbl))
             labels.extend([cond, tag])
 
+        # delta annotation sits between the two value labels, just above bars
         gap_label = body_text(
-            "delta = +4.0 pp for plain AR",
-            size=20,
+            "delta = +4.0 pp",
+            size=18,
             color=WARN,
             weight=BOLD,
         )
-        gap_label.move_to(0 * RIGHT + UP * 2.4)
+        gap_label.move_to(0 * RIGHT + UP * (BAR_CEIL + 0.55))
 
         invariance_note = body_text(
-            "Hybrid acc is ~planner-invariant: 82-83% across Qwen 0.5B -> 7B planners (14x range).\n"
-            "The bottleneck is LLaDA-8B, not the AR planner.",
-            size=15,
+            "Hybrid acc is ~planner-invariant"
+            " (82-83% across Qwen 0.5B -> 7B planners, 14x range)"
+            " -- the bottleneck is LLaDA-8B.",
+            size=14,
             color=MUTED,
         )
-        invariance_note.move_to(0 * RIGHT + DOWN * 3.05)
+        invariance_note.move_to(0 * RIGHT + UP * (BAR_FLOOR - 1.10))
 
         callout = body_text(
-            "Honest disclosure: substrate findings hold; head-to-head accuracy claim does not.",
-            size=18,
+            "Honest disclosure: substrate findings hold;"
+            " head-to-head accuracy claim does not.",
+            size=17,
             color=ACCENT,
             weight=BOLD,
         )
         callout.to_edge(DOWN, buff=0.30)
 
-        assert_no_overlap([title, sub, gap_label, invariance_note, callout] + labels)
+        assert_no_overlap(
+            [title, sub, gap_label, invariance_note, callout, axis_lo, axis_hi]
+            + labels
+        )
 
         self.play(FadeIn(title, shift=UP * 0.15), run_time=0.5)
         self.play(FadeIn(sub, shift=UP * 0.1), run_time=0.4)
-        self.play(*[FadeIn(l) for l in labels], run_time=0.4)
+        self.play(
+            FadeIn(axis_line),
+            FadeIn(axis_lo),
+            FadeIn(axis_hi),
+            FadeIn(break_lo),
+            FadeIn(break_hi),
+            *[FadeIn(l) for l in labels],
+            run_time=0.4,
+        )
         for g in bar_groups:
             self.play(GrowFromEdge(g[0], DOWN), FadeIn(g[1]), run_time=0.55)
             self.wait(0.25)

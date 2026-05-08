@@ -2,6 +2,19 @@
 \label{sec:discussion}
 
 \subsection{Reconciling the Conflicting Reports}
+\label{subsec:reconciling}
+
+The single most useful sentence in this paper, and the one we
+would ask a reader to remember, is that
+\textbf{\LLaDA{}'s GSM8K failure mode is problem comprehension,
+not arithmetic.}  Hand inspection of the $15$
+\cmaj{}-failed/oracle-recoverable problems
+(\S\ref{sec:voting_gap}) shows that wrong branches typically
+contain locally correct arithmetic applied to incorrect problem
+\emph{setups} --- the model misreads what is being asked, not
+what to compute.  Reading the rest of this discussion through
+that lens collapses the apparently disjoint findings of the body
+into a single picture.
 
 The three-axis decomposition lets us reconcile the conflicting
 reports in the hybrid AR/DDLM literature.  Papers that report ``AR
@@ -25,20 +38,90 @@ Within the frame, they are five projections of a multi-axis
 failure surface, each consistent with the others when the omitted
 axes are held fixed.
 
-The voting-rule-gap evidence in \S\ref{sec:voting_gap} adds a
-related point: even with the three failure axes intervened on,
-\cmaj{} aggregation is itself a lossy step, leaving $8\text{--}12$\,pp
-on the table relative to an oracle ceiling.  Closing that gap
-appears to require reasoning at least as strong as the generator
-itself --- the frontier judge wins because at this scale it is
-strictly stronger at problem decomposition than \LLaDA{}-$8$B,
-which is the bottleneck the failure mode actually demands.  This
+The same lens predicts the structure of the entire verifier
+leaderboard in \S\ref{sec:voting_gap}.  Why do peer-class
+chat-LMs lose ($-4$ to $-14$\,pp)?  Because the verification task
+is implicitly ``re-solve the problem from scratch and compare''
+and a peer-class classifier without that capability has nothing
+to add over majority vote.  Why do math-tuned encoders lose
+\emph{worse} than chat-tuned ones at the same scale (math vocab
+is irrelevant to the failure mode)?  Because arithmetic vocabulary
+is the wrong inductive bias when the failure is upstream of
+arithmetic.  Why do embedding models lose worst (cosine
+similarity collapses problem distinctions a classifier needs)?
+Same.  Why does a frontier judge with chain-of-thought win
+($+6.16$\,pp, $86\%$ gap-closure)?  Because at this scale it is
+strictly stronger at the problem-decomposition step than
+\LLaDA{}-$8$B is.  And why does the chain-of-thought variant beat
+the YES/NO prompt by $5$ recovered problems
+($8 \to 13$ of $15$)?  Because forcing the judge to re-derive the
+setup is forcing it to re-do the step the generator failed.  This
 is consistent with a verifier literature in which Cobbe et
-al.~\citep{cobbe2021verifier} used a fine-tuned GPT-3 verifier and
-Lightman et al.~\citep{lightman2023letsverify} used step-level
-human supervision: when the verification task is implicitly
-``re-solve the problem from scratch and compare'', a peer-class
-classifier with surface features cannot win.
+al.~\citep{cobbe2021verifier} used a fine-tuned GPT-$3$ verifier
+and Lightman et al.~\citep{lightman2023letsverify} used
+step-level human supervision: when the verification task is
+implicitly to re-solve and compare, a peer-class classifier with
+surface features cannot win, and a stronger reasoner can.
+
+\subsection{Parallel Negatives Across Aggregation Sub-Problems}
+\label{subsec:parallel_negatives}
+
+The voting-rule gap (\S\ref{sec:voting_gap}) and the offline-replay
+mode router (\S\ref{sec:mode_router}) probe two different
+sub-problems of test-time aggregation in diffusion LMs --- per-branch
+verification and per-problem mode routing --- and both fall to the
+same pathology: at our substrate scale, supervised classification
+with surface features cannot close the oracle gap.  Three
+additional spikes probe further parallel sub-problems and land in
+the same regime, which is the single piece of evidence we want to
+surface here.
+
+\paragraph{Schedule-conditional Temporal-SC voting.}
+A schedule-weighted vote across denoising sub-blocks
+($1.5\times$ on active sub-blocks, $1.0\times$ on inactive)
+regressed $-4$\,pp on GSM8K dev$_{200}$ at $N{=}100$
+(\cmajc{}-vote $0.82$, Temporal-SC $0.78$).  The
+canonical answer span (\code{\#\#\#\#}, \code{Answer:}) only
+materializes at sub-block~$3$ of $4$ in $94\%$ of branches, so the
+$1.5\times$ weight on sub-blocks~$1$--$2$ amplifies a near-empty
+channel.  Zhang et al.~\citep{zhang2025timefeature} report a
+positive temporal-SC result on diffusion LMs with an
+exponential-decay weighting; our schedule-conditional weighting
+does not extend their result.
+
+\paragraph{Schedule-RLHF on commit-LoRA.}
+A mini-pilot ($50$-step GRPO, no KL anchor) was paired
+$-1$\,problem on MATH-$500$ at $N{=}20$; a mid-pilot ($200$-step
+GRPO with a Schulman-$k_3$ KL anchor at $\beta{=}0.05$) was paired
+$+1$\,problem on MATH-$500$ at $N{=}50$, with $49/50$ predictions
+bit-identical and one wrong-to-correct flip.  Both signals are
+within binomial CI ($\pm 14$\,pp at $N{=}50$); the meaningful
+evidence is the directional reversal once the KL anchor is wired,
+which says schedule-conditional adapter retraining is at minimum
+non-destructive in this regime.  We do not claim a WIN on the
+mid-pilot signal alone; a locked pre-registered full pilot at
+$3100$ steps over $1550$ prompts is the gating experiment.
+
+\paragraph{Cross-base-model transfer.}
+A drop-in swap from \LLaDA{}-$8$B-Instruct~\citep{nie2025llada} to
+LLaDA-$1.5$ (the VRPO post-trained successor) with the frozen v$3$
+LoRAs landed MATH-$500$-numeric $N{=}50$ \cmajc{}-$k_3$ $= 0.56$,
+$-2$\,pp below the LLaDA-$8$B-Instruct reference of $0.58$.
+Adapter compatibility passed cleanly --- the swap is mechanically
+a no-op --- but capability transfer failed.  The peer-class
+accuracy gap discussed in \S\ref{subsec:ar_baseline} is not
+explained by base-model VRPO post-training.
+
+\medskip
+
+The unifying read across \S\ref{sec:voting_gap},
+\S\ref{sec:mode_router}, and the three spikes above is that
+test-time aggregation in diffusion LMs is not a
+single-classifier or single-toggle problem at the data scales we
+can afford.  The three follow-ups in \S\ref{sec:discussion} Future
+Work --- a substantially larger encoder, a process-reward verifier
+on per-step trajectory features, or step-level human supervision
+---  apply to every parallel sub-problem we have probed.
 
 \subsection{Honest Peer Baseline: Plain AR at Matched Scale}
 \label{subsec:ar_baseline}
@@ -133,7 +216,9 @@ content-level diversity that temperature does not match.  One
 short eval; deferred to revision.
 
 \paragraph{Content-trust adapter.}  The planner-content-trust
-axis (\S\ref{sec:axis2}) is characterized but not fixed.  A
+phenomenon (\S\ref{sec:axis2}) is characterized but not fixed,
+and would benefit from a third capacity rung before being framed
+as a fully-resolved axis.  A
 content-trust LoRA --- one that varies plan content quality at
 fixed surface shape, complementing our prefix-robust dataset
 which varies surface shape at fixed content --- is a natural

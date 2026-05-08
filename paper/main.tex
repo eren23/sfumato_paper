@@ -51,21 +51,30 @@ Hybrid pipelines that combine an autoregressive (AR) language model
 with a discrete-diffusion language model (DDLM) for chain-of-thought
 reasoning have produced mixed results in the literature, with
 conflicting reports on whether AR planning helps DDLM denoising and
-whether DDLM sampling diversity is useful.  We argue these conflicts
-collapse once the failure surface is decomposed: hybrid AR/DDLM
-reasoning fails along \emph{at least three orthogonal axes} ---
-interface-format brittleness, planner-content trust, and
-sampling-diversity preservation --- that can be characterized and
-intervened on independently.  On GSM8K~\citep{cobbe2021gsm8k} with
+whether DDLM sampling diversity is useful.  This paper is about
+the \emph{substrate properties} of current-generation DDLMs that
+explain those conflicts --- not about whether the hybrid stack
+beats a parameter-matched monolithic AR baseline on a math
+benchmark, which on GSM8K~\citep{cobbe2021gsm8k} at the AR scales
+we use as planners it does not.  We argue the conflicts in the
+literature collapse once the failure surface is decomposed: hybrid
+AR/DDLM reasoning fails along \emph{at least three orthogonal axes} ---
+interface-format brittleness, planner-content trust (which we
+characterize as a \emph{phenomenon} over a two-rung capacity
+sweep, not yet a fully-resolved axis), and sampling-diversity
+preservation --- that can be characterized and intervened on
+independently.  On GSM8K~\citep{cobbe2021gsm8k} with
 \LLaDA{}-8B-Instruct~\citep{nie2025llada} and
 \Qwen{\{0.5B,1.5B\}}-Instruct~\citep{qwen2024report} we show: (i)
 interface-format brittleness is fixable with a small
 ($r{=}8$)~\citep{hu2022lora} prefix-robustness LoRA, with a
 measurable capacity tradeoff between no-prefix accuracy and
 branch-vote ceiling; (ii) planner-content trust is
-capacity-dependent in opposite directions across planners --- a
-$0.5$B planner improves at higher capacity ($+5$\,pp), while a
-$1.5$B planner regresses by $13$\,pp; (iii)
+capacity-dependent in opposite directions across two planners ---
+a $0.5$B planner improves at higher capacity ($+5$\,pp), while a
+$1.5$B planner regresses by $13$\,pp --- with the caveat that two
+capacity rungs establish the inversion is real but a third rung is
+needed to fully resolve the curve; (iii)
 format-augmented LoRA training \emph{expands} sampling diversity
 ($5/5$-branch agreement $51.5\% \rightarrow 47.5\%$), rather than
 collapsing it; (iv) consensus distillation into the diffusion model
@@ -102,19 +111,24 @@ a single discrete inference-time schedule toggle at the
 load-bearing sub-block-$1$ boundary --- a strictly weaker mechanism
 than continuous schedule-aware adapters
 (TC-LoRA~\citep{tclora2025},
-TimeStep Master~\citep{timestepmaster2025}).  An offline-replay
-per-problem mode router with surface text features is an honest
-negative at our budget ($-10$\,pp vs best fixed), and a
-parameter-matched plain Qwen-$2.5$-$7$B AR baseline reaches
-$\sim 86.5\%$ on this benchmark, beating the hybrid \cmajc{} at
-fewer active parameters; we surface both in the discussion as
-disclosure rather than as targets.
+TimeStep Master~\citep{timestepmaster2025}).  Across the parallel
+sub-problems of test-time aggregation, a consistent pathology
+emerges: an offline-replay per-problem mode router with surface
+text features ($-10$\,pp vs best fixed), a schedule-weighted
+temporal-SC voting variant ($-4$\,pp vs \cmajc{}-vote, against the
+positive-direction prior of Zhang et
+al.~\citep{zhang2025timefeature}), a KL-anchored schedule-RLHF
+mid-pilot on commit-LoRA (within CI on MATH-$500$ $N{=}50$ but with
+a directional reversal of the unanchored mini-pilot), and a
+LLaDA-$1.5$ base swap with frozen v$3$ LoRAs ($-2$\,pp) all land
+as honest negatives or within-CI signals at our substrate scale.
+We surface these alongside a parameter-matched plain
+Qwen-$2.5$-$7$B AR baseline (which reaches $\sim 86.5\%$, beating
+the hybrid \cmajc{} at fewer active parameters) as disclosure
+rather than as targets.
 All datasets and adapters are public on the Hugging Face Hub.
 Total compute spend across all experiments is approximately
-\$17: \$3.50 on a single RTX~4090 for the three-axis and
-distillation work, \$9.50 for the voting-rule-gap follow-up,
-and \$4.00 for the K2 sweep, mode-router bandit, and the
-S0--S4 spike chain (\appref{app:spike_chain}).
+\$20.5 on a single RTX~4090 substrate (\appref{app:compute}).
 \end{abstract}
 
 % ---------- Main body ----------
