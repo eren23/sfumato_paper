@@ -1,0 +1,65 @@
+The central finding is the \textbf{data-efficiency crossover}: at
+small data, composite is strictly better than AR-only at the AR task;
+at large data, AR-only is better. The crossover localises near
+$\sim 1{,}000$ problems on this substrate.
+
+\subsection{Setup}
+
+We train composite and AR-only at $200$M parameters, $3{,}000$ steps,
+on subsampled GSM8K-train at five data sizes: $500$, $1{,}000$,
+$2{,}000$, $4{,}000$, and the full $7{,}473$ (rounded to $7{,}500$ in
+the table). At each cell we train $3$--$8$ seeds. We then score
+\arNLL{} on a held-out $100$-problem chunk (indices $7{,}000$--$7{,}099$)
+and report $\Delta_{\text{NLL}} = \text{NLL}_{\text{composite}} -
+\text{NLL}_{\text{AR-only}}$ --- negative numbers favour composite.
+
+\subsection{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrl}
+\toprule
+Data size & composite & AR-only & $\Delta_{\text{NLL}}$ & $n$ seeds & significance \\
+\midrule
+\textbf{500}   & 4.49 & 4.89 & $-0.40$ & 3 & \textbf{$5.7\sigma$ win} \\
+1{,}000        & 3.31 & 3.32 & $-0.01$ & 3 & tied \\
+2{,}000        & 3.02 & 2.89 & $+0.13$ & 3 & $4.3\sigma$ tax \\
+4{,}000        & 2.98 & 2.71 & $+0.26$ & 3 & $5.8\sigma$ tax \\
+7{,}500 (full) & 2.80 & 2.57 & $+0.22$ & 8 & $\sim 4\sigma$ tax \\
+\bottomrule
+\end{tabular}
+\caption{AR-axis perplexity vs.\ AR-only baseline at $200$M, $3$k
+training steps, on subsampled GSM8K-train. Composite \emph{wins}
+decisively in the data-constrained regime ($500$ problems) and loses
+mildly above $2{,}000$. The crossover localises near $\sim 1{,}000$
+problems. Significance is per-cell two-sample $t$-test.}
+\label{tab:data-curve}
+\end{table}
+
+The $5.7\sigma$ composite win at $500$ problems is the strongest
+single positive result in the study. The monotone trend ---
+composite advantage declining, then reversing into a small tax as
+data grows --- mirrors the
+DiFFPO~\citep{wei2025diffpo} regime hypothesis that discrete
+diffusion's regularising effect is most beneficial in scarce-data
+settings.
+
+\paragraph{Crossover localisation.} A separate Phase-E experiment
+adds three intermediate data sizes ($800$, $1{,}200$, $1{,}500$
+problems) to pin the crossover to a tighter window.
+\textsc{[TODO: fill from \texttt{e5/results/e3c\_d3\_crossover/summary.json}]}.
+
+\subsection{Interpretation}
+
+We hypothesise the composite advantage at small data comes from two
+mechanisms. First, the diffusion-mode forward pass on masked tokens
+exposes the backbone to a denoising objective whose gradient is more
+diverse than next-token prediction, acting as a regulariser when the
+AR signal is scarce. Second, the bidirectional attention pattern used
+in diffusion mode shares the backbone's representational capacity
+across multiple objectives, which under-fits less when training data
+is limited.
+
+We do \textbf{not} claim this crossover generalises beyond the
+GSM8K substrate. Larger-corpus, more-diverse substrates may produce
+different curves; further work is needed.

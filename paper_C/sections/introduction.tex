@@ -1,0 +1,66 @@
+The hybrid autoregressive (AR) plus discrete-diffusion language-model
+literature is rapidly fragmenting. BD3-LMs~\citep{nie2025bd3} train
+block-AR + within-block diffusion at $400$M+ scale. Transfusion
+\citep{zhou2024transfusion} trains a single transformer with both AR
+and diffusion heads at $7$B for multimodal data. DiffuLLaMA
+\citep{gong2024diffullama} adapts a pre-trained AR backbone to
+diffusion mode at $127$M--$7$B. ELF~\citep{chen2026elf} demonstrates
+pure continuous flow language models. DiFFPO~\citep{wei2025diffpo}
+suggests discrete diffusion outperforms AR \emph{in data-constrained
+settings} via reinforcement-learning fine-tuning.
+
+None of these works isolates the \emph{joint-training} hypothesis
+against a \emph{parameter-matched, separately-trained} baseline at the
+small scale ($\sim 60$--$300$M parameters) that academic and hobbyist
+budgets actually access. Concretely: does a single shared-backbone
+transformer trained with an interpolated AR + diffusion loss learn
+something the same-parameter-count two-separate-trunk baseline does
+not? At what data regime, on what axes, and at what cost?
+
+This paper answers that question with a small-substrate
+characterisation study. We train composite, AR-only, diffusion-only,
+and paired-separate-trunk variants from scratch on GSM8K-train
+\citep{cobbe2021gsm8k} at $60$M--$300$M parameters, $3$k--$10$k
+training steps. We then measure four axes:
+
+\begin{enumerate}
+  \item \textbf{AR-axis perplexity} on a held-out GSM8K chunk
+        (composite vs.\ AR-only).
+  \item \textbf{Diffusion-axis perplexity} on the same chunk
+        (composite vs.\ pure-diffusion, with a \textbf{compute-matched
+        control} where pure-diffusion gets $2\times$ training steps).
+  \item \textbf{Mode-switching inference}: AR-then-diffusion-revise
+        downstream accuracy on GSM8K-dev (the original "switch modes
+        mid-generation" recipe).
+  \item \textbf{Honest small negatives}: out-of-distribution
+        perplexity on prose and arxiv, and Expected Calibration Error.
+\end{enumerate}
+
+Our central findings are:
+
+\begin{itemize}
+  \item Composite \textbf{beats compute-matched pure diffusion} by
+        $-0.69$ NLL at $200$M --- joint training is structural, not
+        an artefact of more total gradient signal. The advantage
+        replicates at $60$M and $300$M.
+  \item There is a \textbf{clean data-efficiency crossover} near
+        $1{,}000$ problems: composite \emph{wins} the AR axis at
+        $500$ problems by $-0.40$ NLL ($5.7\sigma$); composite
+        \emph{loses} at $7{,}500$ problems by $+0.22$ NLL.
+  \item Mode-switching inference gives a small downstream lift
+        on GSM8K-dev at $n=8$ seeds; per-seed variance remains
+        wide and we are honest about the workshop-class strength of
+        this result.
+  \item Composite is small-uniformly worse on OOD perplexity
+        ($+0.1$--$0.2$ NLL) and slightly worse-calibrated at $4$
+        of $5$ scales. These are documented as costs of the trade,
+        not as net wins on a different axis.
+\end{itemize}
+
+We position the result as a \textbf{trade-off characterisation, not a
+universal claim}. Composite training is the right design choice when
+the data regime is constrained and downstream generation can exploit
+mode-switching; it is the wrong design choice when only AR-axis loss
+and OOD prose generalisation matter. The crossover localises the
+"when": $\sim 1{,}000$--$1{,}500$ problems on a math-reasoning
+substrate. We hypothesise this rather than claim it generalises.

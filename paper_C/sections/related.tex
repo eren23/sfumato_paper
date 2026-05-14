@@ -1,0 +1,59 @@
+\subsection{Joint AR + diffusion training}
+
+\textbf{BD3-LMs}~\citep{nie2025bd3} train a block-AR + within-block
+discrete-diffusion model on the OpenWebText corpus at $\sim 400$M
+parameters and find competitive perplexity vs.\ standard AR. They do
+not report a parameter-matched pure-AR baseline trained on the same
+data, nor a compute-matched control on the diffusion side.
+
+\textbf{Transfusion}~\citep{zhou2024transfusion} trains a $7$B
+single-transformer model with both an AR head (for text) and a
+continuous-diffusion head (for images). The work demonstrates joint
+training is feasible at scale and beats quantised-image-AR baselines.
+The training is not designed for parameter-matched comparison against
+pure-AR text models.
+
+\textbf{Janus} and \textbf{Janus-Pro}~\citep{wu2024janus,chen2025januspro}
+train unified $7$B models with separate visual-understanding and
+visual-generation encoders, with AR text generation. The architecture
+is closer to multi-modal AR than to AR+diffusion-text training.
+
+\subsection{Pre-trained AR $\to$ diffusion adaptation}
+
+\textbf{DiffuLLaMA}~\citep{gong2024diffullama} adapts a pre-trained
+AR LLaMA backbone to diffusion mode via continued training. The
+reported result is "competitive, not superior" vs.\ AR baselines.
+This is closely related to our compute-matched control but starts
+from a different initialisation; we train from scratch.
+
+\textbf{Fast-dLLM v2}~\citep{wu2025fastdllm} adapts a pre-trained AR
+model to block-diffusion mode and reports a $2.5\times$ inference
+speedup at $<1$B tokens.
+
+\subsection{Continuous flow language models}
+
+\textbf{ELF}~\citep{chen2026elf} demonstrates pure continuous flow
+language modelling. We replicated a small-scale flow variant
+(\texttt{ARFlowLM}) as part of our T1 ablations and found
+$0\%$ accuracy at $60$M-$3$k on GSM8K-dev --- flow-only models do not
+compose with AR at our toy scale. We do not extend this branch.
+
+\subsection{Data-constrained discrete diffusion}
+
+\textbf{DiFFPO}~\citep{wei2025diffpo} shows discrete diffusion
+outperforms AR in data-constrained settings via RL fine-tuning. Our
+data-efficiency curve replicates this regime effect in
+\emph{from-scratch joint training} (no RL), at $200$M scale, on
+math-reasoning rather than the language-modelling substrate DiFFPO
+used.
+
+\subsection{Mode-switching and interleaved inference}
+
+The original Sfumato planning document proposed a learned mode-router
+that selects among AR-extend, diffuse-current-block,
+re-diffuse-last-$K$-blocks at every sub-block boundary. We do not
+train such a router in this work; instead we test fixed
+mode-switching policies (e.g., AR-then-diffusion-revise) as the
+inference recipe. \textbf{SongBloom}~\citep{wang2025songbloom}
+interleaves AR-sketch and diffusion-refine for music; the loop
+pattern is analogous but the domain is different.

@@ -1,0 +1,72 @@
+\subsection{When to use composite training}
+
+The trade-off has a clean structure:
+
+\begin{itemize}
+  \item \textbf{Strong yes} when (a) data is constrained
+        ($\lesssim 1{,}000$ problems on a math substrate), (b) the
+        deployment scenario can exploit mode-switching inference, and
+        (c) the diffusion-axis performance matters.
+  \item \textbf{Mild yes} when (a) data is abundant but the
+        diffusion-axis advantage outweighs the small AR tax for the
+        application, and (b) OOD prose generalisation is not a
+        priority.
+  \item \textbf{No} when (a) the deployment is pure-AR (no
+        mode-switching), (b) the only metric is AR-mode held-out
+        perplexity, or (c) OOD prose generalisation matters.
+\end{itemize}
+
+\subsection{Why the crossover happens}
+
+We do not provide a formal account of \emph{why} the crossover sits
+near $\sim 1{,}000$ problems on GSM8K. Two non-exclusive hypotheses:
+
+\begin{enumerate}
+  \item \emph{Regularisation budget}. The diffusion-mode mask-fill
+        objective acts as an implicit regulariser on the shared
+        backbone. In the data-scarce regime, the AR-only model
+        overfits to specific token sequences in GSM8K-train, while
+        composite generalises better via the denoising objective. As
+        data grows, the AR-only baseline gets the regularisation it
+        needs from the data itself, and composite's diffusion
+        objective becomes a tax rather than an aid.
+  \item \emph{Capacity allocation}. The shared backbone has finite
+        capacity. With scarce AR signal, it cannot afford to specialise
+        in next-token prediction and the bidirectional/diffusion
+        component provides complementary signal. With abundant AR
+        signal, specialisation in AR pays more than the diffusion
+        signal costs.
+\end{enumerate}
+
+\subsection{Relationship to published work}
+
+DiFFPO~\citep{wei2025diffpo} reports discrete-diffusion outperforming
+AR in data-constrained settings via RL fine-tuning. Our result is a
+\emph{from-scratch joint-training} parallel: same regime (data
+scarcity), same direction (diffusion-flavoured training wins), no RL.
+This is the first evidence we are aware of that the DiFFPO regime
+effect manifests in pre-training as well, at small scale and without
+RL.
+
+The compute-matched control closes a gap in
+BD3-LMs~\citep{nie2025bd3} and Transfusion~\citep{zhou2024transfusion},
+neither of which explicitly compares against a compute-matched
+pure-diffusion baseline. Our result is small-scale (60M--300M), but
+the apples-to-apples comparison is cleaner than in works that focus
+on absolute scale.
+
+\subsection{What this study does not claim}
+
+\begin{itemize}
+  \item That composite training is universally better than separated
+        training. The trade depends on data regime and which axis
+        matters.
+  \item That the crossover at $\sim 1$k problems generalises beyond
+        the GSM8K substrate. A different substrate would produce a
+        different curve.
+  \item That mode-switching reliably wins downstream tasks. We have
+        $n=3$ data with high per-seed variance; the $n=8$ expansion
+        tightens this but does not eliminate it.
+  \item That toy-scale results scale to $1$B+ parameters. The trade
+        direction may shift with model scale; we cannot test.
+\end{itemize}

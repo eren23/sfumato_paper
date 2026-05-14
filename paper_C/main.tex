@@ -1,0 +1,106 @@
+\documentclass[11pt]{article}
+
+% ---------- Packages ----------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{calc,positioning,arrows.meta}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{siunitx}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor={blue!70!black},
+    citecolor={green!50!black},
+    urlcolor={blue!80!black},
+}
+
+% ---------- Macros ----------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\compNLL}{$\Delta_{\text{NLL}}$}
+\newcommand{\arNLL}{NLL$_\text{AR}$}
+\newcommand{\diffNLL}{NLL$_\text{diff}$}
+
+% ==========================================================================
+\title{Composite AR + Discrete-Diffusion Language-Model Training\\
+       at Toy Scale: a Trade-off Characterisation with a\\
+       Data-Efficiency Crossover}
+
+\author{Eren Akbulut}
+\date{Draft, May 2026}
+
+\begin{document}
+\maketitle
+
+% ---------- Abstract ----------
+\begin{abstract}
+Joint training of an autoregressive (AR) head and a discrete-diffusion
+(mask-fill) head on a shared transformer backbone --- "composite"
+training --- is the natural follow-up to recent hybrid AR/diffusion
+work that adapts pre-trained AR models to diffusion mode after the
+fact (DiffuLLaMA, Transfusion, BD3-LMs). Whether composite training is
+better than parameter-matched separated training at \emph{toy scale}
+($60$M--$300$M parameters) is empirically unknown. We close that gap
+with a single-substrate ($\sim 4$M-token GSM8K-train) characterisation
+study. On the diffusion task, composite \emph{beats} a
+\textbf{compute-matched} pure-diffusion baseline by
+$0.69$ NLL at $200$M parameters --- pure-diffusion trained for
+$2\times$ the steps still loses, ruling out the "more gradient signal"
+explanation. On the AR task, the trade reverses with data abundance:
+composite \emph{loses} by $+0.22$ NLL at the full $7{,}473$-problem
+GSM8K-train (mild AR tax), but \emph{wins} by $-0.40$ NLL ($5.7\sigma$)
+at $500$ problems --- a clean data-efficiency crossover near $1{,}000$
+problems. Mode-switching inference (AR then diffusion-revise)
+gives a small downstream lift on GSM8K-dev at $n=8$ seeds. We document
+two small honest negatives: composite is uniformly $+0.1$--$0.2$ NLL
+worse on out-of-distribution prose, and slightly worse-calibrated at
+4 of 5 scales. The composite advantage at the diffusion task survives
+across scales ($60$M / $120$M / $300$M), suggesting joint training has
+a structural rather than scale-specific benefit at this regime.
+We position the result as a small-scale trade-off characterisation that
+maps the win conditions for composite training: a clear data-constrained
+positive zone, a structural diffusion-axis advantage, and small
+documented costs on OOD and calibration.
+\end{abstract}
+
+\section{Introduction}
+\input{sections/introduction}
+
+\section{Method}
+\input{sections/method}
+
+\section{Data-Efficiency Curve}
+\label{sec:results-curve}
+\input{sections/results_curve}
+
+\section{Compute-Matched Diffusion-Axis Win}
+\label{sec:results-compute}
+\input{sections/results_compute_control}
+
+\section{Mode-Switching Inference}
+\label{sec:results-modeswitch}
+\input{sections/results_modeswitch}
+
+\section{Honest Negatives}
+\label{sec:results-negatives}
+\input{sections/results_negatives}
+
+\section{Discussion}
+\input{sections/discussion}
+
+\section{Related Work}
+\input{sections/related}
+
+\section{Limitations and Future Work}
+\input{sections/limitations}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

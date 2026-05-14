@@ -1,0 +1,71 @@
+A natural critique of "composite beats pure-diffusion at the diffusion
+task" is that composite gets twice the gradient signal per step (one
+AR-loss head and one diffusion-loss head share the backbone). If
+pure-diffusion were trained for $2\times$ the steps, would the gap
+disappear? This section shows it does not.
+
+\subsection{Setup}
+
+We compare three conditions at $200$M parameters:
+
+\begin{itemize}
+  \item Composite, $3{,}000$ steps, diffusion-axis NLL on held-out chunk
+  \item Pure-diffusion, $3{,}000$ steps, same chunk
+  \item \textbf{Pure-diffusion, $6{,}000$ steps} (the compute-matched
+        control), same chunk
+\end{itemize}
+
+\diffNLL{} measurement: mask $50\%$ of answer-region tokens uniformly
+at random and compute cross-entropy on masked positions under
+bidirectional forward.
+
+\subsection{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Model & Training steps & Diff loss share & \diffNLL{} \\
+\midrule
+Composite ($200$M) & $3{,}000$ & $\sim 25\%$ & \textbf{5.42} \\
+Pure-diffusion ($200$M) & $3{,}000$ & $100\%$ & 6.13 \\
+\textbf{Pure-diffusion ($200$M)} & $\mathbf{6{,}000}$ & $\mathbf{100\%}$ & \textbf{6.11} \\
+\bottomrule
+\end{tabular}
+\caption{Diffusion-axis NLL on held-out GSM8K answer tokens, $50\%$
+mask ratio. Composite wins by $-0.69$ NLL even when pure-diffusion is
+given $2\times$ the training steps --- the joint-training advantage is
+structural, not arithmetic.}
+\label{tab:compute-matched}
+\end{table}
+
+Pure-diffusion at $6{,}000$ steps barely improves over $3{,}000$
+steps ($6.11$ vs $6.13$). Composite at $3{,}000$ steps still beats
+both ($5.42$). \textbf{The composite advantage cannot be explained as
+"composite saw more gradient signal."}
+
+\subsection{Multi-Scale Replication}
+
+We replicate the experiment at $60$M, $120$M, and $300$M to test scale
+invariance.
+\textsc{[TODO: fill from \texttt{e5/results/e3b\_multiscale\_d2/summary.json}]}.
+
+\subsection{Why this matters}
+
+The compute-matched control closes the strongest objection to the
+joint-training story. The remaining alternative explanations are:
+
+\begin{enumerate}
+  \item \emph{Bidirectional attention itself helps mask-fill, and
+        the AR loss component does not actively hurt.} This is
+        consistent with our data and is essentially the
+        joint-training-as-architecture-prior story.
+  \item \emph{The AR loss term constrains the backbone in a way that
+        happens to also be helpful for diffusion at this scale.}
+        Plausible, scale-dependent, and would predict the advantage
+        shrinks at much larger scales (we cannot test).
+\end{enumerate}
+
+Both readings are favourable to composite design. The reading we
+\textbf{rule out} is "composite wins because it gets more total
+training compute" --- the compute-matched control falsifies that.

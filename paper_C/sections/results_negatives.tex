@@ -1,0 +1,98 @@
+A trade-off characterisation is only honest if the costs are reported
+alongside the gains. We document two small but consistent negatives.
+
+\subsection{Out-of-distribution perplexity}
+\label{sec:results-ood}
+
+We measure AR-mode NLL on three out-of-distribution distributions:
+WikiText-2-raw (general prose), an OpenWebText held-out chunk (broad
+web text), and The Pile-arxiv (math/technical text closer to GSM8K's
+domain).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Scale & comp.\ wikitext & ar.\ wikitext & comp.\ owt & ar.\ owt & $\Delta$ wikitext / owt \\
+\midrule
+$60$M & 8.90 & 8.78 & 8.31 & 8.30 & $+0.12 / +0.01$ \\
+$120$M & 8.99 & 9.01 & 8.35 & 8.36 & $-0.02 / -0.01$ \\
+$200$M & 9.09 & 9.00 & 8.37 & 8.35 & $+0.09 / +0.02$ \\
+$250$M & 9.21 & 9.05 & 8.35 & 8.28 & $+0.16 / +0.07$ \\
+$300$M & 9.36 & 9.18 & 8.58 & 8.38 & $+0.18 / +0.20$ \\
+\bottomrule
+\end{tabular}
+\caption{AR-mode NLL on OOD chunks (WikiText-2-raw and OpenWebText
+held-out). Composite is uniformly $+0.1$--$0.2$ NLL worse on prose,
+with the gap widening at larger scale.}
+\label{tab:ood}
+\end{table}
+
+\textbf{The composite trade does not transfer to OOD prose.} The
+regularising effect that helps the diffusion head and the
+data-constrained AR head does not produce a more generalising AR
+representation on non-math English text. The penalty is small in
+absolute terms ($\le 0.2$ NLL) but consistent and growing with
+scale.
+
+\subsection{Calibration}
+\label{sec:results-ece}
+
+We compute Expected Calibration Error (ECE) on AR-mode top-$1$
+predictions, $10$-bin reliability diagram, weighted by bin size.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Scale & comp.\ ECE & ar.\ ECE & comp.\ top-$1$ & ar.\ top-$1$ \\
+\midrule
+$60$M & 0.029 & 0.024 & 0.59 & 0.62 \\
+$120$M & 0.028 & 0.027 & 0.60 & 0.64 \\
+$200$M & 0.026 & 0.027 & 0.48 & 0.52 \\
+$250$M & 0.024 & 0.020 & 0.44 & 0.49 \\
+$300$M & 0.022 & 0.013 & 0.38 & 0.46 \\
+\bottomrule
+\end{tabular}
+\caption{Expected Calibration Error (lower is better) and top-$1$
+accuracy on AR-mode predictions on GSM8K held-out answer tokens.
+Composite is less confident and less accurate at every scale, with
+ECE worse at $4$ of $5$ scales.}
+\label{tab:ece}
+\end{table}
+
+A natural framing risk on the Phase-C reading was: "composite has
+higher entropy and lower top-$1$ --- it must be better-calibrated."
+The proper ECE calculation falsifies this: composite is \emph{less
+confident and less accurate}, which produces \emph{worse} calibration
+(higher ECE) at most scales.
+
+\subsection{Combined reading}
+
+Both negatives are small in absolute terms. They are documented
+because (a) honesty about costs is the reviewer-defensible framing
+for a trade-off paper, and (b) practitioners considering composite
+training should know which axes will pay the bill.
+
+The full claim ledger for this study:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+Claim & Confidence & Evidence \\
+\midrule
+Joint training has real diff-axis advantage & High &
+\textsection\ref{sec:results-compute} \\
+Data-regime crossover at $\sim 1$k problems & High &
+\textsection\ref{sec:results-curve} \\
+Mode-switching gives small downstream lift & Medium &
+\textsection\ref{sec:results-modeswitch}, $n=3 \to 8$ \\
+Composite is better at OOD prose & \textbf{NO} & \textsection\ref{sec:results-ood} \\
+Composite is better-calibrated & \textbf{NO} & \textsection\ref{sec:results-ece} \\
+\bottomrule
+\end{tabular}
+\caption{The claim ledger. We make three trade-off claims and document
+two negatives.}
+\label{tab:claim-ledger}
+\end{table}

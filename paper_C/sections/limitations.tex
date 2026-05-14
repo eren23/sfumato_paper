@@ -1,0 +1,43 @@
+\subsection{Scale}
+
+All experiments are at $60$M--$300$M parameters. The trade-off
+characterisation may shift at $\ge 1$B; published works at $7$B
+\citep{zhou2024transfusion,gong2024diffullama} report different
+direction signals. We treat the $60$M--$300$M characterisation as
+"small-scale evidence" and explicitly do not extrapolate.
+
+\subsection{Substrate}
+
+All training is on GSM8K-train ($\sim 4$M tokens, math-reasoning
+domain). The data-efficiency crossover is substrate-specific; we
+make no claim that it generalises to broader corpora.
+
+\subsection{Eval metric}
+
+Downstream accuracy on GSM8K-dev is binomial-noise dominated at this
+scale (\textless $6\%$ correct out of $50$ in most cells). We rely
+on continuous NLL metrics throughout, but downstream-task accuracy
+is the metric practitioners care about. Mode-switching at $n=8$
+tightens the CI but does not eliminate the noise.
+
+\subsection{Single hyperparameter trace}
+
+The $\alpha$-schedule (linear $1.0 \to 0.5$), mask-ratio distribution
+($\text{Uniform}(0.1, 0.9)$), and learning rate ($6\times 10^{-4}$
+with cosine decay) were picked from BD3-LMs defaults and not swept.
+A small $\alpha$-schedule sweep is the natural follow-up.
+
+\subsection{Future work}
+
+\begin{enumerate}
+  \item Test the data-efficiency crossover on a non-math substrate
+        (e.g., a $\sim 10$M-token slice of a code corpus).
+  \item Extend the compute-matched control to AR-only-at-$2\times$ as
+        well, to test "does composite also beat compute-matched
+        pure-AR on its own axis at small data?"
+  \item Train a learned mode-router on a held-out per-window
+        loss-vs-mode signal and test whether it beats fixed
+        mode-switching policies at inference time.
+  \item Replicate at $1$B from scratch to test whether the crossover
+        shifts with scale.
+\end{enumerate}

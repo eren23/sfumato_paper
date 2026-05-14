@@ -1,0 +1,109 @@
+\subsection{Architecture}
+
+The composite model is a standard nanoGPT-style transformer with two
+output heads sharing the same backbone:
+
+\begin{itemize}
+  \item \texttt{head\_ar}: standard LM head, applied to causal-masked
+        hidden states, predicting the next token.
+  \item \texttt{head\_diff}: mask-prediction head, applied to
+        bidirectionally-attended hidden states, predicting the
+        identity of \texttt{<MASK>}-position tokens
+        (MDLM-style~\citep{sahoo2024simple}).
+\end{itemize}
+
+A \texttt{mode} flag at forward time selects causal vs bidirectional
+attention and the corresponding head. Vocabulary is GPT-2 BPE
+\citep{radford2019gpt2} extended with a single \texttt{<MASK>} token
+(total $V=50{,}258$).
+
+We instantiate the architecture at five scales:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Scale & $d_{\text{model}}$ & $L$ & $H$ & Params \\
+\midrule
+60M  & 512  & 8  & 8  & $\sim 60$M  \\
+120M & 640  & 10 & 10 & $\sim 120$M \\
+200M & 896  & 12 & 16 & $\sim 200$M \\
+250M & 960  & 12 & 16 & $\sim 250$M \\
+300M & 1024 & 14 & 16 & $\sim 300$M \\
+\bottomrule
+\end{tabular}
+\caption{Composite model sizes.}
+\end{table}
+
+\subsection{Training Recipe}
+
+The joint loss is $\mathcal{L} = \alpha\,\mathcal{L}_{\text{AR}} +
+(1-\alpha)\,\mathcal{L}_{\text{diff}}$, with $\alpha$ scheduled linearly
+from $1.0$ at training start (pure-AR warm-up) to $0.5$ at training
+end. At each step we sample a window from GSM8K-train and apply
+either the AR loss (token cross-entropy under causal masking) or the
+diffusion loss (cross-entropy on masked positions, with mask ratio
+drawn $\text{Uniform}(0.1, 0.9)$), with the AR/diff choice weighted by
+$\alpha$.
+
+Batch size $B = 8$; sequence length $T = 256$; optimizer AdamW
+($\beta_1=0.9$, $\beta_2=0.95$, weight decay $0.1$); peak LR
+$6\times 10^{-4}$ with cosine decay to $10\%$, $200$-step linear
+warm-up; bf16 mixed precision. Training duration is $3{,}000$ steps by
+default ($\sim 3$ epochs of GSM8K-train); we also run $6{,}000$- and
+$10{,}000$-step variants where noted.
+
+\subsection{Baselines}
+
+\textbf{B1 (AR-only)}: identical architecture, $\alpha \equiv 1.0$,
+only \texttt{head\_ar} receives gradient.
+
+\textbf{B2 (Diffusion-only)}: identical architecture, $\alpha \equiv
+0.0$, only \texttt{head\_diff} receives gradient.
+
+\textbf{B3 (Paired-separate)}: two smaller transformers
+($d_{\text{model}}=384$, $L=6$) with the same total parameter count as
+the composite, trained \emph{separately} on AR loss and diffusion loss
+respectively. Inference is two-pass: one model generates the AR
+prefix, the other diffuses the suffix --- the toy-scale analogue of
+the inference-pipeline approach in our earlier work on frozen
+LLaDA+Qwen substrates.
+
+\subsection{Evaluation Protocol}
+
+\textbf{AR-axis NLL} (\arNLL): for each held-out GSM8K problem, we
+compute the per-token cross-entropy on the answer region given the
+prompt under causal-mode forward. Held-out chunk: $100$ problems
+starting at training-set index $7{,}000$.
+
+\textbf{Diffusion-axis NLL} (\diffNLL): on the same held-out chunk we
+mask $50\%$ of answer-region tokens uniformly at random and compute
+NLL on masked positions under bidirectional forward. This is the
+\emph{mask-fill} task pure-diffusion was trained for; we use it as
+the diffusion-axis yardstick.
+
+\textbf{Mode-switching inference}: for downstream accuracy on GSM8K-dev
+($N=50$), we evaluate four inference modes per checkpoint:
+\texttt{ar\_only} (greedy AR decode); \texttt{mode\_switch\_96\_32}
+(AR for 96 tokens, re-mask last 32, $16$-step diffusion-revise);
+\texttt{mode\_switch\_64\_32} (analogous); \texttt{paired\_64\_64} (AR
+$64$, diffusion-fill next $64$).
+
+\textbf{OOD prose} (D4): AR-mode NLL on WikiText-2-raw,
+The Pile-arxiv, and an OpenWebText held-out chunk.
+
+\textbf{Calibration} (D5): Expected Calibration Error (ECE) on AR-mode
+predictions, $10$-bin reliability diagram.
+
+\textbf{Compute-matched control}: pure-diffusion baseline trained for
+$2\times$ the composite's training steps ($6{,}000$ steps when composite
+is at $3{,}000$). This rules out the "more gradient signal" explanation
+for any composite diffusion-axis win.
+
+\subsection{Substrate Choice}
+
+We use GSM8K-train ($7{,}473$ problems, $\sim 4$M tokens). This is a
+deliberately small dense reasoning substrate: at toy scale, AR
+accuracy on GSM8K-dev is $\le 6\%$, so accuracy is binomial-noise
+dominated. We rely on continuous NLL metrics throughout and treat
+accuracy as a secondary downstream check.
