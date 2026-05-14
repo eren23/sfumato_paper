@@ -16,6 +16,14 @@ paper/*.aux
 paper/sections/*.aux
 paper/appendix/*.aux
 
+# paper_C build intermediates
+paper_C/main.aux
+paper_C/main.bbl
+paper_C/main.blg
+paper_C/main.log
+paper_C/main.out
+paper_C/main.toc
+
 # Manim render cache
 video/media/
 video/__pycache__/
