@@ -65,7 +65,14 @@ a structural rather than scale-specific benefit at this regime.
 We position the result as a small-scale trade-off characterisation that
 maps the win conditions for composite training: a clear data-constrained
 positive zone, a structural diffusion-axis advantage, and small
-documented costs on OOD and calibration.
+documented costs on OOD and calibration. As a secondary diagnostic
+finding, we document a free-run sample-quality failure mode that
+appears at FineWeb-Edu scale ($305$M $/$ $3$B tokens) but is invisible
+to teacher-forced NLL, identify its three independent root causes
+(decoder-wiring, prompt-format OOD, and Chinchilla undertrain), and
+show that two decoder-side fixes --- AR-side anti-repetition and a
+count-based repetition penalty on the diffusion head --- recover
+coherent generations without retraining.
 \end{abstract}
 
 \section{Introduction}
@@ -89,6 +96,10 @@ documented costs on OOD and calibration.
 \section{Honest Negatives}
 \label{sec:results-negatives}
 \input{sections/results_negatives}
+
+\section{Sample-Quality Investigation at FineWeb-Edu Scale}
+\label{sec:sample-quality}
+\input{sections/sample_quality}
 
 \section{Discussion}
 \input{sections/discussion}

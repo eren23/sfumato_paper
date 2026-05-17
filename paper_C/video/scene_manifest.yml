@@ -1,0 +1,51 @@
+# Sfumato Paper C — silent companion video, ~8m30s.
+# See storyboard.md for the full script.
+scenes:
+  - id: scene00_title
+    file: scenes/scene00_title.py
+    class: TitleScene
+  - id: scene01_composite
+    file: scenes/scene01_composite.py
+    class: CompositeScene
+  - id: scene02_envelope
+    file: scenes/scene02_envelope.py
+    class: EnvelopeScene
+  - id: scene03_symmetric
+    file: scenes/scene03_symmetric.py
+    class: SymmetricScene
+  - id: scene04_crossover
+    file: scenes/scene04_crossover.py
+    class: CrossoverScene
+  - id: scene05_negatives
+    file: scenes/scene05_negatives.py
+    class: NegativesScene
+  - id: scene06_modeswitch
+    file: scenes/scene06_modeswitch.py
+    class: ModeSwitchScene
+  - id: scene07_fseries
+    file: scenes/scene07_fseries.py
+    class: FSeriesScene
+  - id: scene08_shock
+    file: scenes/scene08_shock.py
+    class: ShockScene
+  - id: scene09_nllhid
+    file: scenes/scene09_nllhid.py
+    class: NLLHidScene
+  - id: scene10_causes
+    file: scenes/scene10_causes.py
+    class: CausesScene
+  - id: scene11_tier0
+    file: scenes/scene11_tier0.py
+    class: Tier0Scene
+  - id: scene12_countrep
+    file: scenes/scene12_countrep.py
+    class: CountRepScene
+  - id: scene13_tier05bars
+    file: scenes/scene13_tier05bars.py
+    class: Tier05BarsScene
+  - id: scene14_beforeafter
+    file: scenes/scene14_beforeafter.py
+    class: BeforeAfterScene
+  - id: scene15_close
+    file: scenes/scene15_close.py
+    class: CloseScene

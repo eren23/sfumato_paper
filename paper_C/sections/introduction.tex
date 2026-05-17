@@ -55,6 +55,14 @@ Our central findings are:
         ($+0.1$--$0.2$ NLL) and slightly worse-calibrated at $4$
         of $5$ scales. These are documented as costs of the trade,
         not as net wins on a different axis.
+  \item As a secondary diagnostic finding, free-run sample quality
+        at FineWeb-Edu scale ($305$M $/$ $3$B tokens) fails despite
+        a teacher-forced \arNLL{}$=3.96$ that would otherwise read
+        as clean. We trace this to three independent root causes
+        --- decoder wiring, prompt-format OOD, Chinchilla undertrain
+        --- and apply two decoder-side fixes that collapse free-run
+        loop rates by $40$--$60$ pp without retraining
+        (\textsection\ref{sec:sample-quality}).
 \end{itemize}
 
 We position the result as a \textbf{trade-off characterisation, not a

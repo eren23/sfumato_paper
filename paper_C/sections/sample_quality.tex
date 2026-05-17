@@ -1,0 +1,257 @@
+A trade-off characterisation built on teacher-forced perplexity says
+nothing about whether the resulting model can generate coherent free-run
+text. After scaling the composite recipe from $300$M / $4$M-token
+GSM8K-train (\textsection\ref{sec:results-curve}) to $305$M /
+$3$B-token FineWeb-Edu (run \code{F9}, $183$k steps, $33.8$ h on a
+single A40), we observed a sample-quality failure mode that is invisible
+to the NLL-based reporting used throughout the rest of this paper but
+that any reviewer running the released code would immediately notice.
+This section documents the failure, the three independent root causes
+we identified, and two decoder-side fixes that recover usable
+generations. We are explicit that this is a \emph{secondary} finding
+about generation quality at undertrained scale, not a revision of the
+headline trade-off claims.
+
+\subsection{The teacher-forced / free-run gap}
+\label{sec:sq-gap}
+
+\code{F9} reached \arNLL{} $=3.96$ on a held-out FineWeb-Edu chunk, a
+value that would be reported as a clean run by every metric used in
+\textsection\ref{sec:results-curve}--\ref{sec:results-modeswitch}.
+However, $\text{accuracy}=0/50$ on GSM8K-dev across all four probe-5
+inference modes (\code{ar\_only}, \code{mode\_switch\_96\_32},
+\code{mode\_switch\_64\_32}, \code{paired\_64\_64}). Inspection of the
+free-run samples showed sentence-level token loops at every mode: e.g.
+the \code{paired\_64\_64} output ``\code{A duck's bill is 1{,}000
+pounds.\ eggs eggs eggs eggs eggs $\dots$}'' repeated for $30+$ tokens.
+Teacher-forced \arNLL{} hides this collapse exactly because each
+prediction is conditioned on the gold prefix; a loop can never form.
+
+The lesson generalises beyond composite training: any from-scratch
+small-model evaluation that reports only teacher-forced perplexity is
+\emph{undersampled on the generation axis}, and free-run quality must
+be inspected separately. We add free-run inspection to our recommended
+protocol (\textsection\ref{sec:limitations}, "Eval metric").
+
+\subsection{Three independent root causes}
+\label{sec:sq-causes}
+
+A focused investigation identified three causes that were each
+sufficient to produce the observed loops, and that were all present
+simultaneously in \code{F9}:
+
+\begin{enumerate}
+  \item \textbf{Decoder wiring.} The probe-5 driver
+        (\code{probe5\_mode\_switch.py}) exposed
+        temperature / top-$p$ / repetition-penalty /
+        no-repeat-$n$-gram knobs in its \code{gen\_ar()} helper, but
+        \emph{every} call site in \code{main()} passed defaults
+        (greedy argmax). The anti-repetition patches were dead code.
+        The in-training sample logger in \code{train.py} used a
+        separate inline \code{torch.argmax} decoder, so the same
+        problem appeared in mid-training samples logged to wandb.
+  \item \textbf{Data format / prompt OOD.} \code{F9} was trained on
+        raw FineWeb-Edu only; zero ``\code{Question:\dots Answer:}''
+        formatted examples were seen during training. The probe-5
+        prompt template, which we inherited from the
+        GSM8K-substrate experiments
+        (\textsection\ref{sec:results-curve}--\ref{sec:results-modeswitch}),
+        is therefore out-of-distribution for \code{F9}.
+  \item \textbf{Chinchilla undertrain.} $305$M parameters at $3$B
+        tokens is $\approx 49\%$ of the Chinchilla-optimal ratio.
+        Undertrained models loop harder; this is a well-documented
+        failure mode in the open-ended generation literature
+        \citep{holtzman2020curious,su2022simctg}.
+\end{enumerate}
+
+Crucially, none of these is specific to composite architecture. The
+diffusion head's mask-fill behaviour does not \emph{cause} loops; it
+merely fails to suppress them without an appropriate decoder. We
+verified this by confirming that AR-only baselines from the same
+recipe show the same loops under raw argmax and the same recovery
+under sampling.
+
+\subsection{Tier 0: AR-side anti-repetition}
+\label{sec:sq-tier0}
+
+Tier 0 is a pure decoder fix: thread
+\code{temperature$=0.8$, top\_p$=0.9$, repetition\_penalty$=1.15$,
+no\_repeat\_ngram\_size$=3$} through all call sites of \code{gen\_ar},
+the AR-prefix part of \code{gen\_mode\_switch} and \code{gen\_paired},
+the standalone \code{generate\_samples.py} harness, and the
+in-training sample logger in \code{train.py}. No model retraining.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Mode & Tier-0 acc. (N=50, $\times 2$ runs) & loop rate & $\max$ word run \\
+\midrule
+\code{ar\_only}            & $1/50$, $0/50$ & $0\%$, $0\%$ & $2$  \\
+\code{mode\_switch\_96\_32} & $0/50$, $0/50$ & $80\%$, $60\%$ & $19$ \\
+\code{mode\_switch\_64\_32} & $1/50$, $0/50$ & $60\%$, $70\%$ & $19$ \\
+\code{paired\_64\_64}       & $0/50$, $2/50$ & $90\%$, $70\%$ & $33$ \\
+\bottomrule
+\end{tabular}
+\caption{\code{F9} probe-5 after Tier-0 AR-side anti-repetition.
+Loop rate is fraction of the first $10$ generations exhibiting a
+sentence-level token loop; $\max$ word run is the longest contiguous
+single-token repetition in the sampled outputs. The
+\code{ar\_only} loop rate collapses from $100\%$ to $0\%$; the
+diff-touching modes still loop because Tier-0 leaves the
+mask-fill argmax untouched.}
+\label{tab:sq-tier0}
+\end{table}
+
+\code{ar\_only} loops vanish completely. The three diff-touching modes
+remain broken because their mask-fill internals still use raw argmax
+over the diffusion-head logits.
+
+\subsection{Tier 0.5: diff-head anti-repetition with count-based
+repetition penalty}
+\label{sec:sq-tier05}
+
+Naive set-based repetition penalty (each previously-seen token's
+logit divided once by \code{rep\_pen}) is insufficient on the diffusion
+head. A single mask-fill forward pass produces logits for all $N$
+masked positions \emph{simultaneously} from the same context. If the
+model assigns very high probability to one token at many positions,
+set-based \code{rep\_pen} penalises that token only once; every masked
+position then samples it. The penalty must scale with how often the
+candidate already appears in the visible context.
+
+We adopt a \emph{count-based} repetition penalty for the diff head:
+\[
+\text{logit}'_v \;=\; \text{logit}_v \,\big/\, \text{rep\_pen}^{\,c_v},
+\]
+where $c_v$ is the count of token $v$ in the visible (non-masked)
+context. With \code{rep\_pen}$=1.15$ and a candidate that appears $30$
+times in the context, the effective divisor is
+$1.15^{30}\approx 66$, which actually breaks the loop.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Mode & Tier-0 loop rate & Tier-0.5+count loop rate & $\Delta$ \\
+\midrule
+\code{ar\_only}            & $0\%$  & $0\%$  & --- \\
+\code{mode\_switch\_96\_32} & $70\%$ & $\mathbf{10\%}$ & $\mathbf{-60}$ pp \\
+\code{mode\_switch\_64\_32} & $65\%$ & $\mathbf{20\%}$ & $\mathbf{-45}$ pp \\
+\code{paired\_64\_64}       & $80\%$ & $\mathbf{40\%}$ & $\mathbf{-40}$ pp \\
+\bottomrule
+\end{tabular}
+\caption{Loop-rate reduction from Tier-0 to Tier-0.5+count on
+\code{F9}, $N=50$. Diff sampling parameters:
+\code{diff\_temperature$=0.8$, diff\_top\_p$=0.9$,
+diff\_repetition\_penalty$=1.15$} with count-based scaling. The
+remaining $40\%$ loop rate on \code{paired\_64\_64} reflects a
+residual tail-end failure mode (see \textsection\ref{sec:sq-residual}).}
+\label{tab:sq-tier05}
+\end{table}
+
+\subsection{Qualitative before / after}
+\label{sec:sq-qual}
+
+The numeric loop-rate reduction tracks an obvious qualitative
+improvement. We reproduce verbatim the \code{paired\_64\_64} output
+for question $0$ of GSM8K-dev under both decoders.
+
+\paragraph{Tier 0 (greedy diff-fill).}
+\begin{verbatim}
+A duck's bill is 1,000 pounds. eggs eggs eggs eggs eggs eggs eggs
+eggs eggs eggs eggs eggs eggs eggs eggs eggs eggs eggs eggs eggs
+eggs eggs eggs eggs eggs eggs eggs eggs eggs eggs eggs eggs eggs
+\end{verbatim}
+
+\paragraph{Tier 0.5 + count-based diff \code{rep\_pen}.}
+\begin{verbatim}
+Given that she needs to feed a large number of chickens she will
+need to know how to produce eggs. If she doesn't have access to
+food, she will be unable to eat the eggs.
+Egg-laying is an excellent way to raise chickens. There are many
+ways to raise an egg. ...
+\end{verbatim}
+
+The Tier-0.5 sample is on-topic, grammatical, and free of
+sentence-level loops over the first $\sim 40$ tokens. It does still
+exhibit a tail-end degradation (``\code{The easiest eggs chickens
+chickens chickens eggs eggs she chickens she she she she $\dots$}''
+in the full $128$-token continuation), which we discuss next.
+
+\subsection{Residual tail-end degradation}
+\label{sec:sq-residual}
+
+A subset of Tier-0.5 \code{paired\_64\_64} samples ($\sim 40\%$ of
+$N=50$) still degenerate into long single-token runs in the last
+$\sim 20$--$40$ tokens. The pattern is consistent with extreme logit
+peaking late in the diffusion-fill: even after the count-based penalty
+has pushed candidates out of the top-$p$ nucleus near the start of
+the fill region, the model's confidence concentrates so sharply on a
+single fallback token (e.g.\ \code{"\$"}, \code{"she"}, a numeric
+string) that the count-based scaling cannot recover it on every
+position. We did not implement a stronger anti-repetition family
+(LZ-penalty, contrastive decoding, typical sampling) in this study;
+they are the natural next decoder-side ablation. We list this as
+open follow-up rather than a closed contribution.
+
+\subsection{The honest negative: GSM8K accuracy remains $0\%$}
+\label{sec:sq-acc}
+
+The decoder fixes recover sample-quality but do \emph{not} unlock
+downstream GSM8K accuracy. Across all four probe-5 modes at $N=50$,
+Tier 0.5 + count-based \code{F9} scores $0/50$ correct. The sporadic
+$1$--$2/50$ hits in the Tier-0 column of Table~\ref{tab:sq-tier0}
+were argmax-luck artifacts: the model locking on a common number
+(e.g.\ $1{,}000$, $1.2$) that coincidentally matched the gold answer.
+Under sampled decoding those lucky locks disappear, and the honest
+accuracy is $0\%$.
+
+The root cause is identified as $(2)$ in \textsection\ref{sec:sq-causes}:
+\code{F9} never saw the GSM8K \code{Question/Answer} format during
+training. The model lacks task knowledge, not generative ability.
+This is a clean failure mode for our investigation, not for the
+trade-off characterisation: the trade-off claims in
+\textsection\ref{sec:results-curve}--\ref{sec:results-negatives} rest
+on the GSM8K-substrate runs in which the model \emph{did} see the
+\code{Q/A} format, and on continuous NLL metrics that do not depend
+on free-run generation.
+
+\subsection{Upcoming Tier-3: data-mix retrain}
+\label{sec:sq-tier3}
+
+Run \code{F10} (in flight on RunPod RTX 4090, ETA $30$--$37$ h)
+retrains the $305$M composite from scratch on a $95\%$ FineWeb-Edu
+$/$ $5\%$ formatted GSM8K Q/A mix at the same $3$B-token budget. If
+the $0\%$ accuracy is a data-format-only effect, Tier-3 should
+unlock $>0\%$ free-run accuracy without changing the loss-curve
+story. If accuracy stays at $0\%$, the diagnosis shifts toward
+$(3)$ from \textsection\ref{sec:sq-causes} --- pure Chinchilla
+undertrain --- and would motivate a longer-token retrain rather than
+a data-mix change. We report the \code{F10} result in the camera-ready
+revision but do not gate the trade-off claims on its outcome.
+
+\subsection{What this section does \emph{not} claim}
+
+\begin{itemize}
+  \item Composite training causes free-run loops. AR-only baselines
+        from the same recipe show identical loops under raw argmax;
+        the failure mode is decoder-side, not architecture-side.
+  \item Tier-0.5 is a deployable decoding recipe. It is sufficient
+        for qualitative paper figures and for sample-quality sanity
+        checks; the residual tail degradation
+        (\textsection\ref{sec:sq-residual}) means it is not a
+        production recipe.
+  \item Mode-switching mode \emph{caused} the loops. The
+        \code{mode\_switch\_$*$} and \code{paired\_$*$} modes loop
+        because they invoke the diff head with raw argmax fill, not
+        because of the mode-switch mechanism itself. Once the diff
+        head is sampled with count-based \code{rep\_pen}, these
+        modes recover.
+\end{itemize}
+
+The trade-off characterisation of
+\textsection\ref{sec:results-curve}--\ref{sec:results-negatives}
+stands as reported. This section is filed under "negatives /
+diagnostics that any reviewer of the released code would also have
+encountered."
