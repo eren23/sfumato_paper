@@ -46,6 +46,9 @@ scenes:
   - id: scene14_beforeafter
     file: scenes/scene14_beforeafter.py
     class: BeforeAfterScene
+  - id: scene14b_generation
+    file: scenes/scene14b_generation.py
+    class: GenerationScene
   - id: scene15_close
     file: scenes/scene15_close.py
     class: CloseScene
