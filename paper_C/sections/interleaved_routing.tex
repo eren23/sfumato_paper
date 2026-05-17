@@ -1,0 +1,144 @@
+\label{sec:interleaved}
+
+The original Sfumato design proposed a \emph{learned mode-router}
+that, at every sub-block boundary, chooses among
+\{extend-AR, diffuse-current-block, re-diffuse-last-K-blocks, branch,
+commit\}. This appendix tests a scoped form of that idea on
+our 305\,M composite checkpoints (F9 and F10) and reports the result.
+
+\subsection{Scripted interleaving (Phase I.0)}
+
+We chain \code{gen\_ar} and \code{diff\_revise} from
+\code{e5/scripts/probe5\_mode\_switch.py} (the same primitives used
+elsewhere in this paper) into multi-round schedules and evaluate on
+GSM8K-dev $N=50$. Five configurations:
+
+\begin{itemize}
+  \setlength\itemsep{2pt}
+  \item \code{single\_ar\_128} — pure AR (baseline).
+  \item \code{single\_switch\_64\_32} — one round of AR(64) +
+        diff-revise(32); the existing \code{probe5} mode switch.
+  \item \code{interleaved\_16\_8\_x3} — AR(16) $\to$ diff(8), three
+        rounds.
+  \item \code{interleaved\_8\_4\_x6} — finer-grained alternation, six
+        rounds.
+  \item \code{interleaved\_32\_16\_x2} — coarser, two long rounds.
+\end{itemize}
+
+All configurations use the Tier-0.5 anti-rep settings (temperature
+$0.8$, top-$p$ $0.9$, repetition penalty $1.15$ on the AR head,
+count-based repetition penalty on the diff head). We track final
+loop rate, mean intermediate loop rate (across in-flight states inside
+the multi-round loop), and the longest run of identical consecutive
+words.
+
+\paragraph{F9 (FineWeb-Edu only, 100\,\% trained).}
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+config & acc & loop$_\text{final}$ & loop$_\text{intermediate}$ & max word run \\
+\midrule
+\code{single\_ar\_128} & 0\% & 0\% & 0\% & 2 \\
+\code{single\_switch\_64\_32} & 0\% & 24\% & 12\% & 17 \\
+\code{interleaved\_16\_8\_x3} & 0\% & 18\% & 12\% & 9 \\
+\code{interleaved\_8\_4\_x6} & \textbf{2\%} & \textbf{2\%} & \textbf{1\%} & \textbf{6} \\
+\code{interleaved\_32\_16\_x2} & 0\% & 38\% & 22\% & 10 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+On F9, fine-grained alternation
+(\code{interleaved\_8\_4\_x6}) beats single-switch on every measured
+axis: $+2$\,pp accuracy (the first non-zero hit on F9 in our entire
+study), $-22$\,pp loop rate, $-11$ max word run. Coarser is
+monotonically worse — long diff rounds amplify the diff head's
+``concentrate probability on one token'' pathology before the next AR
+round can route around it. We confirmed (Phase I.0 plan gate) that
+intermediate loop rate does \emph{not} compound across cycles at fine
+grain: $1$\,\% intermediate vs. $2$\,\% final means iteration
+\emph{removes} loops at this configuration, not adds them.
+
+\paragraph{F10 step 10\,000 (Q/A mix, 5.5\,\% trained).}
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+config & acc & loop$_\text{final}$ & loop$_\text{intermediate}$ & max word run \\
+\midrule
+\code{single\_ar\_128} & 2\% & 0\% & 0\% & 4 \\
+\code{single\_switch\_64\_32} & \textbf{4\%} & \textbf{0\%} & \textbf{0\%} & \textbf{3} \\
+\code{interleaved\_16\_8\_x3} & 0\% & 0\% & 0\% & 3 \\
+\code{interleaved\_8\_4\_x6} & 0\% & 0\% & 0\% & 3 \\
+\code{interleaved\_32\_16\_x2} & \textbf{4\%} & \textbf{0\%} & \textbf{0\%} & \textbf{3} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The picture inverts. On F10, even at only $5.5\,\%$ of total training,
+all configurations have $0\,\%$ loop rate, and the single-round
+\code{single\_switch\_64\_32} or the coarse
+\code{interleaved\_32\_16\_x2} reach $4\,\%$ accuracy while
+fine-grained iteration ties with the lowest. The 5\,\% GSM8K Q/A mix
+fixed the diff-head loop pathology directly. Iteration becomes
+unnecessary — there is nothing for it to recover from.
+
+\subsection{Heuristic router (Phase I.1)}
+
+We then implemented three non-learned routers that pick the next
+chunk's mode from the model's own signals:
+
+\begin{itemize}
+  \setlength\itemsep{2pt}
+  \item \textbf{H1 entropy gate.} Switch to diff if the last-position
+        AR-logit entropy exceeds $T = 4.5$\,nats.
+  \item \textbf{H2 diversity gate.} Switch to diff if the unique token
+        count in the last 8 generated tokens drops below $4$.
+  \item \textbf{H3 diff-confidence gate.} After each AR chunk, enter a
+        diff phase and keep iterating until mean top-1 probability
+        across the just-unmasked positions exceeds $P = 0.5$.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+heuristic & F9 acc & F9 loop & F10@10k acc & F10@10k loop \\
+\midrule
+H1 entropy $\ge 4.5$ & 0\% & 0\% & 2\% & 2\% \\
+H2 diversity $< 4$ & 0\% & 0\% & 0\% & 0\% \\
+H3 diff-conf $\ge 0.5$ & 0\% & 24\% & 0\% & 0\% \\
+\midrule
+best fixed (I.0) & \textbf{2\%} & \textbf{2\%} & \textbf{4\%} & \textbf{0\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+No heuristic beats the best fixed schedule on either substrate. H2
+never triggers diff (Tier-0.5 sampling keeps token diversity high
+enough that the gate stays AR-only); H1 fires too rarely (15--23\,\%
+of chunks); H3 fires too often (75\,\% of chunks) and on F9
+reproduces the single-switch baseline's loop pathology.
+
+\subsection{Decision and scope claim}
+
+Following the Phase I plan's decision rule (``if heuristics tie or
+lose, learning a router is unlikely to extract more signal''), we
+\emph{did not} launch the REINFORCE-trained router (Phase I.2) or the
+joint backbone+router training (Phase I.3). The honest finding is:
+
+\begin{quote}
+\textbf{Iterative AR$\leftrightarrow$diff routing helps only when the
+diff head is broken. When training data matches the eval distribution
+(F10's Q/A mix), single-round AR-then-diff is enough; routing was a
+band-aid over an undertrained-diff-head pathology that proper training
+removes.}
+\end{quote}
+
+This is a scope-limit on the Sfumato learned-router thesis, not a
+universal refutation. Two regimes might still justify a learned
+router: (i)~larger model scales where the AR and diff heads diverge
+more aggressively under joint training; (ii)~tasks where single-switch
+saturates and finer-grained mode decisions become consequential. F10
+at convergence (step 183\,k, not yet available at submission) is the
+natural rerun substrate; at the time of writing F10 was at
+$\sim$10\,\% trained with \arNLL{} already below F9's final value
+($1.94$ vs.\ $3.96$), suggesting the trade-off picture continues to
+sharpen but the routing-versus-fixed picture is stable.
