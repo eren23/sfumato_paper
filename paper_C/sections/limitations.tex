@@ -27,6 +27,25 @@ The $\alpha$-schedule (linear $1.0 \to 0.5$), mask-ratio distribution
 with cosine decay) were picked from BD3-LMs defaults and not swept.
 A small $\alpha$-schedule sweep is the natural follow-up.
 
+\subsection{Routing scope}
+
+Phase~I (Section~\ref{sec:interleaved}) tested both scripted multi-round
+AR$\leftrightarrow$diff interleaving and three non-learned heuristic
+routers on F9 (FineWeb-only) and F10 step-10\,000 (5.5\,\% trained,
+Q/A mix). On F9 the diff-head loop pathology let fine-grained iteration
+look like a win ($+2$\,pp accuracy, $-22$\,pp loop rate over the
+single-switch baseline); on F10 step-10\,000 the pathology was already
+gone (all configurations at $0\,\%$ loop), and single-round
+\code{mode\_switch\_64\_32} or coarse \code{interleaved\_32\_16\_x2}
+sat at the same $4\,\%$ accuracy as the best routed configuration.
+Per the Phase~I decision gate (``heuristics tie or lose'') we did not
+train a REINFORCE router on the F10 substrate. The honest scope-limit
+is: \emph{routing helps when the diff head is broken; it does not help
+when training data fixes the diff head directly.} A learned router may
+still earn its weight at scales where AR and diff heads diverge more
+under joint training, but the small-model regime documented here does
+not provide that headroom.
+
 \subsection{Future work}
 
 \begin{enumerate}
@@ -35,9 +54,12 @@ A small $\alpha$-schedule sweep is the natural follow-up.
   \item Extend the compute-matched control to AR-only-at-$2\times$ as
         well, to test "does composite also beat compute-matched
         pure-AR on its own axis at small data?"
-  \item Train a learned mode-router on a held-out per-window
-        loss-vs-mode signal and test whether it beats fixed
-        mode-switching policies at inference time.
+  \item Rerun Phase~I (interleaving + heuristic routers) on F10 at
+        convergence (step $183$k, not yet available at submission).
+        If the routing-vs-fixed picture shifts as the diff head
+        specialises further, a REINFORCE-trained router becomes
+        worth attempting; otherwise the negative reported here is the
+        final word at $\sim$300\,M scale.
   \item Replicate at $1$B from scratch to test whether the crossover
-        shifts with scale.
+        \emph{and} the routing-versus-fixed picture shift with scale.
 \end{enumerate}
