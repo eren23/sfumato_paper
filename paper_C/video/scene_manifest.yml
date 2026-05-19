@@ -49,6 +49,9 @@ scenes:
   - id: scene14b_generation
     file: scenes/scene14b_generation.py
     class: GenerationScene
+  - id: scene14c_phase_j
+    file: scenes/scene14c_phase_j.py
+    class: PhaseJScene
   - id: scene15_close
     file: scenes/scene15_close.py
     class: CloseScene

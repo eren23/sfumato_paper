@@ -185,7 +185,21 @@ Two side-by-side text cards, same prompt (Q0 paired_64_64 on F9):
 Caption: *"Same model, same prompt, same checkpoint. Just the
 decoder changed."*
 
-### Scene 15 — F10 in flight + close (7:35 – 8:30, 55s)
+### Scene 14c — Phase J measured advantages (7:35 – 8:00, 25s)
+Three panels in one shot, the headline of the work:
+- **Left**: speedup bars. Composite-AR-128 at 20.1 tokens/sec vs
+  composite-diff-fill at 109.5 tokens/sec. **5.43× faster**.
+- **Center**: FIM capability. AR with full sequence and AR with
+  prefix-only give identical NLL = 1.23 — proves causal attention
+  structurally ignores the suffix. DIFF can use both sides; AR
+  cannot do FIM at all.
+- **Right**: revision NLL. AR-128 = 12.56 vs mode-switch
+  AR(96)+diff-revise(32) = 11.82. **Δ = −0.74** overall, −2.20 in
+  the revise region.
+Footer: *"5.43× speedup · unique FIM capability · −0.74 NLL revision
+· no AR-axis tax."* This is the synthesis line.
+
+### Scene 15 — F10 in flight + close (8:00 – 8:30, 55s)
 A modest closing scene. Two halves:
 - **Left**: F10 is training right now. Same 305M arch, same 3B
   budget, but `load_mixed_tokens` swaps in 5 % formatted GSM8K Q/A.
