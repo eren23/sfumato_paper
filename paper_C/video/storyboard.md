@@ -185,7 +185,21 @@ Two side-by-side text cards, same prompt (Q0 paired_64_64 on F9):
 Caption: *"Same model, same prompt, same checkpoint. Just the
 decoder changed."*
 
-### Scene 14c — Phase J measured advantages (7:35 – 8:00, 25s)
+### Scene 14d — Multi-round AR ↔ diff back-and-forth (7:35 – 8:15, 40s)
+The user's original mental model of Sfumato visualised: six rounds of
+AR(8) → diff(4) on a single line that keeps growing. Each round shows
+the AR cursor advancing right with 8 new words appearing left-to-right
+(ACCENT), then the last 4 of those words morph into `____`
+placeholders (DIFF), then resolve in non-sequential order with WARN
+flashes as each lands. By round 6 the line spans two visual rows
+(~72 tokens). This is the mechanism behind `interleaved_8_4_x6` from
+`probe_interleaved.py`; the visual makes the multi-round AR↔diff
+alternation concrete in a way the single-round Scene 14b cannot.
+Companion caption: *"six rounds, 72 tokens, AR and diff alternating
+on one line. AR builds left-to-right. Diff re-masks and resolves in
+parallel."*
+
+### Scene 14c — Phase J measured advantages (8:15 – 8:40, 25s)
 Three panels in one shot, the headline of the work:
 - **Left**: speedup bars. Composite-AR-128 at 20.1 tokens/sec vs
   composite-diff-fill at 109.5 tokens/sec. **5.43× faster**.

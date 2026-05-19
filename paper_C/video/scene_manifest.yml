@@ -52,6 +52,9 @@ scenes:
   - id: scene14c_phase_j
     file: scenes/scene14c_phase_j.py
     class: PhaseJScene
+  - id: scene14d_multiround
+    file: scenes/scene14d_multiround.py
+    class: MultiRoundScene
   - id: scene15_close
     file: scenes/scene15_close.py
     class: CloseScene

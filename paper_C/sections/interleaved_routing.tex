@@ -125,25 +125,25 @@ lose, learning a router is unlikely to extract more signal''), we
 joint backbone+router training (Phase I.3). The honest finding is:
 
 \begin{quote}
-\textbf{Iterative AR$\leftrightarrow$diff routing helps only when the
-diff head is broken. When training data matches the eval distribution
-(F10's Q/A mix), single-round AR-then-diff is enough; routing was a
+\textbf{Inference-time AR$\leftrightarrow$diff routing during AR
+generation does not lift GSM8K-dev accuracy at converged $305$\,M
+scale.} When training data matches the eval distribution (F10's
+Q/A mix), single-round AR-then-diff is enough; routing was a
 band-aid over an undertrained-diff-head pathology that proper training
-removes.}
+removes.
 \end{quote}
 
-This is a scope-limit on the Sfumato learned-router thesis, not a
-universal refutation. Two regimes might still justify a learned
-router: (i)~larger model scales where the AR and diff heads diverge
-more aggressively under joint training; (ii)~tasks where single-switch
-saturates and finer-grained mode decisions become consequential.
-
-We trained F10 to convergence (step $183$k, $34$\,h on A40, final
-GSM8K \arNLL{} = $1.155$, $3.4\times$ better than F9's $3.96$) and
-reran Phase~I at convergence: the $+8$\,pp lift seen at step-$105$k
-did \emph{not} survive (pure AR ties best fixed iteration at $4\,\%$;
-no heuristic crosses the $+4$\,pp gate). The Phase~I scope-negative
-is the final word at $305$\,M.
+This is a scope-limit on a particular sub-claim — routing-on-the-AR-axis
+for accuracy lift — not a refutation of the composite design as a
+whole. We trained F10 to convergence (step $183$k, $34$\,h on A40,
+final GSM8K \arNLL{} $=1.155$, $3.4\times$ better than F9's $3.96$)
+and reran Phase~I: the $+8$\,pp lift seen at step-$105$k did \emph{not}
+survive (pure AR ties best fixed iteration at $4\,\%$; no heuristic
+crosses the $+4$\,pp gate). The Phase~I scope-negative on the
+routing-during-AR sub-claim is the final word at $305$\,M for that
+specific question. The composite's structural advantages on
+\emph{other} axes — measured in Section~\ref{sec:phase-j} below —
+are unaffected.
 
 \subsection{What composite \emph{does} deliver — Phase J}
 \label{sec:phase-j}
