@@ -72,13 +72,22 @@ class MultiRoundScene(Scene):
         # Render rounds 1-3 on top row, rounds 4-6 on bottom row.
         row_a_y = 1.0
         row_b_y = -1.0
-        x_step = 0.55  # horizontal spacing between words
+        word_buff = 0.16  # space between word bounding boxes
 
-        # Helper: place the next word at the next x position on a row
-        def place_word(token_mob, row: str, idx: int):
+        # Track the right edge x for each row so we can append the next word
+        # right after the previous one's actual width (avoids collisions on
+        # variable-width tokens like "farmer's" vs "a").
+        row_right_edge = {"A": row_origin_x, "B": row_origin_x}
+
+        def place_word(token_mob, row: str):
+            """Place token_mob immediately to the right of the row's tail with
+            buff space. The token's LEFT edge sits at row_right_edge[row]."""
             y = row_a_y if row == "A" else row_b_y
-            x = row_origin_x + idx * x_step
-            token_mob.move_to([x, y, 0])
+            w = token_mob.width
+            # token's center = row_right_edge + w/2
+            token_mob.move_to([row_right_edge[row] + w / 2, y, 0])
+            # advance the row's right edge past this token + buff
+            row_right_edge[row] += w + word_buff
 
         # We process rounds sequentially. For visual brevity each "AR token"
         # animates with a quick FadeIn(shift LEFT). Each diff round briefly
@@ -99,7 +108,7 @@ class MultiRoundScene(Scene):
             ar_mobs = []
             for w in ar_words:
                 mob = _word(w, ACCENT, size=12)
-                place_word(mob, row, len(row_list))
+                place_word(mob, row)
                 row_list.append(mob)
                 self.play(FadeIn(mob, shift=LEFT * 0.05), run_time=0.04)
                 ar_mobs.append(mob)
