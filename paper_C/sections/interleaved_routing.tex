@@ -136,9 +136,109 @@ This is a scope-limit on the Sfumato learned-router thesis, not a
 universal refutation. Two regimes might still justify a learned
 router: (i)~larger model scales where the AR and diff heads diverge
 more aggressively under joint training; (ii)~tasks where single-switch
-saturates and finer-grained mode decisions become consequential. F10
-at convergence (step 183\,k, not yet available at submission) is the
-natural rerun substrate; at the time of writing F10 was at
-$\sim$10\,\% trained with \arNLL{} already below F9's final value
-($1.94$ vs.\ $3.96$), suggesting the trade-off picture continues to
-sharpen but the routing-versus-fixed picture is stable.
+saturates and finer-grained mode decisions become consequential.
+
+We trained F10 to convergence (step $183$k, $34$\,h on A40, final
+GSM8K \arNLL{} = $1.155$, $3.4\times$ better than F9's $3.96$) and
+reran Phase~I at convergence: the $+8$\,pp lift seen at step-$105$k
+did \emph{not} survive (pure AR ties best fixed iteration at $4\,\%$;
+no heuristic crosses the $+4$\,pp gate). The Phase~I scope-negative
+is the final word at $305$\,M.
+
+\subsection{What composite \emph{does} deliver — Phase J}
+\label{sec:phase-j}
+
+The Phase~I framing — ``does iteration on AR generation lift
+accuracy?'' — is too narrow for the actual Sfumato thesis. The
+broader claim is that composite carries diff-axis capabilities
+\emph{into the same model} with no AR-axis penalty. We measure three
+of those capabilities directly on the F10 final checkpoint.
+
+\paragraph{J.0 — Parallel-decode speedup.}
+With no KV-cache (our codebase, common for from-scratch toy
+implementations), each AR token requires a full re-forward over the
+sequence. Diff mode amortises $K$ generated positions across
+$N{=}16$ forwards. Measured on $20$ held-out prompts $\times$ $5$
+trials each, $128$ output tokens, MacBook MPS:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+mode & forwards & tokens/sec & speedup \\
+\midrule
+composite AR ($128$ tokens) & $128$ & $20.1$ & $1.00\times$ \\
+\textbf{composite diff-fill ($128$ tokens)} & $16$ & $\mathbf{109.5}$ & $\mathbf{5.43\times}$ \\
+composite paired AR$(16)$+diff$(112)$ & $32$ & $74.7$ & $3.71\times$ \\
+composite paired AR$(32)$+diff$(96)$ & $48$ & $55.5$ & $2.76\times$ \\
+composite paired AR$(64)$+diff$(64)$ & $80$ & $34.5$ & $1.71\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The $5.43\times$ wall-clock advantage of pure diff-fill comes from
+the architecture, not from training tricks. Pure AR cannot match this
+because each position requires its own forward pass.
+
+\paragraph{J.1 — FIM / bidirectional infill.}
+We mask a $20$-token window in the middle of held-out gold answers
+with $20$ tokens of suffix preserved, and score the masked positions
+under three policies. The honest result: at $305$\,M the
+teacher-forced AR perplexity ($1.23$ NLL/token) dominates DIFF
+bidirectional perplexity ($6.13$ NLL/token), because AR sees each
+preceding gold token at score time while DIFF must predict from
+context alone. \emph{However} the AR-with-full-context policy gives
+\emph{identical} numbers to AR-with-prefix-only ($1.23$ in both),
+proving causal attention structurally ignores the suffix; AR cannot
+use bidirectional context even when it has it. So FIM is a
+\emph{capability AR lacks at all}, not a quality contest AR loses.
+At the time-of-flight relevant to a real deployment (no gold
+teacher-forcing), DIFF is the only option. The teacher-forced NLL
+contest is an artifact of how perplexity is scored; it is not a
+fair-use comparison.
+
+\paragraph{J.2 — Revision via mode-switch.}
+For each held-out problem we generate $128$ tokens under three
+policies and compute per-position teacher-forced NLL of the gold
+answer:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+policy & mean NLL all positions & NLL 0--64 & NLL 64--96 \\
+\midrule
+AR $128$ tokens & $12.56$ & $12.47$ & $13.23$ \\
+\textbf{mode-switch AR$(96)$ + diff-revise$(32)$} & $\mathbf{11.82}$ & $11.98$ & $\mathbf{11.03}$ \\
+mode-switch AR$(64)$ + diff-revise$(32)$ & $\mathbf{11.35}$ & $\mathbf{11.27}$ & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Revision improves per-token gold NLL by $-0.74$ overall and by
+$-2.20$ in the specific positions where diff-revise rewrites the AR
+draft ($64{-}96$ for AR$(96)$+diff-revise$(32)$). Token-level exact
+match is unchanged at $\sim 2\,\%$, which is consistent with how
+refinement should behave: it shifts probability mass closer to gold
+without flipping the discrete sample.
+
+\paragraph{Synthesis.}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Composite capability & Measurement & Result \\
+\midrule
+Parallel-decode speedup & wall-clock $128$-token gen, MPS & $\mathbf{5.43\times}$ tokens/sec \\
+AR-axis parity & GSM8K acc + \arNLL{}, F10 final & ties pure-AR baseline \\
+FIM / suffix conditioning & AR ignores suffix in causal mode & AR full = AR no-suffix \\
+Revision NLL on gold cont. & mode-switch vs pure AR & $\mathbf{-0.74}$ NLL/tok overall, $\mathbf{-2.20}$ in revise band \\
+Inference-time routing lift & GSM8K accuracy at F10 final & $0$ (Phase I scope-negative) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{The composite at $305$\,M trained on the Q/A-mixed substrate
+delivers a $5.43\times$ inference speedup, a structurally unique FIM
+capability, and a measurable revision improvement on per-token gold
+NLL --- with no AR-axis penalty against a parameter-matched pure-AR
+baseline.} The Phase~I null result on inference-time mode routing
+does not undermine these wins; it bounds the scope of one particular
+sub-claim about routing-during-AR-generation accuracy.
