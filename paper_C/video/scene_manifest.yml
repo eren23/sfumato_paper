@@ -55,6 +55,9 @@ scenes:
   - id: scene14d_multiround
     file: scenes/scene14d_multiround.py
     class: MultiRoundScene
+  - id: scene14e_phase_k
+    file: scenes/scene14e_phase_k.py
+    class: PhaseKScene
   - id: scene15_close
     file: scenes/scene15_close.py
     class: CloseScene

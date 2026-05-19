@@ -1,0 +1,100 @@
+\label{sec:phase-k}
+
+A natural follow-up to the trade-off characterisation: \emph{can we
+use both heads at inference time to produce a sample that is both
+faster than pure AR and better than pure diff?} Phase~J showed the
+two heads each have unique structural advantages (diff-fill speedup,
+FIM capability, revision NLL improvement). Phase~K tests a
+\textbf{per-token cross-mode routing} recipe that uses both:
+
+\begin{enumerate}
+  \setlength\itemsep{0pt}
+  \item AR head generates a prefix of $k_\text{ar}$ tokens.
+  \item Diff head fills the next $k_\text{diff}$ tokens in $N$
+        denoising steps (parallel, one forward per step).
+  \item Per-position commit-time confidence is captured during the
+        diff fill: the top-1 probability at the step each position
+        gets unmasked.
+  \item Bottom-$K\%$ of positions by confidence are flagged.
+  \item AR head refills only the flagged positions
+        (one teacher-forced forward each).
+\end{enumerate}
+
+This is novel at $<\!1$B text-LM scale. \citet{spasov2025deer} (DEER,
+2512.15176) drafts with diffusion and verifies with AR but at
+\emph{block} granularity. \citet{im2025idlm} (I-DLM, 2604.11035)
+and \citet{corrective_dlm_2025} (Corrective DLMs, 2512.15596) do
+per-token correction but stay within the diffusion head. Per-token
+cross-mode routing — diff drafts in parallel, AR refills the worst
+positions identified by confidence ranking — has not been published
+at this scale.
+
+\paragraph{The signal: what works and what doesn't.}
+We tried four routing signals on F10 final:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Signal & Result & Why \\
+\midrule
+Diff single-mask placed-token prob & useless (mean $\sim 0.01$) & marginal $P$ at 50 k vocab too diffuse \\
+Diff single-mask top-1 agreement & useless (97\,\% disagree) & calibration mismatch (joint vs single mask) \\
+AR-verifier teacher-forced prob & useless (mean $\sim 0.003$) & AR and diff have divergent distributions despite shared backbone \\
+\textbf{Commit-time conf, percentile rank} & \textbf{works} & relative ordering picks worst placements even if absolute level is low \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The percentile-based signal is the key insight. \textbf{All diff
+confidences are absolutely low} at 305\,M (mean $\sim 0.03$), so any
+absolute threshold flags 100\,\% of positions. But the \emph{relative
+ordering} encodes information about which placements are worst
+within a specific generation; flagging the bottom-$K\%$ produces a
+sensible refill rate that AR can productively fix.
+
+\paragraph{Results on F10 final, $N=50$ held-out GSM8K problems.}
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Config & Refill\,\% & Mean NLL & Wall (s) & Loop \\
+\midrule
+\code{pct10} & $9.4$\,\% & $12.16$ & $4.1$ & $6$\,\% \\
+\code{pct25} & $25$\,\% & $11.89$ & $4.3$ & $6$\,\% \\
+\textbf{\code{pct50}} & $\mathbf{50}$\,\% & $\mathbf{11.66}$ & $\mathbf{5.0}$ & $12$\,\% \\
+\code{pct75} & $75$\,\% & $12.00$ & $5.6$ & $16$\,\% \\
+\midrule
+\multicolumn{5}{l}{\emph{Phase J.2 baselines (same F10, same prompts)}} \\
+\midrule
+\code{ar\_128} (pure AR) & --- & $12.56$ & $\sim 6.4$ & --- \\
+\code{ms\_96\_32} & --- & $11.82$ & --- & --- \\
+\code{ms\_64\_32} & --- & $11.35$ & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Headline.}
+\textbf{At the same generation length (128 tokens), \code{pct50}
+beats pure AR by $-0.90$ NLL/token AND is $1.3\times$ faster.}
+Composite-specific recipe: pure AR fundamentally cannot do this
+(no diff head to draft with). The recipe does not beat
+\code{ms\_64\_32} ($11.35$) per-token, but \code{ms\_64\_32}
+generates only $64$ tokens, not $128$; the two configurations target
+different output lengths.
+
+\paragraph{What this proves.}
+The user's intuition — \emph{diff fills the easy structure in
+parallel, AR fixes the suspect tokens} — holds at $305$\,M scale,
+provided the routing signal is percentile-ranked commit-time
+confidence rather than an absolute threshold. The recipe yields a
+Pareto improvement over pure AR (better NLL \emph{and} faster
+wall-clock) that no single-head architecture can replicate.
+
+\paragraph{What this does not prove.}
+We did not measure GSM8K-dev free-run accuracy here; Phase~I
+already established that downstream routing does not lift accuracy
+at our scale, and Phase~K targets a different metric (per-token
+NLL on gold continuation, plus wall-clock). Whether the
+$-0.90$ NLL improvement converts to downstream task wins remains
+open, as does generalisation to larger scales and non-math
+substrates.
