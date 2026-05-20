@@ -58,6 +58,15 @@ scenes:
   - id: scene14e_phase_k
     file: scenes/scene14e_phase_k.py
     class: PhaseKScene
+  - id: scene14f_f11_head2head
+    file: scenes/scene14f_f11_head2head.py
+    class: F11Head2HeadScene
+  - id: scene14g_sft_negative
+    file: scenes/scene14g_sft_negative.py
+    class: SFTNegativeScene
+  - id: scene14h_i3_router
+    file: scenes/scene14h_i3_router.py
+    class: I3RouterScene
   - id: scene15_close
     file: scenes/scene15_close.py
     class: CloseScene
