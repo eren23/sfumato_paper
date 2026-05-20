@@ -67,6 +67,38 @@ The proper ECE calculation falsifies this: composite is \emph{less
 confident and less accurate}, which produces \emph{worse} calibration
 (higher ECE) at most scales.
 
+\subsection{Phase L — SFT on GSM8K-train: format learned, math not}
+\label{sec:phase-l}
+
+A natural sanity check on the F10 composite: does ordinary supervised
+fine-tuning lift GSM8K-dev accuracy out of the $\sim 4\,\%$ band? We
+SFT F10 on the $7{,}473$ GSM8K-train Q/A pairs (prompt $=$
+``\texttt{Question: \{q\}{\textbackslash}n\,Answer:}'', target
+$=$ full step-by-step reasoning $+$ ``\texttt{\#\#\#\# N}''), with
+$\text{AR-loss-only}$ on answer tokens (prompt masked with
+$\texttt{ignore\_index}{=}{-}100$). Two epochs, $\text{BS}{=}8$,
+$\text{LR}{=}3\!\times\!10^{-5}$, $7.8$ minutes wall on an A100.
+
+Training loss collapses cleanly: $2.84 \to 0.95$ over the two
+epochs, then settles at $\sim 1.0$. \emph{Free-run} GSM8K-dev
+accuracy stays in the $0$--$6\,\%$ band across all four decoders we
+test (\code{ar\_only} sampling/greedy, \code{mode\_switch\_96\_32},
+\code{mode\_switch\_64\_32}), within the $N=50$ binomial noise floor
+of the F10 base. Qualitatively, SFT outputs reproduce the GSM8K answer
+\emph{format} faithfully — calculator-style $\langle\langle x\!\cdot\!
+y\!=\!z \rangle\rangle$ annotations, step-by-step prose, terminating
+\texttt{\#\#\#\# N} — but the arithmetic is wrong and the chains
+loop after $2$--$3$ steps. The model learned the SHAPE of GSM8K
+answers, not the underlying arithmetic.
+
+This is a small honest negative for the trade-off framing: at
+$305$\,M, supervised exposure to task format does not unlock task
+capability. It is consistent with prior work (e.g. TinyGSM, where
+$1.3$\,B-scale generators with $12.3$\,M synthetic problems plus
+execution feedback were the minimum cost of crossing $\sim 80\,\%$ on
+GSM8K); we recover the negative half of that result at $\sim 5\%$ of
+its parameter count and $0.06\%$ of its data.
+
 \subsection{Combined reading}
 
 Both negatives are small in absolute terms. They are documented

@@ -117,12 +117,51 @@ enough that the gate stays AR-only); H1 fires too rarely (15--23\,\%
 of chunks); H3 fires too often (75\,\% of chunks) and on F9
 reproduces the single-switch baseline's loop pathology.
 
+\subsection{REINFORCE-trained router (Phase I.3)}
+\label{sec:phase-i3}
+
+Despite the heuristics' tie-or-lose on accuracy, we ran a minimal
+Phase~I.3 to put a number on the routing question that the
+hand-tuned heuristics couldn't: \emph{can a learned router at least
+solve the loop-coherence problem, even if not the capability problem?}
+
+We attach a $526$\,K-parameter \code{RouterMLP} (two-layer MLP, action
+space $\{\text{ar\_chunk}, \text{diff\_short}, \text{diff\_long},
+\text{end}\}$) to the final hidden state of F10. Backbone and both
+heads are \emph{frozen}; only the router updates. Per step we sample
+$K=4$ rollouts per prompt $\times\,4$ prompts and compute REINFORCE
+with per-prompt baseline:
+$\hat{R} = \mathbb{1}[\text{correct}] - 0.1\!\cdot\!\mathbb{1}[\text{loopy}]
+$, plus a small entropy bonus to prevent action collapse. $100$
+gradient steps total, $\sim 7$ minutes on MacBook MPS.
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+metric & step $0$ & step $99$ \\
+\midrule
+mean GSM8K acc per rollout & $0$ & $0$ \\
+mean loop rate per rollout & $\mathbf{0.69}$ & $\mathbf{0.00}$ \\
+mean policy entropy (nats) & $1.38$ & $0.94$ \\
+mean rollout NLL on gold & $-$ & $-$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The router learns to drive loop rate to zero in $\sim 30$ steps and
+holds it there. Accuracy does \emph{not} move: routing chooses the
+\emph{order} of AR and diff chunks but cannot manufacture problem-
+solving capability that the frozen backbone lacks. This is the most
+honest read of the routing question at our scale: the router
+solves \emph{coherence} (a soft constraint on the trajectory) but
+not \emph{capability} (a hard constraint on the model's knowledge).
+
 \subsection{Decision and scope claim}
 
 Following the Phase I plan's decision rule (``if heuristics tie or
-lose, learning a router is unlikely to extract more signal''), we
-\emph{did not} launch the REINFORCE-trained router (Phase I.2) or the
-joint backbone+router training (Phase I.3). The honest finding is:
+lose, learning a router is unlikely to extract more accuracy''), the
+joint backbone+router training (Phase~I.3$_\text{joint}$) was
+deprioritised. The honest finding from the entire Phase~I arc:
 
 \begin{quote}
 \textbf{Inference-time AR$\leftrightarrow$diff routing during AR

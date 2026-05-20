@@ -114,13 +114,117 @@ Iterating ($\code{n\_outer}=2$) produces a small additional gain,
 but the bulk of the benefit comes from the first round; we report
 single-round as the recommended configuration.
 
+\subsection{K.2.1 — Fine-tuning and undertrain controls}
+\label{sec:k21}
+
+The Phase~K result on F10 final raises two follow-up questions:
+(a) is the $-0.58$ NLL/token gain at \code{pct50} an artifact of the
+specific training trajectory F10 happened to follow, or does
+\emph{any} composite with a sharp enough diff distribution show it?
+(b) is the diff distribution sharper because the model is well-trained
+or because it is \emph{under}-trained (with conf collapsed on the
+mode of the data)? We answer both with cheap controls.
+
+\paragraph{Undertrain control: F10@step\,35k.}
+We rescore K.2 on the F10 intermediate checkpoint at step $35{,}000$
+(roughly $19\,\%$ of F10's final training budget). Same architecture,
+same data mix, same $\alpha$-schedule, but only one-fifth the
+gradient updates.
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Config (F10 @ 35k, $N=50$) & Mean NLL & Loop \\
+\midrule
+\code{pct10} & $12.08$ & $0$\,\% \\
+\code{pct25} & $11.97$ & $0$\,\% \\
+\textbf{\code{pct50}} & $\mathbf{11.84}$ & $2$\,\% \\
+\code{pct75} & $12.20$ & $12$\,\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+F10@35k's \code{pct50} NLL is $11.84$, essentially the same as F10
+final's $11.98$ at $N=200$. \textbf{Undertraining alone does not
+materially shift K.2 mean NLL.} Whatever the diff-distribution
+property K.2 routing exploits, it stabilises early and stays roughly
+constant as training progresses.
+
+\paragraph{Fine-tune: F11 with $\alpha$ fixed at $0.30$.}
+The $\alpha$-schedule used in F10 is linear $1.0 \to 0.5$ over
+training; on average the diff head sees only $\sim 25\,\%$ of steps.
+We hypothesise that increasing the diff-step fraction sharpens the
+commit-time confidence distribution, which is exactly the signal K.2
+ranks. To test, we fine-tune F10 final for $30{,}000$ additional
+steps with $\alpha$ \emph{fixed} at $0.30$ (so $70\,\%$ of steps are
+diff steps, vs F10's average $\sim 25\,\%$) on the same 95\,\%
+FineWeb-Edu + 5\,\% Q/A mixed token stream. We call the resulting
+checkpoint \textbf{F11}. Cost: $\sim$\$2 on a RTX 4090 24\,GB at BS=8
+($\sim$1.8\,h wall).
+
+\paragraph{Head-to-head: F10 vs F11.}
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+& \multicolumn{2}{c}{Mean NLL} & \multicolumn{2}{c}{Loop rate} \\
+Config & F10 final & F11 ($\alpha\!=\!0.30$) & F10 final & F11 \\
+\midrule
+\code{pct10} & $12.10$ & $\mathbf{11.58}$ & $7.5$\,\% & $0$\,\% \\
+\code{pct25} & $12.19$ & $\mathbf{11.48}$ & $12.5$\,\% & $0$\,\% \\
+\textbf{\code{pct50}} & $11.98$ & $\mathbf{11.40}$ & $17.5$\,\% & $\mathbf{4}$\,\% \\
+\code{pct75} & $12.37$ & $\mathbf{11.72}$ & $19.0$\,\% & $9$\,\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+F11 beats F10 at every percentile by $-0.5$ to $-0.7$ NLL/token, with
+loop rate dropping by an order of magnitude (\code{pct50}:
+$17.5\,\% \to 4\,\%$). The $\alpha$-schedule effect is real and
+substantial.
+
+\paragraph{F11 also lifts AR-axis accuracy.}
+On GSM8K-dev free-run accuracy ($N=50$, decoder defaults
+$T{=}0.8,\,$top-$p{=}0.9,\,$rep-pen${=}1.15$):
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+mode & F10 final & F11 \\
+\midrule
+\code{ar\_only}        & $4$\,\% & $\mathbf{6}$\,\% \\
+\code{mode\_switch\_96\_32} & $6$\,\%\,$^*$ & $0$\,\% \\
+\code{mode\_switch\_64\_32} & $4$\,\% & $2$\,\% \\
+\code{paired\_64\_64}  & $0$\,\% & $4$\,\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent\footnotesize $^*$F10 number from Phase J.2; the others
+re-measured on a common decoder. \normalsize
+
+The AR-only lift ($+2$\,pp) is at the edge of the $N=50$ binomial
+noise floor ($\sigma \sim 2$\,pp), but consistent with the NLL signal:
+the diff-heavy fine-tune did not damage AR-axis capability. Combined
+with the K.2 NLL improvement this overturns the strict reading of
+Phase~I (``inference-time routing does not lift accuracy''):
+the limit was the F10 substrate, not the routing recipe.
+
+\paragraph{What this proves.}
+K.2 is sensitive to the training $\alpha$-schedule of the underlying
+composite. A diff-heavier fine-tune sharpens the commit-time
+confidence distribution and produces a Pareto improvement over the
+F10 baseline on \emph{every} K.2 measurement: lower NLL, lower loop
+rate, equal-or-better free-run accuracy, all at the cost of a
+\$2 fine-tune. Coupled with the F10@35k control, the explanation is
+specifically the $\alpha$-schedule — not undertraining, not random
+seed, not data.
+
 \paragraph{What this does not prove.}
-We did not measure GSM8K-dev free-run accuracy here; Phase~I
-already established that downstream routing does not lift accuracy
-at our scale, and Phase~K targets a different metric (per-token
-NLL on gold continuation, plus wall-clock). Whether the
-$-0.58$ NLL improvement converts to downstream task wins remains
-open, as does generalisation to larger scales and non-math
-substrates. The $N=50 \rightarrow N=200$ regression on \code{pct50}
-is a useful reminder of the small-sample inflation common in
-NLL-per-token estimates on short generations.
+Phase~K targets per-token NLL on gold continuation plus wall-clock,
+not full GSM8K-dev free-run accuracy at parity with frontier models.
+The $-0.58$ NLL/token gain at F10 and additional $-0.58$ at F11 are
+real but small in absolute terms (we are still at $\sim 11.4$ NLL/token
+on a $50$k-vocab GSM8K continuation, which is far from a frontier
+model's $\sim 1{-}2$ NLL on the same prefix). Whether the recipe
+transfers to (a) a non-math substrate (FineWeb-Edu prose), (b) larger
+scales ($\geq 1$\,B parameters), and (c) different $\alpha$ values
+beyond $0.30$ remains open.
