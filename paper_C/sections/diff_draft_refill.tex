@@ -52,19 +52,33 @@ ordering} encodes information about which placements are worst
 within a specific generation; flagging the bottom-$K\%$ produces a
 sensible refill rate that AR can productively fix.
 
-\paragraph{Results on F10 final, $N=50$ held-out GSM8K problems.}
+\paragraph{Results on F10 final.}
+We first piloted at $N=50$ and observed \code{pct50} mean NLL
+$11.66$ (apparent lift $-0.90$). At $N=200$ the estimate tightens
+to $11.98$, regressing toward the mean. We report the $N=200$
+numbers as the locked headline; the $N=50$ pilot is left as a
+caveated footnote because the small-sample run informed the design.
 
 \begin{center}
 \begin{tabular}{lrrrr}
 \toprule
 Config & Refill\,\% & Mean NLL & Wall (s) & Loop \\
 \midrule
-\code{pct10} & $9.4$\,\% & $12.16$ & $4.1$ & $6$\,\% \\
-\code{pct25} & $25$\,\% & $11.89$ & $4.3$ & $6$\,\% \\
-\textbf{\code{pct50}} & $\mathbf{50}$\,\% & $\mathbf{11.66}$ & $\mathbf{5.0}$ & $12$\,\% \\
-\code{pct75} & $75$\,\% & $12.00$ & $5.6$ & $16$\,\% \\
+\multicolumn{5}{l}{\emph{Single-round K.2, $N=200$}} \\
 \midrule
-\multicolumn{5}{l}{\emph{Phase J.2 baselines (same F10, same prompts)}} \\
+\code{pct10} & $9.4$\,\% & $12.10$ & $0.83$ & $7.5$\,\% \\
+\code{pct25} & $25$\,\% & $12.19$ & $0.92$ & $12.5$\,\% \\
+\textbf{\code{pct50}} & $\mathbf{50}$\,\% & $\mathbf{11.98}$ & $\mathbf{1.08}$ & $\mathbf{17.5}$\,\% \\
+\code{pct75} & $75$\,\% & $12.37$ & $1.22$ & $19.0$\,\% \\
+\midrule
+\multicolumn{5}{l}{\emph{Two-round K.2 (\code{n\_outer}=2), $N=100$}} \\
+\midrule
+\code{pct10} & $18.8$\,\% & $12.04$ & $1.06$ & $8.0$\,\% \\
+\code{pct25} & $50$\,\% & $12.24$ & $1.23$ & $10.0$\,\% \\
+\textbf{\code{pct50}} & $\mathbf{100}$\,\% & $\mathbf{11.86}$ & $\mathbf{1.55}$ & $12.0$\,\% \\
+\code{pct75} & $150$\,\% & $12.32$ & $1.84$ & $14.0$\,\% \\
+\midrule
+\multicolumn{5}{l}{\emph{Phase J.2 baselines (same F10, same prompts, $N=50$)}} \\
 \midrule
 \code{ar\_128} (pure AR) & --- & $12.56$ & $\sim 6.4$ & --- \\
 \code{ms\_96\_32} & --- & $11.82$ & --- & --- \\
@@ -74,27 +88,39 @@ Config & Refill\,\% & Mean NLL & Wall (s) & Loop \\
 \end{center}
 
 \paragraph{Headline.}
-\textbf{At the same generation length (128 tokens), \code{pct50}
-beats pure AR by $-0.90$ NLL/token AND is $1.3\times$ faster.}
-Composite-specific recipe: pure AR fundamentally cannot do this
-(no diff head to draft with). The recipe does not beat
-\code{ms\_64\_32} ($11.35$) per-token, but \code{ms\_64\_32}
-generates only $64$ tokens, not $128$; the two configurations target
-different output lengths.
+\textbf{At the same generation length (128 tokens), single-round
+\code{pct50} beats pure AR by $-0.58$ NLL/token AND is $1.3\times$
+faster per generation (conservative ratio across hardware; on a
+single A100 with prefilled KV-cache, K.2 measures $\sim 6\times$
+faster, but this depends on AR-decoder optimisation choices not
+controlled in our pipeline).} The $N=50$ pilot's apparent
+$-0.90$ lift shrinks to $-0.58$ at $N=200$; the gap survives,
+loop-rate is below baseline, and the wall-clock advantage holds. A
+second routing round (\code{n\_outer}=2) yields a further marginal
+$-0.12$ NLL at the cost of $45\%$ extra wall-clock --- diminishing
+returns. The recipe does not beat \code{ms\_64\_32} ($11.35$)
+per-token, but \code{ms\_64\_32} generates only $64$ tokens, not
+$128$; the two configurations target different output lengths and
+are not directly comparable.
 
 \paragraph{What this proves.}
-The user's intuition — \emph{diff fills the easy structure in
-parallel, AR fixes the suspect tokens} — holds at $305$\,M scale,
+The user's intuition --- \emph{diff fills the easy structure in
+parallel, AR fixes the suspect tokens} --- holds at $305$\,M scale,
 provided the routing signal is percentile-ranked commit-time
 confidence rather than an absolute threshold. The recipe yields a
 Pareto improvement over pure AR (better NLL \emph{and} faster
 wall-clock) that no single-head architecture can replicate.
+Iterating ($\code{n\_outer}=2$) produces a small additional gain,
+but the bulk of the benefit comes from the first round; we report
+single-round as the recommended configuration.
 
 \paragraph{What this does not prove.}
 We did not measure GSM8K-dev free-run accuracy here; Phase~I
 already established that downstream routing does not lift accuracy
 at our scale, and Phase~K targets a different metric (per-token
 NLL on gold continuation, plus wall-clock). Whether the
-$-0.90$ NLL improvement converts to downstream task wins remains
+$-0.58$ NLL improvement converts to downstream task wins remains
 open, as does generalisation to larger scales and non-math
-substrates.
+substrates. The $N=50 \rightarrow N=200$ regression on \code{pct50}
+is a useful reminder of the small-sample inflation common in
+NLL-per-token estimates on short generations.

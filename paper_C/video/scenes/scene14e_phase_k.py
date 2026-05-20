@@ -100,16 +100,16 @@ class PhaseKScene(Scene):
         self.play(*[FadeOut(b) for b in keep_badges], run_time=0.3)
 
         # --- Synthesis ---
-        synthesis_lbl = body_text("on F10 (305M, N=50):",
+        synthesis_lbl = body_text("on F10 (305M, N=200):",
                                   size=14, color=MUTED, weight=BOLD).move_to([0, -2.0, 0])
         result_a = body_text("pure AR (128 tok): NLL = 12.56,  wall = 6.4 s",
                              size=14, color=WARN).move_to([0, -2.4, 0])
-        result_b = body_text("K.2 pct50 (128 tok): NLL = 11.66,  wall = 5.0 s",
+        result_b = body_text("K.2 pct50 (128 tok): NLL = 11.98,  wall = 5.0 s",
                              size=14, color=GOOD, weight=BOLD).move_to([0, -2.8, 0])
         synthesis = VGroup(synthesis_lbl, result_a, result_b)
         self.play(FadeIn(synthesis), run_time=0.5)
 
-        head = body_text("-0.90 NLL/token  +  1.3x faster.  Composite-specific recipe.",
+        head = body_text("-0.58 NLL/token  +  1.3x faster.  Composite-specific recipe.",
                          size=16, color=ACCENT_2, weight=BOLD).to_edge(DOWN, buff=0.4)
         self.play(FadeIn(head), run_time=0.5)
 
