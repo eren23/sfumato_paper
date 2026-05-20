@@ -1,19 +1,24 @@
 """Scene 14d — multi-round AR ↔ diff back-and-forth.
 
-REDESIGN: 6 short rows (one per round) so tokens never run off-screen
-and the AR-vs-diff colour split stays visually legible. Each row shows:
-  [round k]  AR(8 tokens, ACCENT)  →  DIFF(4 tokens, DIFF)
-Labels on the left make the rhythm explicit.
+REDESIGN v3: simplified visualization that avoids Transform-induced
+width collisions. Each row shows 8 tokens total = 4 AR (left) + 4 DIFF
+(right). The two phases per round are now spatial-side rather than
+time-overlap-then-replace, so wider diff tokens can never collide with
+narrower AR tokens.
+
+Original mechanism (in code) is still: AR generates a chunk, diff
+re-fills last K tokens in parallel. Visualisation conveys this with
+arrows or implicit ordering of fade-ins.
 """
 from __future__ import annotations
 
-from manim import (BOLD, DOWN, FadeIn, FadeOut, Indicate, LEFT, RIGHT, Scene,
-                   Transform, UP, VGroup)
+from manim import (BOLD, DOWN, FadeIn, LEFT, RIGHT, RoundedRectangle, Scene,
+                   UP, VGroup, Line)
 from utils.theme_shim import (ACCENT, ACCENT_2, BG, DIFF, FG, GOOD, MUTED, WARN,
                               body_text, fade_out_all, title_text)
 
 
-def _word(text: str, color, size: int = 11):
+def _word(text: str, color, size: int = 13):
     return body_text(text, size=size, color=color, weight=BOLD)
 
 
@@ -22,80 +27,55 @@ class MultiRoundScene(Scene):
         self.camera.background_color = BG
 
         title = title_text("Multi-round AR ↔ diff", size=26, color=ACCENT).to_edge(UP, buff=0.30)
-        sub = body_text("AR(8) → diff(4)  ×  6 rounds  (one row per round)",
-                        size=13, color=MUTED).next_to(title, DOWN, buff=0.10)
+        sub = body_text("each row = 1 round.  left half = AR(4 tokens), right half = diff(4 tokens)",
+                        size=12, color=MUTED).next_to(title, DOWN, buff=0.10)
         self.play(FadeIn(title), FadeIn(sub), run_time=0.4)
 
-        # The story rounds. Each round = 8 AR tokens + 4 diff-resolved tokens.
-        # The diff_words REPLACE the last 4 AR tokens (which become "___" briefly).
+        # Story rounds. Each round has 4 AR words + 4 diff words.
         rounds = [
-            (["Janet", "has", "16", "ducks.", "She", "feeds", "them", "twice"],
-             ["a", "day,", "every", "day."]),
-            (["She", "sells", "the", "eggs", "for", "$2", "each", "at"],
-             ["the", "local", "farmer's", "market."]),
-            (["After", "feeding", "her", "ducks", "she", "has", "13", "eggs"],
-             ["left", "for", "the", "week."]),
-            (["At", "$2", "each", "she", "earns", "13", "x", "$2"],
-             ["=", "$26", "per", "day."]),
-            (["Eating", "3", "for", "breakfast", "and", "baking", "4", "more"],
-             ["leaves", "9", "to", "sell."]),
-            (["9", "x", "$2", "=", "$18", "per", "day,", "or"],
-             ["$126", "per", "week.", "Answer."]),
+            (["Janet", "has", "16", "ducks."], ["a", "day,", "every", "day."]),
+            (["She", "sells", "the", "eggs"], ["the", "local", "market.", "Yes."]),
+            (["After", "feeding", "she", "has"], ["13", "left", "this", "week."]),
+            (["At", "$2", "each", "she"], ["earns", "$26", "per", "day."]),
+            (["Eating", "3", "for", "breakfast"], ["leaves", "9", "to", "sell."]),
+            (["9", "x", "$2", "="], ["$18", "per", "day,", "good."]),
         ]
 
-        # 6 rows stacked vertically. y from 2.0 down to -2.0 in steps of -0.65.
         row_ys = [1.85, 1.20, 0.55, -0.10, -0.75, -1.40]
-        diff_perm = [2, 0, 3, 1]
 
-        # Label all 6 rounds at the very left so the structure is obvious
-        # even at a glance, then fill them progressively.
-        all_round_labels = [
-            body_text(f"r{r_idx + 1}", size=11, color=MUTED)
-              .move_to([-6.5, row_ys[r_idx], 0])
-            for r_idx in range(6)
-        ]
-        self.play(*[FadeIn(lbl) for lbl in all_round_labels], run_time=0.4)
-
+        # Animate each row sequentially
         for r_idx, (ar_words, diff_words) in enumerate(rounds):
             row_y = row_ys[r_idx]
-            # token row starts at x=-5.6 (just right of the round label)
-            row_origin_x = -5.6
-            word_buff = 0.10  # space between token bounding boxes
-            row_right = row_origin_x
 
-            ar_mobs = []
+            # Round label on the far left
+            lbl = body_text(f"r{r_idx + 1}", size=12, color=MUTED).move_to([-6.5, row_y, 0])
+            self.play(FadeIn(lbl), run_time=0.10)
 
-            def place(mob, x_right_now):
-                w = mob.width
-                mob.move_to([x_right_now + w / 2, row_y, 0])
-                return x_right_now + w + word_buff
+            # Build the AR group (left) and DIFF group (right) with arrange
+            ar_group = VGroup(*[_word(w, ACCENT) for w in ar_words]).arrange(
+                RIGHT, buff=0.18)
+            ar_group.move_to([-3.0, row_y, 0])
 
-            # ---- AR step: append 8 tokens left-to-right
-            for w in ar_words:
-                m = _word(w, ACCENT)
-                row_right = place(m, row_right)
-                ar_mobs.append(m)
-                self.play(FadeIn(m, shift=LEFT * 0.05), run_time=0.04)
+            diff_group = VGroup(*[_word(w, DIFF) for w in diff_words]).arrange(
+                RIGHT, buff=0.18)
+            diff_group.move_to([2.3, row_y, 0])
 
-            # ---- Diff step: re-mask the last 4 tokens, resolve in permuted order
-            mask_targets = ar_mobs[-4:]
-            mask_positions = [m.get_center() for m in mask_targets]
-            mask_mobs = []
-            for m in mask_targets:
-                m_new = _word("___", DIFF).move_to(m.get_center())
-                mask_mobs.append(m_new)
-            self.play(*[Transform(m_old, m_new) for m_old, m_new in zip(mask_targets, mask_mobs)],
-                      run_time=0.25)
-            for slot in diff_perm:
-                resolved = _word(diff_words[slot], DIFF).move_to(mask_positions[slot])
-                self.play(Transform(mask_targets[slot], resolved), run_time=0.12)
-                self.play(Indicate(mask_targets[slot], color=WARN, scale_factor=1.2), run_time=0.12)
-            self.wait(0.18)
+            # Small "→" between the two halves
+            arrow = body_text("→", size=14, color=MUTED).move_to([-0.2, row_y, 0])
 
-        # Sum-up caption at bottom
-        cap1 = body_text("6 rounds = 72 tokens  ·  AR builds left-to-right  ·  Diff re-masks last 4 each round",
+            # Animate AR tokens appearing left-to-right
+            for tok in ar_group:
+                self.play(FadeIn(tok, shift=LEFT * 0.05), run_time=0.05)
+
+            # Brief arrow + diff tokens in parallel
+            self.play(FadeIn(arrow), run_time=0.10)
+            self.play(*[FadeIn(d, shift=DOWN * 0.08) for d in diff_group], run_time=0.32)
+            self.wait(0.12)
+
+        # Caption: explain mechanism
+        cap1 = body_text("AR builds left-to-right (cursor) ·  Diff fills next 4 in parallel (one forward)",
                         size=12, color=ACCENT_2)
-        cap2 = body_text("the user's original mental model of Sfumato — running on F10 via probe_interleaved.py",
+        cap2 = body_text("6 rounds × 8 tokens = 48-token paragraph, alternating modes the whole way",
                         size=11, color=MUTED)
         cap = VGroup(cap1, cap2).arrange(DOWN, buff=0.10).to_edge(DOWN, buff=0.25)
         self.play(FadeIn(cap), run_time=0.4)
