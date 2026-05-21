@@ -99,6 +99,44 @@ execution feedback were the minimum cost of crossing $\sim 80\,\%$ on
 GSM8K); we recover the negative half of that result at $\sim 5\%$ of
 its parameter count and $0.06\%$ of its data.
 
+\subsection{Exclusive Self Attention (XSA) — drop-in attention mod}
+\label{sec:phase-n1}
+
+\citet{xsa2026} (arxiv:2603.09078) propose Exclusive Self Attention
+(XSA): forbid each token from attending to its own position (set the
+self-attention diagonal to $-\infty$). The residual stream still
+carries self-information; only the attention layer changes. Paper
+reports improvements that grow with sequence length, tested up to
+2.7\,B.
+
+We add a \code{use\_xsa} flag to our \code{CausalSelfAttention} and
+train a 60\,M composite from scratch \emph{twice} (same FineWeb-Edu
+200\,M tokens, $3{,}000$ steps, BS=8, T=256, $\alpha\!=\!1.0\!\to\!0.5$,
+same seed): once with USE\_XSA=1, once with USE\_XSA=0. K.2 sweep on
+held-out GSM8K, $N=100$:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+threshold & USE\_XSA=1 & USE\_XSA=0 & $\Delta$ \\
+\midrule
+\code{pct10} & $9.917$ & $9.903$ & $+0.014$ \\
+\code{pct25} & $9.939$ & $9.825$ & $+0.114$ \\
+\textbf{\code{pct50}} & $\mathbf{9.914}$ & $\mathbf{9.877}$ & $+0.037$ \\
+\code{pct75} & $9.857$ & $9.777$ & $+0.080$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+XSA-on is \emph{slightly worse} at every percentile, with a small but
+consistent NLL penalty. AR-only accuracy is identical at the $N=50$
+floor ($2\,\%$ both). \textbf{XSA does not help in our composite
+recipe at 60\,M scale with T=256.} The XSA paper's reported gains may
+be specific to (a) larger contexts (their claim is "gains grow with
+sequence length" — we tested short context), (b) pure AR rather than
+composite training, or (c) larger parameter counts. We do not escalate
+to a 305\,M XSA from-scratch retrain on this evidence.
+
 \subsection{Combined reading}
 
 Both negatives are small in absolute terms. They are documented

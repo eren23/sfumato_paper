@@ -208,6 +208,37 @@ with the K.2 NLL improvement this overturns the strict reading of
 Phase~I (``inference-time routing does not lift accuracy''):
 the limit was the F10 substrate, not the routing recipe.
 
+\paragraph{$\alpha$-sensitivity sweep.}
+F11 used $\alpha=0.30$ fixed. To map the sensitivity we add two more
+fine-tunes from F10 at $\alpha=0.20$ (F12-$\alpha 20$) and $\alpha=0.40$
+(F12-$\alpha 40$), same recipe otherwise. Plus an extended F11 (F11+)
+that continues F11 for another $30{,}000$ steps at $\alpha=0.30$ fixed.
+All evaluated on K.2 sweep ($N=100$) + probe5 ($N=50$):
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+config & $\alpha$ & K.2 pct50 NLL & ar\_only acc & cost \\
+\midrule
+F10 final & $1.0 \to 0.5$ & $11.98$ & $4$\,\% & (baseline) \\
+F12-$\alpha 40$ & $0.40$ fixed & $11.55$ & $2$\,\% & $\$1.5$ \\
+\textbf{F11} & $\mathbf{0.30}$ \textbf{fixed} & $\mathbf{11.40}$ & $\mathbf{6}$\,\% & $\$2$ \\
+F11+ extended & $0.30$ +30k more & $11.26$ & $2$\,\% & +$\$1.5$ \\
+F12-$\alpha 20$ & $0.20$ fixed & $\mathbf{11.25}$ & $0$\,\% & $\$1.5$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{K.2 NLL is monotonic in (more diff training)} down to
+$\alpha=0.20$. Lower $\alpha$ sharpens the commit-time confidence
+distribution which is exactly what K.2 ranks. But the AR-axis
+accuracy is non-monotonic: $\alpha=0.30$ is the joint sweet spot
+for K.2 + AR (the only configuration that doesn't regress
+\code{ar\_only} relative to F10). Pushing further (F11+ extended or
+F12-$\alpha 20$) buys $\sim -0.15$ more NLL but costs $2$--$4$\,pp on
+free-run accuracy. \textbf{$\alpha=0.30$ is the Pareto-optimal
+recipe for our 305\,M composite.}
+
 \paragraph{What this proves.}
 K.2 is sensitive to the training $\alpha$-schedule of the underlying
 composite. A diff-heavier fine-tune sharpens the commit-time
