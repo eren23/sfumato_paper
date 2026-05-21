@@ -20,14 +20,36 @@ FIM capability, revision NLL improvement). Phase~K tests a
         (one teacher-forced forward each).
 \end{enumerate}
 
-This is novel at $<\!1$B text-LM scale. \citet{spasov2025deer} (DEER,
-2512.15176) drafts with diffusion and verifies with AR but at
-\emph{block} granularity. \citet{im2025idlm} (I-DLM, 2604.11035)
-and \citet{corrective_dlm_2025} (Corrective DLMs, 2512.15596) do
-per-token correction but stay within the diffusion head. Per-token
-cross-mode routing — diff drafts in parallel, AR refills the worst
-positions identified by confidence ranking — has not been published
-at this scale.
+This is novel at $<\!1$B text-LM scale. The Q4-2025 / Q1-2026 literature
+is converging on two distinct lanes that neither covers our recipe:
+
+\begin{itemize}
+  \setlength\itemsep{2pt}
+  \item \textbf{Block-level draft + AR-verify.} \citet{spasov2025deer}
+        (DEER, 2512.15176, Dec 2025) drafts with diffusion and verifies
+        with AR at \emph{block} granularity, achieving $5.54\times$
+        speedup with 32-token accepted drafts on a Qwen3-30B target.
+        \citet{diffuspec2025} (DiffuSpec, 2510.02358, Sep 2025) reports
+        up to $3\times$ wall-clock speedup, training-free, also at
+        block granularity. \citet{wu2025fastdllmv2} (Fast-dLLM v2,
+        2509.26328) converts an AR backbone to block-dLLM via
+        complementary attention masks.
+  \item \textbf{Per-token routing intra-diffusion.} \citet{starr2026}
+        (STaRR, 2601.04205, Jan 2026) uses spatial-temporal token
+        dynamics to dynamically re-mask within the diffusion sampler;
+        $4.1\times$ average / $8.9\times$ peak speedup, training-free,
+        but routing stays within the diff head.
+  \item \textbf{Intra-diff correction.} \citet{im2025idlm} (I-DLM,
+        2604.11035) and \citet{corrective_dlm_2025} (2512.15596) do
+        per-token correction inside the diff head.
+\end{itemize}
+
+\textbf{Per-token cross-mode routing} --- diff drafts $k$ positions in
+parallel, AR refills the percentile-bottom-$K\%$ identified by
+commit-time confidence ranking --- has not been published at this
+scale. DEER's cross-mode lives at block granularity; STaRR's per-token
+routing stays intra-diff. We test our K.2 directly against STaRR's
+intra-diff style in \textsection\ref{sec:k22} below.
 
 \paragraph{The signal: what works and what doesn't.}
 We tried four routing signals on F10 final:
