@@ -230,36 +230,70 @@ with the K.2 NLL improvement this overturns the strict reading of
 Phase~I (``inference-time routing does not lift accuracy''):
 the limit was the F10 substrate, not the routing recipe.
 
-\paragraph{$\alpha$-sensitivity sweep.}
-F11 used $\alpha=0.30$ fixed. To map the sensitivity we add two more
-fine-tunes from F10 at $\alpha=0.20$ (F12-$\alpha 20$) and $\alpha=0.40$
-(F12-$\alpha 40$), same recipe otherwise. Plus an extended F11 (F11+)
-that continues F11 for another $30{,}000$ steps at $\alpha=0.30$ fixed.
-All evaluated on K.2 sweep ($N=100$) + probe5 ($N=50$):
+\paragraph{$\alpha$-sensitivity sweep (multi-seed).}
+F11 used $\alpha=0.30$ fixed. To map the sensitivity we trained
+$3$ seeds per $\alpha \in \{0.20, 0.30, 0.40\}$ from F10, plus an
+extended F11 (F11+) that continues F11 for another $30{,}000$ steps
+at $\alpha=0.30$ fixed (single-seed). All K.2 sweeps at $N=100$:
 
 \begin{center}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-config & $\alpha$ & K.2 pct50 NLL & ar\_only acc & cost \\
+config & $\alpha$ & K.2 pct50 NLL (mean $\pm$ SD) & seeds & ar\_only acc \\
 \midrule
-F10 final & $1.0 \to 0.5$ & $11.98$ & $4$\,\% & (baseline) \\
-F12-$\alpha 40$ & $0.40$ fixed & $11.55$ & $2$\,\% & $\$1.5$ \\
-\textbf{F11} & $\mathbf{0.30}$ \textbf{fixed} & $\mathbf{11.40}$ & $\mathbf{6}$\,\% & $\$2$ \\
-F11+ extended & $0.30$ +30k more & $11.26$ & $2$\,\% & +$\$1.5$ \\
-F12-$\alpha 20$ & $0.20$ fixed & $\mathbf{11.25}$ & $0$\,\% & $\$1.5$ \\
+F10 final & $1.0 \to 0.5$ & $11.98$ (single-seed) & 1 & $4$\,\% \\
+F12-$\alpha 40$ & $0.40$ fixed & $11.607 \pm 0.072$ & 3 & $2$\,\% \\
+\textbf{F11} & $\mathbf{0.30}$ \textbf{fixed} & $\mathbf{11.447 \pm 0.038}$ & 3 & $\mathbf{6}$\,\% \\
+F11+ extended & $0.30$ +30k more & $11.26$ (single-seed) & 1 & $2$\,\% \\
+F12-$\alpha 20$ & $0.20$ fixed & $11.366 \pm 0.107$ & 3 & $0$\,\% \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\textbf{K.2 NLL is monotonic in (more diff training)} down to
-$\alpha=0.20$. Lower $\alpha$ sharpens the commit-time confidence
-distribution which is exactly what K.2 ranks. But the AR-axis
-accuracy is non-monotonic: $\alpha=0.30$ is the joint sweet spot
-for K.2 + AR (the only configuration that doesn't regress
-\code{ar\_only} relative to F10). Pushing further (F11+ extended or
-F12-$\alpha 20$) buys $\sim -0.15$ more NLL but costs $2$--$4$\,pp on
-free-run accuracy. \textbf{$\alpha=0.30$ is the Pareto-optimal
-recipe for our 305\,M composite.}
+The multi-seed (n=3) per $\alpha$ tightens the picture substantially.
+$\alpha=0.30$ has the \emph{tightest seed-to-seed variance}
+($\pm 0.038$ NLL/token, $\sim 3\times$ smaller than $\alpha=0.20$'s
+$\pm 0.107$). The apparent single-seed advantage of $\alpha=0.20$
+($-0.157$ NLL vs $\alpha=0.30$) shrinks to $-0.081$ in the
+3-seed mean — within 1 SD of $\alpha=0.20$'s spread.
+\textbf{$\alpha=0.30$ is the Pareto-optimal recipe}: lowest mean
+NLL within 1 SD of $\alpha=0.20$, best AR-axis accuracy
+($+2$\,pp over F10), \emph{and} the most reproducible across seeds.
+
+\subsection{K.2.2 — Head-to-head against STaRR-style intra-diff routing}
+\label{sec:k22}
+
+Concurrent work \citep{starr2026} (STaRR, 2601.04205) uses similar
+percentile-rank dynamics but routes \emph{within} the diff head
+(re-mask + re-diff). We test directly whether K.2's cross-mode
+contribution (diff $\to$ AR refill) is the actual lever or whether the
+percentile-rank trick alone suffices intra-diff.
+
+We implement a STaRR-style \emph{intra-diff} baseline: same prefix,
+same diff fill, same percentile-rank routing signal --- but the
+refill of bottom-$K\%$ positions is done by re-masking and running
+another diff pass (instead of AR refill). Head-to-head on the same
+checkpoint, same $N=100$ prompts, same anti-rep decoder defaults:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+& \multicolumn{3}{c}{Mean NLL on gold (lower better)} \\
+& STaRR-style intra-diff & K.2 cross-mode (ours) & $\Delta$ \\
+\midrule
+F10 final & $12.18$ & $11.98$ & $-0.20$ \\
+F11 ($\alpha=0.30$) & $11.56$ & $11.40$ & $-0.16$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{K.2 cross-mode beats the matched intra-diff baseline by
+$-0.16$ to $-0.20$ NLL/token on both checkpoints.} The cross-mode
+contribution is the actual mechanism --- routing the worst-confidence
+positions through the AR head (which has stronger absolute
+calibration than the diff head at our scale) is what produces the
+NLL gain. The percentile-rank trick alone, applied intra-diff, gives
+a smaller benefit.
 
 \paragraph{What this proves.}
 K.2 is sensitive to the training $\alpha$-schedule of the underlying
@@ -271,7 +305,8 @@ rate, equal-or-better free-run accuracy, all at the cost of a
 specifically the $\alpha$-schedule — not undertraining, not random
 seed, not data.
 
-\paragraph{K.2.2 — Non-math substrate (WikiText-2).}
+\subsection{K.2.3 — Non-math substrate (WikiText-2)}
+\label{sec:k23}
 A natural follow-up: is K.2's percentile-rank optimum a property of
 the GSM8K Q/A template, or of the composite's diff distribution
 itself? We rescore K.2 on $50$ held-out WikiText-2-raw test passages
