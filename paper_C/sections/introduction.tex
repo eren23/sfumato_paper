@@ -18,22 +18,32 @@ something the same-parameter-count two-separate-trunk baseline does
 not? At what data regime, on what axes, and at what cost?
 
 This paper answers that question with a small-substrate
-characterisation study. We train composite, AR-only, diffusion-only,
-and paired-separate-trunk variants from scratch on GSM8K-train
-\citep{cobbe2021gsm8k} at $60$M--$300$M parameters, $3$k--$10$k
-training steps. We then measure four axes:
+characterisation study, then extends it into an inference-recipe
+contribution. We train composite, AR-only, diffusion-only, and
+paired-separate-trunk variants from scratch on GSM8K-train
+\citep{cobbe2021gsm8k} at $60$M--$300$M parameters, then scale up
+to a $305$M run (F10) on a $95\%$ FineWeb-Edu + $5\%$ GSM8K Q/A
+mixed stream for $3$B tokens of training.
+
+We measure six axes:
 
 \begin{enumerate}
-  \item \textbf{AR-axis perplexity} on a held-out GSM8K chunk
+  \item \textbf{AR-axis perplexity} on held-out GSM8K
         (composite vs.\ AR-only).
-  \item \textbf{Diffusion-axis perplexity} on the same chunk
-        (composite vs.\ pure-diffusion, with a \textbf{compute-matched
-        control} where pure-diffusion gets $2\times$ training steps).
+  \item \textbf{Diffusion-axis perplexity} with a
+        \textbf{compute-matched control} where pure-diffusion gets
+        $2\times$ training steps.
+  \item \textbf{Data-efficiency crossover}: where in problem-count
+        space does the trade reverse?
   \item \textbf{Mode-switching inference}: AR-then-diffusion-revise
-        downstream accuracy on GSM8K-dev (the original "switch modes
-        mid-generation" recipe).
-  \item \textbf{Honest small negatives}: out-of-distribution
-        perplexity on prose and arxiv, and Expected Calibration Error.
+        downstream accuracy on GSM8K-dev.
+  \item \textbf{Composite-specific structural capabilities at $305$M}:
+        parallel-decode speed, FIM infilling, revision NLL.
+  \item \textbf{Per-token cross-mode routing (Phase K)}: a novel
+        recipe in which diff drafts $k$ tokens in parallel and AR
+        refills only the percentile-bottom-$K\%$ by commit-time
+        confidence; with an $\alpha$-sensitivity sweep over the
+        diffusion training fraction.
 \end{enumerate}
 
 Our central findings are:
@@ -43,18 +53,30 @@ Our central findings are:
         $-0.69$ NLL at $200$M --- joint training is structural, not
         an artefact of more total gradient signal. The advantage
         replicates at $60$M and $300$M.
-  \item There is a \textbf{clean data-efficiency crossover} near
-        $1{,}000$ problems: composite \emph{wins} the AR axis at
-        $500$ problems by $-0.40$ NLL ($5.7\sigma$); composite
-        \emph{loses} at $7{,}500$ problems by $+0.22$ NLL.
-  \item Mode-switching inference gives a small downstream lift
-        on GSM8K-dev at $n=8$ seeds; per-seed variance remains
-        wide and we are honest about the workshop-class strength of
-        this result.
-  \item Composite is small-uniformly worse on OOD perplexity
-        ($+0.1$--$0.2$ NLL) and slightly worse-calibrated at $4$
-        of $5$ scales. These are documented as costs of the trade,
-        not as net wins on a different axis.
+  \item A \textbf{clean data-efficiency crossover} near $1{,}000$
+        problems: composite wins by $-0.40$ NLL ($5.7\sigma$) at
+        $500$ problems; loses by $+0.22$ NLL at the full $7{,}473$.
+  \item At $305$M, composite delivers a $\mathbf{5.43\times}$
+        parallel-decode speedup, a structurally unique FIM
+        capability, and a $-0.74$ NLL/token revision via
+        mode-switch (\textsection\ref{sec:phase-j}).
+  \item \textbf{Phase K — per-token diff-draft + AR-refill}: at
+        F10 with $N=200$ held-out problems, single-round \code{pct50}
+        beats pure AR by $\mathbf{-0.58}$ NLL/token. A diff-heavy
+        fine-tune (F11, $\alpha\!=\!0.30$ fixed) adds a further
+        $\mathbf{-0.58}$ NLL/token. The $\alpha$-sweep
+        ($\{0.20, 0.30, 0.40\}$) identifies $\alpha\!=\!0.30$ as
+        the Pareto-optimum for K.2 NLL + AR-axis accuracy
+        (\textsection\ref{sec:phase-k}).
+  \item \textbf{Honest negatives.} Composite is small-uniformly
+        worse on OOD perplexity ($+0.1$--$0.2$ NLL) and slightly
+        worse-calibrated at $4$ of $5$ scales. SFT on GSM8K-train
+        learns the answer \emph{format} but not the arithmetic
+        (Phase L). A REINFORCE-trained mode router (frozen backbone,
+        $526$K parameter MLP) collapses loop rate ($0.69 \to 0.00$)
+        but does not lift accuracy (Phase I.3). Exclusive Self
+        Attention (XSA) as a drop-in attention mod shows no
+        benefit at $60$M (Phase N.1).
   \item As a secondary diagnostic finding, free-run sample quality
         at FineWeb-Edu scale ($305$M $/$ $3$B tokens) fails despite
         a teacher-forced \arNLL{}$=3.96$ that would otherwise read
@@ -65,10 +87,10 @@ Our central findings are:
         (\textsection\ref{sec:sample-quality}).
 \end{itemize}
 
-We position the result as a \textbf{trade-off characterisation, not a
-universal claim}. Composite training is the right design choice when
-the data regime is constrained and downstream generation can exploit
-mode-switching; it is the wrong design choice when only AR-axis loss
-and OOD prose generalisation matter. The crossover localises the
-"when": $\sim 1{,}000$--$1{,}500$ problems on a math-reasoning
-substrate. We hypothesise this rather than claim it generalises.
+We position the result as a \textbf{trade-off characterisation with
+a deployable inference recipe}. Phase K's per-token cross-mode
+routing turns the composite's structural diff-axis advantage into a
+concrete win at inference: better per-token NLL on gold continuations
+\emph{and} faster generation than pure AR, on a single composite
+model. $\alpha\!=\!0.30$ is the recommended training recipe; K.2
+\code{pct50} is the recommended decoder.

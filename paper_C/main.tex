@@ -39,40 +39,53 @@
 
 % ---------- Abstract ----------
 \begin{abstract}
-Joint training of an autoregressive (AR) head and a discrete-diffusion
+We train an autoregressive (AR) head and a discrete-diffusion
 (mask-fill) head on a shared transformer backbone --- "composite"
-training --- is the natural follow-up to recent hybrid AR/diffusion
-work that adapts pre-trained AR models to diffusion mode after the
-fact (DiffuLLaMA, Transfusion, BD3-LMs). Whether composite training is
-better than parameter-matched separated training at \emph{toy scale}
-($60$M--$300$M parameters) is empirically unknown. We close that gap
-with a single-substrate ($\sim 4$M-token GSM8K-train) characterisation
-study. On the diffusion task, composite \emph{beats} a
-\textbf{compute-matched} pure-diffusion baseline by
-$0.69$ NLL at $200$M parameters --- pure-diffusion trained for
-$2\times$ the steps still loses, ruling out the "more gradient signal"
-explanation. On the AR task, the trade reverses with data abundance:
-composite \emph{loses} by $+0.22$ NLL at the full $7{,}473$-problem
-GSM8K-train (mild AR tax), but \emph{wins} by $-0.40$ NLL ($5.7\sigma$)
-at $500$ problems --- a clean data-efficiency crossover near $1{,}000$
-problems. Mode-switching inference (AR then diffusion-revise)
-gives a small downstream lift on GSM8K-dev at $n=8$ seeds. We document
-two small honest negatives: composite is uniformly $+0.1$--$0.2$ NLL
-worse on out-of-distribution prose, and slightly worse-calibrated at
-4 of 5 scales. The composite advantage at the diffusion task survives
-across scales ($60$M / $120$M / $300$M), suggesting joint training has
-a structural rather than scale-specific benefit at this regime.
-We position the result as a small-scale trade-off characterisation that
-maps the win conditions for composite training: a clear data-constrained
-positive zone, a structural diffusion-axis advantage, and small
-documented costs on OOD and calibration. As a secondary diagnostic
-finding, we document a free-run sample-quality failure mode that
-appears at FineWeb-Edu scale ($305$M $/$ $3$B tokens) but is invisible
-to teacher-forced NLL, identify its three independent root causes
-(decoder-wiring, prompt-format OOD, and Chinchilla undertrain), and
-show that two decoder-side fixes --- AR-side anti-repetition and a
-count-based repetition penalty on the diffusion head --- recover
-coherent generations without retraining.
+training --- at toy scale ($60$M--$305$M parameters) and characterise
+the trade-off against parameter-matched separated training. The
+contribution is a Pareto map of when composite training is the right
+design choice and how to deploy the trained model at inference.
+
+\textbf{Training axes.} On the diffusion task, composite beats a
+\textbf{compute-matched} pure-diffusion baseline by $-0.69$ NLL at
+$200$M --- pure-diffusion at $2\times$ the steps still loses,
+ruling out "more gradient signal" as the explanation. On the AR
+task, composite \emph{loses} by $+0.22$ NLL at $7{,}473$ problems
+(mild AR tax) but \emph{wins} by $-0.40$ NLL ($5.7\sigma$) at $500$
+problems --- a clean data-efficiency crossover near $1{,}000$ problems.
+Joint-training advantage at the diffusion task replicates across $60$M
+/ $120$M / $300$M scales.
+
+\textbf{Inference axes.} Composite at $305$M delivers three measured
+capabilities pure AR cannot: $5.43\times$ parallel-decode speedup, FIM
+infilling (causal AR ignores suffix), and revision via mode-switch
+(AR-then-diff-revise) yielding $-0.74$ NLL/token on gold continuations.
+We then introduce \textbf{Phase~K}: a novel per-token cross-mode
+routing recipe --- diff drafts in parallel, AR refills the
+percentile-bottom-$K\%$ positions by commit-time confidence. At $N=200$
+on F10 (305M), this beats pure AR by $-0.58$ NLL/token at the same
+generation length. A diff-heavy fine-tune (F11, $\alpha\!=\!0.30$ fixed
+for $30$k more steps from F10) sharpens the routing signal a further
+$-0.58$ NLL/token. An $\alpha$-sensitivity sweep ($\alpha \in \{0.20,
+0.30, 0.40\}$) shows $\alpha\!=\!0.30$ is the joint Pareto-optimum for
+K.2 NLL and AR-axis accuracy.
+
+\textbf{Honest negatives.} Composite is uniformly $+0.1$--$0.2$ NLL
+worse on OOD prose; slightly worse-calibrated at $4$ of $5$ scales;
+$305$M supervised fine-tuning on GSM8K-train learns the answer
+\emph{format} but not the underlying arithmetic; a REINFORCE-trained
+mode router (frozen backbone, $526$K parameter MLP) collapses loop
+rate ($0.69 \to 0.00$) but does not lift task accuracy. Exclusive
+Self Attention (XSA, arxiv:2603.09078) tested as a drop-in
+attention modification shows no benefit at $60$M.
+
+As a secondary diagnostic finding, we document a free-run
+sample-quality failure mode that appears at FineWeb-Edu scale
+($305$M $/$ $3$B tokens) but is invisible to teacher-forced NLL,
+identify three independent root causes (decoder wiring, prompt-format
+OOD, Chinchilla undertrain), and apply two decoder-side fixes
+(AR-side anti-repetition + count-based repetition penalty on the
+diffusion head) that recover coherent generations without retraining.
 \end{abstract}
 
 \section{Introduction}
