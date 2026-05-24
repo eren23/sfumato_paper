@@ -67,6 +67,9 @@ scenes:
   - id: scene14h_i3_router
     file: scenes/scene14h_i3_router.py
     class: I3RouterScene
+  - id: scene14i_interp
+    file: scenes/scene14i_interp.py
+    class: InterpScene
   - id: scene15_close
     file: scenes/scene15_close.py
     class: CloseScene
