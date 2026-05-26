@@ -1,0 +1,176 @@
+\documentclass[11pt]{article}
+
+% ---------- Packages ----------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{calc,positioning,arrows.meta}
+\usepackage{hyperref}
+
+% ---------- Hyperref setup ----------
+\hypersetup{
+    colorlinks=true,
+    linkcolor={blue!70!black},
+    citecolor={green!50!black},
+    urlcolor={blue!80!black},
+}
+
+% ---------- Lightweight macros (carry-over from combined paper) ----------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\Sfumato}{\textsc{Sfumato}}
+\newcommand{\LLaDA}{\textsc{LLaDA}}
+\newcommand{\Qwen}[1]{\textsc{Qwen2.5-#1}}
+\newcommand{\appref}[1]{Appendix~\ref{#1}}
+\newcommand{\ctwo}{\code{C2}}
+\newcommand{\cthree}{\code{C3}}
+\newcommand{\cfour}{\code{C4}}
+\newcommand{\ctwoc}{\code{c2c}}
+\newcommand{\cmaj}{\code{cmaj}}
+\newcommand{\cmajc}{\code{cmajc}}
+
+% ---------- Title (Paper B: aggregation) ----------
+\title{Test-Time Aggregation in Diffusion-LM Reasoning:\\
+       Mechanism, Voting Gap, and Parallel Negatives}
+
+\author{Eren Akbulut}
+\date{Draft, May 2026}
+
+% ==========================================================================
+\begin{document}
+\maketitle
+
+% ---------- Abstract (from SPLIT_PROPOSAL.md, Paper B draft) ----------
+\begin{abstract}
+Majority-vote consensus over stochastic diffusion branches
+(\cmaj{}) is the strongest single mechanism we have for small-DDLM
+math reasoning: on GSM8K with \LLaDA{}-8B-Instruct it reaches
+$79$--$82\%$ on $N{=}200$, $+6$\,pp over single-shot. This paper asks
+what \cmaj{} is and isn't doing on top of a fixed prefix-robust
+substrate (the v3 LoRA from companion paper~\cite{paperA}). Four
+findings: (i) \textbf{consensus distillation is design-sensitive,
+not architecture-limited} --- distilling \cmaj{} into a single
+forward pass via a late-block answer-span commit adapter plateaus at
+\ctwoc{}$=70.5\%$ across two iterations and a $3.25\times$ capacity
+bump (a clean negative whose surface reading is ``the adapter
+cannot do this''), but a multi-block, full-response variant recovers
+\ctwoc{}$=79.0\%$, within sampling error of an $80\%$ pre-registered
+target; disentangling ablations attribute $+4$\,pp to block coverage
+and $+2$\,pp to full-response training, with full-response training
+\emph{alone} worth $0.0$\,pp --- two design errors mask each other.
+(ii) \textbf{The \cmaj{} voting-rule gap is structural and the
+failure mode is problem comprehension, not arithmetic.}
+The oracle ceiling exceeds majority-vote accuracy by $8$--$12$\,pp
+across four LoRA configurations and three seeds; $17$ peer-class
+verifier architectures (text-bag, $0.5$B--$72$B chat-LMs, embedding
+and reward models, process-feature MLPs, step-PRMs, symbolic
+arithmetic) all under-perform majority vote, while a frontier judge
+with chain-of-thought (Claude Sonnet $4.5$) closes $86\%$ of the
+gap; hand-inspection of \cmaj{}-failed/oracle-recoverable problems
+shows wrong branches contain locally correct arithmetic applied to
+incorrect problem setups, predicting the entire verifier
+leaderboard from a single diagnosis.
+(iii) \textbf{Commit-LoRA is a discrete inference-time schedule
+toggle on block-structured mask diffusion.} A K2 sub-block ablation
+produces an inverted-U around the v3 default ($k{=}3$ peak,
+$k{=}0$ adapter-off $-1.7$\,pp, $k{=}4$ always-on $-3.2$\,pp), and
+a Phase-1 substrate audit of DiffuLLaMA confirms the toggle's
+identity does not carry to flat-schedule samplers.
+(iv) \textbf{Parallel aggregation negatives reinforce a unified
+diagnosis.} An offline-replay per-problem mode router, a
+schedule-conditional temporal-SC voting variant, KL-anchored
+schedule-RLHF on commit-LoRA, and a \LLaDA{}-$1.5$ base swap all
+land as honest negatives or within-CI signals; all share the same
+small-$N$ $+$ large-action $+$ surface-feature pathology.
+A parameter-matched plain Qwen-$2.5$-$7$B AR baseline reaches
+$\sim\!86.5\%$ on this benchmark, beating the hybrid \cmajc{} at
+fewer active parameters; we surface this as disclosure rather than
+as a target. Total compute on top of Paper A's substrate is
+approximately $\$17$, on a single RTX~$4090$.
+\end{abstract}
+
+\section{Introduction}
+\input{sections/introduction}
+
+\section{Setup (Brief; see Paper A for substrate)}
+\input{sections/setup}
+
+\section{Consensus Distillation}
+\label{sec:consensus}
+\input{sections/consensus_distillation}
+
+\section{Self-Consistency}
+\label{sec:self-consistency}
+\input{sections/self_consistency}
+
+\section{Voting Gap}
+\label{sec:voting-gap}
+\input{sections/voting_gap}
+
+\section{Commit-LoRA K2 Schedule Toggle}
+\label{sec:k2}
+\input{sections/commit_lora_k2}
+
+\section{Mode Router and Parallel Negatives}
+\label{sec:mode-router}
+% NOTE (split skeleton, 2026-05-26): mode_router.tex covers the offline-replay
+% router. Per SPLIT_PROPOSAL, add a parallel-negatives subsection here that
+% gathers the temporal-SC + schedule-RLHF + LLaDA-1.5 base-swap negatives.
+\input{sections/mode_router}
+
+% \section{Honest Peer Baseline: Plain AR at Matched Scale}
+% \label{sec:ar-baseline}
+% TODO (move 6 follow-up): extract the AR-baseline discussion subsection
+% (currently inside discussion.tex of the combined paper) into a
+% dedicated sections/ar_baseline.tex and \input here.
+
+\section{Discussion}
+\label{sec:discussion}
+% NOTE (split skeleton, 2026-05-26): discussion.tex is the combined-paper
+% discussion. For Paper B, keep only:
+%   - One-Sentence Diagnosis: Problem Comprehension, Not Arithmetic
+%   - Parallel Negatives Across Aggregation Sub-Problems
+%   - Honest Peer Baseline: Plain AR at Matched Scale
+%   - Implication: Distillation of Inference-Time Mechanisms
+%   - Future Work: verifier paths and diversity-mechanism test
+%   - Limitations: voting gap + N=200 single-seed on aggregation
+% Other subsections belong to Paper A.
+\input{sections/discussion}
+
+\section{Conclusion}
+\input{sections/conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+
+\section{Pre-Registered Scorecard (Paper B predictions)}
+\label{app:prereg}
+% NOTE: appendix/prereg_scorecard.tex is shared; trim to Paper B predictions only.
+\input{appendix/prereg_scorecard}
+
+\section{Hyperparameters (Track 2, K2 sweep, mode router)}
+\label{app:hyperparams}
+% NOTE: appendix/hyperparameters.tex is shared; trim to aggregation-relevant only.
+\input{appendix/hyperparameters}
+
+\section{Compute Spend (Phases 2 + 3 + 4)}
+\label{app:compute}
+% NOTE: appendix/compute_spend.tex is shared; trim to phases 2-4 (~\$17).
+\input{appendix/compute_spend}
+
+\section{Spike Chain}
+\label{app:spike}
+\input{appendix/spike_chain}
+
+\section{Open Exposures}
+\label{app:exposures}
+% NOTE: appendix/open_exposures.tex is shared; trim to aggregation-relevant entries.
+\input{appendix/open_exposures}
+
+\end{document}

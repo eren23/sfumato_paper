@@ -1,0 +1,136 @@
+\documentclass[11pt]{article}
+
+% ---------- Packages ----------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{calc,positioning,arrows.meta}
+\usepackage{hyperref}
+
+% ---------- Hyperref setup ----------
+\hypersetup{
+    colorlinks=true,
+    linkcolor={blue!70!black},
+    citecolor={green!50!black},
+    urlcolor={blue!80!black},
+}
+
+% ---------- Lightweight macros (carry-over from combined paper) ----------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\Sfumato}{\textsc{Sfumato}}
+\newcommand{\LLaDA}{\textsc{LLaDA}}
+\newcommand{\Qwen}[1]{\textsc{Qwen2.5-#1}}
+\newcommand{\appref}[1]{Appendix~\ref{#1}}
+\newcommand{\ctwo}{\code{C2}}
+\newcommand{\cthree}{\code{C3}}
+\newcommand{\cfour}{\code{C4}}
+\newcommand{\ctwoc}{\code{c2c}}
+\newcommand{\cmaj}{\code{cmaj}}
+\newcommand{\cmajc}{\code{cmajc}}
+
+% ---------- Title (Paper A: substrate) ----------
+\title{Three Axes of Hybrid AR / Diffusion Reasoning Failure on GSM8K}
+
+\author{Eren Akbulut}
+\date{Draft, May 2026}
+
+% ==========================================================================
+\begin{document}
+\maketitle
+
+% ---------- Abstract (from SPLIT_PROPOSAL.md, Paper A draft) ----------
+\begin{abstract}
+The empirical record on hybrid pipelines that pair an autoregressive
+(AR) language model with a discrete-diffusion language model (DDLM)
+for chain-of-thought reasoning is contradictory: papers find that AR
+planning helps, that it hurts, that DDLM sampling diversity is
+preserved, that it collapses. We argue these conflicts collapse once
+the failure surface is decomposed. On GSM8K with \LLaDA{}-8B-Instruct
+and Qwen-\{0.5B, 1.5B\} planners we identify three substrate-level
+failure axes that can be measured independently:
+(i) \textbf{interface-format brittleness} --- wrapping a question in
+any plan-shaped scaffold, even a content-free one, costs $8$\,pp
+versus no prefix, and an $r{=}8$ prefix-robust LoRA closes the
+static-prefix gap to within $1$\,pp at v3 capacity, with a measurable
+single-shot-vs-branch-vote capacity tradeoff;
+(ii) \textbf{planner-content trust as a phenomenon} --- at v2 capacity
+a $1.5$B planner helps and a $0.5$B planner hurts; at v3 capacity the
+directions invert; we have two capacity rungs and call this a
+phenomenon, not yet a fully-resolved axis;
+(iii) \textbf{sampling-diversity preservation} --- format-augmented
+LoRA training \emph{expands} the variety of stochastic branches
+rather than collapsing it ($5/5$-branch agreement
+$51.5\% \to 47.5\%$), inverting the canonical
+diffusion-fine-tuning prediction. We also document a publishable
+masked-diffusion SFT pitfall: an early v1 recipe with too-wide
+mask-sampling support produced a bigram-repetition mode collapse
+that regressed \ctwo{} by $14.5$\,pp, fixable with four hyperparameter
+changes from a single design lesson. All adapters and datasets are
+public; total spend is approximately $\$4$ on a single RTX~$4090$,
+batched into one GPU-day. A companion paper~\cite{paperB} uses the
+v3 prefix-robust LoRA as a fixed substrate and characterises what
+\cmaj{} majority-vote aggregation does and does not do on top of it.
+\end{abstract}
+
+\section{Introduction}
+\input{sections/introduction}
+
+\section{Setup}
+\input{sections/setup}
+
+\section{Axis 1: Interface-Format Brittleness}
+\label{sec:axis1}
+\input{sections/axis1_brittleness}
+
+\section{Axis 2: Planner-Content Trust (Phenomenon)}
+\label{sec:axis2}
+\input{sections/axis2_planner_trust}
+
+\section{Axis 3: Sampling-Diversity Preservation}
+\label{sec:axis3}
+\input{sections/axis3_diversity}
+
+\section{Discussion}
+\label{sec:discussion}
+% NOTE (split skeleton, 2026-05-26): discussion.tex is the combined-paper
+% discussion. For Paper A, keep only:
+%   - Reconciling the Conflicting Reports
+%   - Future Work: cross-task and content-trust adapter
+%   - Limitations: axes 1/2/3 + capacity rungs
+% Other subsections belong to Paper B.
+\input{sections/discussion}
+
+\section{Conclusion}
+\input{sections/conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+
+\section{Pre-Registered Scorecard (Paper A predictions)}
+\label{app:prereg}
+% NOTE: appendix/prereg_scorecard.tex is shared; trim to Paper A predictions only.
+\input{appendix/prereg_scorecard}
+
+\section{Hyperparameters (Track 1 v2/v3)}
+\label{app:hyperparams}
+% NOTE: appendix/hyperparameters.tex is shared; trim to Track 1 only.
+\input{appendix/hyperparameters}
+
+\section{Compute Spend (Phase 1)}
+\label{app:compute}
+% NOTE: appendix/compute_spend.tex is shared; trim to Phase 1 only (~\$4).
+\input{appendix/compute_spend}
+
+\section{Open Exposures}
+\label{app:exposures}
+% NOTE: appendix/open_exposures.tex is shared; trim to substrate-relevant entries.
+\input{appendix/open_exposures}
+
+\end{document}

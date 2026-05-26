@@ -27,9 +27,9 @@
 \newcommand{\diffNLL}{NLL$_\text{diff}$}
 
 % ==========================================================================
-\title{Composite AR + Discrete-Diffusion Language-Model Training\\
-       at Toy Scale: a Trade-off Characterisation with a\\
-       Data-Efficiency Crossover}
+\title{Mode Specialisation in Composite AR + Discrete-Diffusion\\
+       Language Models: a Mechanistic Account of the Toy-Scale\\
+       Trade-off and a Cross-Mode Inference Recipe}
 
 \author{Eren Akbulut}
 \date{Draft, May 2026}
@@ -41,10 +41,21 @@
 \begin{abstract}
 We train an autoregressive (AR) head and a discrete-diffusion
 (mask-fill) head on a shared transformer backbone --- "composite"
-training --- at toy scale ($60$M--$305$M parameters) and characterise
-the trade-off against parameter-matched separated training. The
-contribution is a Pareto map of when composite training is the right
-design choice and how to deploy the trained model at inference.
+training --- at toy scale ($60$M--$305$M parameters).
+
+\textbf{Mechanistic headline.} Sparse-autoencoder analysis of the
+F10 ($305$M) backbone shows the two heads operate on \emph{near-disjoint
+feature bases}: mean cross-head cosine $0.169$ on $16{,}384$ TopK SAE
+features at the pre-head residual, $0$ index overlap on top-$8$
+features across $12$ prompts, and causal steering on
+AR-mode-specific features measurably changes generation (Phase~P).
+The composite at this scale does not converge to ``one representation,
+two readouts'' --- the heads share weights but learn separate sparse
+circuits. The trade-offs we measure are consequences: the diff-axis
+advantage and the AR-axis tax are the symmetric upside and cost of
+carrying two specialised circuits in one backbone, and Phase~K's
+per-token cross-mode inference recipe exploits the disjoint circuits
+at decoding time.
 
 \textbf{Training axes.} On the diffusion task, composite beats a
 \textbf{compute-matched} pure-diffusion baseline by $-0.69$ NLL at

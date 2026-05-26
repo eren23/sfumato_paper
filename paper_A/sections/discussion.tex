@@ -1,0 +1,306 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Reconciling the Conflicting Reports}
+\label{subsec:reconciling}
+
+The single most useful sentence in this paper, and the one we
+would ask a reader to remember, is that
+\textbf{\LLaDA{}'s GSM8K failure mode is problem comprehension,
+not arithmetic.}  Hand inspection of the $15$
+\cmaj{}-failed/oracle-recoverable problems
+(\S\ref{sec:voting_gap}) shows that wrong branches typically
+contain locally correct arithmetic applied to incorrect problem
+\emph{setups} --- the model misreads what is being asked, not
+what to compute.  Reading the rest of this discussion through
+that lens collapses the apparently disjoint findings of the body
+into a single picture.
+
+\paragraph{A direct test of the comprehension hypothesis.}  As a
+follow-up mechanism probe (not a deployment recipe), we asked
+Claude Sonnet $4.5$ to convert each GSM$8$K-dev question into a
+structured restatement --- a list of givens, an explicit unknown,
+and a list of named intermediate quantities to compute, with
+explicit instructions \emph{not} to compute any numerical answer.
+We then ran the v3 hybrid stack
+($\code{LLaDA-8B-Instruct} + $ prefix-robust v3 LoRA $+$ commit-v3
+LoRA, single branch, $k{=}64$, $T{=}0$, commit-$n${=}$3$) with the
+Sonnet restatement substituted for the raw question.  On
+$N{=}100$ frozen-index problems, the scaffolded run reaches
+$84.0\%$, against $75.0\%$ for the same v3 stack on the raw
+question and the same seed (a $+9.0$\,pp delta on an
+apples-to-apples comparison).  This single-branch scaffolded
+number beats the multi-branch \cmajc{}-v3 result
+($82.5\%$ at $b{=}5$) and lands within $2.5$\,pp of the
+parameter-matched plain-AR \Qwen{}-$2.5$-$7$B baseline
+($86.5\%$).  We surface this as a \emph{mechanism probe}, not
+a deployable recipe: Sonnet $4.5$ solo scores
+$\approx 95\text{--}97\%$ on GSM$8$K, so the hybrid pipeline
+strictly underperforms just calling Sonnet on its own.  The
+publishable bit is the $+9$\,pp jump under same-stack matched
+comparison, which quantifies the fraction of the
+\LLaDA{}-on-GSM$8$K gap that is upstream of arithmetic --- not
+that the hybrid is a useful product.  This complements the
+verifier-gap diagnosis in \S\ref{sec:voting_gap}: where the
+frontier-judge result shows the gap is closable post-hoc, the
+scaffolded-prompt result shows part of it is closable
+\emph{pre-hoc} by repairing the comprehension step before the
+diffusion sampler ever runs.
+
+The three-axis decomposition lets us reconcile the conflicting
+reports in the hybrid AR/DDLM literature.  Papers that report ``AR
+planning helps DDLM'' likely measured the planner-content-trust
+axis with a well-matched planner-and-adapter capacity --- i.e.\ a
+configuration where the upstream planner produces content the DDLM
+trusts at the prevailing capacity setting.  Papers that report
+``AR planning hurts DDLM'' likely measured the format-brittleness
+axis without controlling for prefix shape: prepending a plan-shaped
+scaffold of \emph{any} content ($66\text{--}68\%$ at base, versus
+$74\%$ for no prefix) is enough to land in the
+``hurts'' regime.  Papers that report ``diffusion sampling
+diversity is preserved'' likely measured the right thing under a
+recipe that lands at v2-style capacity; papers that report
+``diversity collapses'' likely had a different recipe that pushed
+past the capacity sweet spot we identify in
+Table~\ref{tab:axis1_v2_v3}.
+
+Without the three-axis frame, these are five conflicting claims.
+Within the frame, they are five projections of a multi-axis
+failure surface, each consistent with the others when the omitted
+axes are held fixed.
+
+The same lens predicts the structure of the entire verifier
+leaderboard in \S\ref{sec:voting_gap}.  Why do peer-class
+chat-LMs lose ($-4$ to $-14$\,pp)?  Because the verification task
+is implicitly ``re-solve the problem from scratch and compare''
+and a peer-class classifier without that capability has nothing
+to add over majority vote.  Why do math-tuned encoders lose
+\emph{worse} than chat-tuned ones at the same scale (math vocab
+is irrelevant to the failure mode)?  Because arithmetic vocabulary
+is the wrong inductive bias when the failure is upstream of
+arithmetic.  Why do embedding models lose worst (cosine
+similarity collapses problem distinctions a classifier needs)?
+Same.  Why does a frontier judge with chain-of-thought win
+($+6.16$\,pp, $86\%$ gap-closure)?  Because at this scale it is
+strictly stronger at the problem-decomposition step than
+\LLaDA{}-$8$B is.  And why does the chain-of-thought variant beat
+the YES/NO prompt by $5$ recovered problems
+($8 \to 13$ of $15$)?  Because forcing the judge to re-derive the
+setup is forcing it to re-do the step the generator failed.  This
+is consistent with a verifier literature in which Cobbe et
+al.~\citep{cobbe2021verifier} used a fine-tuned GPT-$3$ verifier
+and Lightman et al.~\citep{lightman2023letsverify} used
+step-level human supervision: when the verification task is
+implicitly to re-solve and compare, a peer-class classifier with
+surface features cannot win, and a stronger reasoner can.
+
+\subsection{Parallel Negatives Across Aggregation Sub-Problems}
+\label{subsec:parallel_negatives}
+
+The voting-rule gap (\S\ref{sec:voting_gap}) and the offline-replay
+mode router (\S\ref{sec:mode_router}) probe two different
+sub-problems of test-time aggregation in diffusion LMs --- per-branch
+verification and per-problem mode routing --- and both fall to the
+same pathology: at our substrate scale, supervised classification
+with surface features cannot close the oracle gap.  Three
+additional spikes probe further parallel sub-problems and land in
+the same regime, which is the single piece of evidence we want to
+surface here.
+
+\paragraph{Schedule-conditional Temporal-SC voting.}
+A schedule-weighted vote across denoising sub-blocks
+($1.5\times$ on active sub-blocks, $1.0\times$ on inactive)
+regressed $-4$\,pp on GSM8K dev$_{200}$ at $N{=}100$
+(\cmajc{}-vote $0.82$, Temporal-SC $0.78$).  The
+canonical answer span (\code{\#\#\#\#}, \code{Answer:}) only
+materializes at sub-block~$3$ of $4$ in $94\%$ of branches, so the
+$1.5\times$ weight on sub-blocks~$1$--$2$ amplifies a near-empty
+channel.  Zhang et al.~\citep{zhang2025timefeature} report a
+positive temporal-SC result on diffusion LMs with an
+exponential-decay weighting; our schedule-conditional weighting
+does not extend their result.
+
+\paragraph{Schedule-RLHF on commit-LoRA.}
+A mini-pilot ($50$-step GRPO, no KL anchor) was paired
+$-1$\,problem on MATH-$500$ at $N{=}20$; a mid-pilot ($200$-step
+GRPO with a Schulman-$k_3$ KL anchor at $\beta{=}0.05$) was paired
+$+1$\,problem on MATH-$500$ at $N{=}50$, with $49/50$ predictions
+bit-identical and one wrong-to-correct flip.  Both signals are
+within binomial CI ($\pm 14$\,pp at $N{=}50$); the meaningful
+evidence is the directional reversal once the KL anchor is wired,
+which says schedule-conditional adapter retraining is at minimum
+non-destructive in this regime.  We do not claim a WIN on the
+mid-pilot signal alone; a locked pre-registered full pilot at
+$3100$ steps over $1550$ prompts is the gating experiment.
+
+\paragraph{Cross-base-model transfer.}
+A drop-in swap from \LLaDA{}-$8$B-Instruct~\citep{nie2025llada} to
+LLaDA-$1.5$ (the VRPO post-trained successor) with the frozen v$3$
+LoRAs landed MATH-$500$-numeric $N{=}50$ \cmajc{}-$k_3$ $= 0.56$,
+$-2$\,pp below the LLaDA-$8$B-Instruct reference of $0.58$.
+Adapter compatibility passed cleanly --- the swap is mechanically
+a no-op --- but capability transfer failed.  The peer-class
+accuracy gap discussed in \S\ref{subsec:ar_baseline} is not
+explained by base-model VRPO post-training.
+
+\medskip
+
+The unifying read across \S\ref{sec:voting_gap},
+\S\ref{sec:mode_router}, and the three spikes above is that
+test-time aggregation in diffusion LMs is not a
+single-classifier or single-toggle problem at the data scales we
+can afford.  The three follow-ups in \S\ref{sec:discussion} Future
+Work --- a substantially larger encoder, a process-reward verifier
+on per-step trajectory features, or step-level human supervision
+---  apply to every parallel sub-problem we have probed.
+
+\subsection{Honest Peer Baseline: Plain AR at Matched Scale}
+\label{subsec:ar_baseline}
+
+The hybrid pipeline this paper characterises has $\sim 9$B active
+parameters at inference (\LLaDA{}-$8$B $+$ Track-$1$-v3 LoRA $+$
+commit-v3 LoRA $+$ a Qwen-\{$0.5$B, $1.5$B\} planner) and reaches
+\cmajc{} $\approx 82.5\%$ on GSM8K-test.  A plain Qwen-$2.5$-$7$B
+AR baseline on the same evaluation reaches approximately $86.5\%$,
+beating the hybrid at strictly fewer active parameters.  Hybrid
+accuracy is also roughly invariant ($82\text{--}83\%$) across
+Qwen-$0.5$B through Qwen-$7$B planners, which is consistent with
+the diffusion substrate (\LLaDA{}-$8$B) rather than the AR planner
+being the bottleneck on this benchmark.
+
+We surface this here rather than burying it.  The three trainable
+axes (\S\ref{sec:axis1}--\S\ref{sec:axis3}), the consensus
+distillation result (\S\ref{sec:distill}), the voting-rule gap
+(\S\ref{sec:voting_gap}), and the K2 schedule toggle
+(\S\ref{sec:commit_lora_k2}) are real empirical findings about the
+AR/DDLM substrate as currently constituted.  They are not evidence
+that this hybrid pipeline beats a parameter-matched monolithic AR
+baseline on GSM8K; at the AR scales we used as planners, it does
+not.  The natural read is that the substrate-level findings should
+generalise to AR/DDLM stacks where the diffusion model is closer
+to AR peer-class scale, and that the practical accuracy claim of
+\emph{this} hybrid against a parameter-matched AR is benchmark- and
+scale-bounded.  We treat the empirical AR-baseline number as
+disclosure rather than a target, and leave a head-to-head
+controlled comparison at peer-class diffusion scale to follow-up
+work.
+
+\subsection{Implication: Distillation of Inference-Time Mechanisms}
+
+The Track 2 design-iteration finding has a broader implication:
+weight-space distillation of inference-time mechanisms is
+design-sensitive in a way that produces clean negative results
+that masquerade as architectural impossibilities.
+
+Distilling a technique that aggregates over multiple stochastic
+samples (\cmaj{}) into a single deterministic forward pass
+requires the surgery to match the temporal structure of the
+original mechanism.  For semi-AR diffusion, ``temporal structure''
+means \emph{which sub-block fires the modification}.  Getting this
+wrong (last-block-only when the answer is upstream of the
+modification) produces \ctwoc{} $= 70.5\%$ across a $3.25\times$
+capacity bump --- a clean negative whose surface reading is ``the
+adapter cannot do this''.  Getting it right (commit on sub-blocks
+$2$--$4$ of $4$) recovers \ctwoc{} $= 79.0\%$, within sampling
+error of the target, on the same data.  The architecture did not
+change; the temporal placement did.
+
+This is a general lesson for parameter-efficient distillation of
+sampling-based mechanisms: the placement of the LoRA in the
+sampler's schedule is a first-class design variable, and a
+plateau across capacity is not by itself evidence that the
+distillation is impossible.
+
+\subsection{Future Work}
+
+\paragraph{Cross-task transfer.}  Do these axes generalize beyond
+GSM8K~\citep{cobbe2021gsm8k}?  A targeted ablation on MATH-Easy
+and ARC-Challenge would test whether the three-axis decomposition
+holds on other reasoning benchmarks.  The diversity-expansion
+finding in particular is suspicious-looking on a single benchmark
+and deserves a multi-task replication.
+
+\paragraph{Phase-3 verifier paths.}  The voting-rule-gap section
+rules out small per-branch classifiers as a \emph{compute-time}
+alternative to v3's \emph{param-time} commit at the scales we
+tested ($17$ peer-class architectures, all LOSS).  Three paths
+remain open for closing the residual $8\text{--}12$\,pp gap:
+(i)~a $32$B$+$ chat-LM encoder, motivated by the monotone
+encoder-scaling trend ($\sim 5$\,pp gap-closure per $10\times$
+scale-up at $0.5$B--$7$B); (ii)~a process-reward verifier consuming
+per-step trajectory features (per-position entropy, commit-LoRA
+logit shifts, AR/DDLM mechanism source) over the Workstream-C
+STATUS-schema traces released alongside this paper; and
+(iii)~step-level PRM800K-style human
+supervision~\citep{lightman2023letsverify}, the proven-elsewhere
+recipe at the cost of step-level annotation.  The frontier-judge
+positive control (\S\ref{subsec:frontier_judge}) bounds the
+reachable accuracy at $\sim 85\%$ on this substrate; the question
+is whether (i)--(iii) reach the bound at lower API cost.
+
+\paragraph{Diversity-mechanism test.}  Does base \LLaDA{} at
+$t{=}0.9$ reproduce the post-Track-1 $5/5$-same rate of $47.5\%$?
+If yes, Track 1 acts as an implicit temperature regularizer and
+the diversity-expansion finding reduces to that.  If no, the
+training-time surface randomization has produced real
+content-level diversity that temperature does not match.  One
+short eval; deferred to revision.
+
+\paragraph{Content-trust adapter.}  The planner-content-trust
+phenomenon (\S\ref{sec:axis2}) is characterized but not fixed,
+and would benefit from a third capacity rung before being framed
+as a fully-resolved axis.  A
+content-trust LoRA --- one that varies plan content quality at
+fixed surface shape, complementing our prefix-robust dataset
+which varies surface shape at fixed content --- is a natural
+follow-up, especially with \Qwen{1.5B} and \Qwen{7B} planners
+sweeping the upstream-content axis explicitly.
+
+\paragraph{Adaptive mode router (Paper 2).}  The
+structural-separation finding motivates a learned router that
+switches between mode-specific LoRAs based on input.  The
+capacity-tradeoff curve (v2 vs.\ v3) gives the router a real
+decision space: given an input prompt, which adapter should fire?
+We sketched the design in \code{sfumato/PLAN.md} as the E1 track.
+\S\ref{sec:mode_router} reports an offline-replay, per-problem
+form of E1 evaluated within Phase 2: at $20$ problems and a
+$12$-condition action space with surface text features it
+underperforms the best fixed condition by $10$\,pp, with the same
+small-$N$/large-action/surface-feature pathology as the verifier
+sweep.  Two \$0 pre-scale audits
+(\S\ref{subsec:mode_router_pre_scale}) further narrow what a
+trajectory-feature router could possibly look like: on the
+$N{=}200$ \cmaj{} $b{=}5$ substrate, $91.7\%$ of disagreement
+problems first diverge at sub-block~$0$ (token edit-distance,
+$88.9\%$ semantic-cosine cross-check, $95.4\%$ agreement), so
+there is essentially no mid-trajectory decision point for a
+\emph{per-boundary} router to operate on; on the seven existing
+STATUS-schema traces, the trajectory-feature signal that exists
+($\rho{=}{-}0.79$ for \code{min\_entropy}, perm-$p{=}0.097$ at
+$n{=}7$, a hint not an evaluation) is concentrated at
+sub-block~$0$.  The two viable forms the audits leave open are
+(i)~a problem-level pre-generation router using
+\emph{trajectory} rather than surface-text features (untested),
+and (ii)~a ``pilot-and-route'' architecture that probes
+sub-block~$0$, extracts features, and routes once.  Per-boundary
+routing across all four sub-blocks is empirically dead at this
+substrate.  We leave the pilot-and-route variant to follow-up
+work.
+
+\subsection{Limitations}
+
+We close with what this paper does not do.  All evaluations are
+single-seed at $N{=}200$, so our headline numbers carry binomial
+sampling noise of $\pm 3$--$5$\,pp; multi-seed variance is not
+characterized in this draft.  We did not produce a mechanistic
+LCH-centroid figure for the
+prefix-robust LoRA, which would harden the structural-separation
+thesis from behavioural to mechanistic; the JVP feasibility spike
+failed because PEFT wraps LoRA in
+\code{lora\_magnitude\_vector} ModuleDict and we deferred to a
+follow-up.  All experiments use a single base diffusion model
+(\LLaDA{}-8B-Instruct~\citep{nie2025llada}) and a single
+benchmark (GSM8K-test~\citep{cobbe2021gsm8k}); the
+generalization claims in the abstract are constrained
+accordingly.  These exposures and a few smaller ones are listed in
+\appref{app:open}.

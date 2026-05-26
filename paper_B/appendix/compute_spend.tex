@@ -1,0 +1,84 @@
+\section{Compute Spend}
+\label{app:compute}
+
+The experimental program ran on a single RTX~4090 spot/on-demand
+substrate from Runpod (\$0.20/hr), with one OpenRouter judge sweep
+inside the voting-rule-gap follow-up.  Total spend across all
+phases is approximately \$20.5; Table~\ref{tab:compute} reproduces
+the per-phase breakdown.  The four phases correspond directly to
+the body of the paper: Phase~$1$ for the three-axis decomposition
+(\S\ref{sec:axis1}--\S\ref{sec:axis3}) and consensus distillation
+(\S\ref{sec:distill}); Phase~$2$ for the voting-rule gap and
+verifier sweep (\S\ref{sec:voting_gap}); Phase~$2/3$ for the K2
+schedule toggle (\S\ref{sec:commit_lora_k2}), the mode router
+(\S\ref{sec:mode_router}), and the S0--S4 spike chain
+(\appref{app:spike_chain}); and Phase~$4$ for the parallel
+aggregation negatives surfaced in
+\S\ref{subsec:parallel_negatives} and the cross-family substrate
+audit underlying \S\ref{subsec:k2_scope}.
+
+\begin{table}[h]
+\centering
+\caption{Compute spend.  The original three-axis work reproduces
+in approximately one GPU-day on a single RTX~4090 (\$0.20/hr).
+The voting-rule-gap follow-up adds GPU substrate, peer-class
+verifier sweeps, and OpenRouter Claude Sonnet 4.5 calls
+($4$ sweeps $\times \sim 1{,}051$ branch judgements each).
+The K2 sweep, mode-router bandit, and S0--S4 spike chain were
+batched onto two pods over a single night.}
+\label{tab:compute}
+\smallskip
+\begin{tabular}{lr}
+\toprule
+Phase & Cost (USD) \\
+\midrule
+\multicolumn{2}{l}{\emph{Three-axis $+$ distillation (Phase 1):}} \\
+Track 1 v1 train + eval & \$0.80 \\
+Track 1 v2 train + full eval suite & \$0.50 \\
+Track 1 v3 train + eval suite & \$0.30 \\
+Track 2 v1 + v2 train + eval & \$0.55 \\
+Track 2 v3 train + eval & \$0.20 \\
+Disentangling ablations (ABL\_A, ABL\_B) & \$0.20 \\
+Diagnostic experiments + branch-agreement falsifier & \$0.50 \\
+\Qwen{} self-consistency baseline & \$0.10 \\
+Buffer (debug, redos) & \$0.35 \\
+\midrule
+\multicolumn{2}{l}{\emph{Voting-rule gap (\S\ref{sec:voting_gap}):}} \\
+Substrate $N{=}200$ \cmaj{} $b{=}5$ ($v3$ LoRA) $+$ multi-seed \cmajc{} & \$0.85 \\
+ABL\_B sanity probe & \$0.05 \\
+Peer-class verifier sweeps ($17$ architectures, $0.5$B--$72$B) & \$2.00 \\
+$N{=}500$ substrate extension and rich-feature dump & \$1.10 \\
+GPU-pod orchestration overhead and retries & \$3.50 \\
+OpenRouter Claude Sonnet 4.5 (4 sweeps $\times \sim 1{,}051$ calls) & \$2.00 \\
+\midrule
+\multicolumn{2}{l}{\emph{K2 sweep, mode router, spike chain (Phase 2/3):}} \\
+K2 \code{COMMIT\_N\_BLOCKS} sweep ($k{=}0$ retry $+$ $k{=}4$, multi-seed $k{=}3$ already on substrate) & \$1.30 \\
+S0--S4 spike chain (batched generation, ESC, merge toggle, logit-shift, Fast-dLLM) & \$2.50 \\
+D1 mode-router bandit (offline-replay, local sklearn LOOCV) & \$0.00 \\
+All-conditions sweep $\times$ showcase build (substrate for D1) & \$0.20 \\
+\midrule
+\multicolumn{2}{l}{\emph{Phase 4 (\S\ref{subsec:parallel_negatives}, \S\ref{subsec:k2_scope}):}} \\
+Temporal-SC harvest $+$ schedule-conditional vote scan & \$0.95 \\
+Schedule-RLHF mini-pilot ($50$-step GRPO, MATH-$500$ $N{=}20$ paired) & \$1.00 \\
+Schedule-RLHF mid-pilot ($200$-step GRPO $+$ KL anchor, MATH-$500$ $N{=}50$ paired) & \$1.30 \\
+LLaDA-$1.5$ base swap (frozen v$3$ LoRAs) & \$0.30 \\
+DiffuLLaMA cross-family substrate audit (CPU only) & \$0.00 \\
+\midrule
+\textbf{Total} & $\mathbf{\sim \$20.5}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reproducibility.}
+The full experimental record (training scripts, eval scripts,
+LoRA adapters, derived datasets, raw per-problem JSONL outputs,
+and W\&B run links) is publicly available.  All four LoRA
+adapters are on the Hugging Face Hub under the \code{eren23/}
+namespace:
+\code{sfumato-llada-prefix-robust-v2},
+\code{sfumato-llada-prefix-robust-v3},
+\code{sfumato-llada-commit-v2}, and
+\code{sfumato-llada-commit-v3}.
+The two derived datasets are \code{eren23/sfumato-prefix-robust-gsm8k}
+($59{,}784$ rows) and \code{eren23/sfumato-commit-mixture-gsm8k}
+($109$ rows).

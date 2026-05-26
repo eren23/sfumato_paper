@@ -1,0 +1,116 @@
+\section{Open Exposures}
+\label{app:open}
+
+This appendix lists the experiments and analyses that we did not
+close before this draft.  None of the items below change the
+headline numbers, but they are flagged for revision and for
+reviewers who want to know what is missing.
+
+\paragraph{Multi-seed variance: closed.}  Earlier drafts flagged
+the absence of multi-seed error bars on the headline numbers.
+The follow-up phase ran the \cmajc{} (Track-1-v3 $+$ commit-v3,
+$b{=}5$, $\tau{=}0.7$) headline at $N{=}100$ for seeds $1$ and
+$2$ in addition to the seed-$0$ paper headline at $N{=}200$.
+Three-seed mean $82.2\%$ with sample standard deviation
+$0.29$\,pp (\S\ref{subsec:multiseed}, Table~\ref{tab:voting_gap})
+is tighter than the per-seed Wilson interval at $N{=}100$.
+The $82.5\%$ paper headline is robust to seed selection.
+
+\paragraph{ABL\_B sanity probe: closed.}  The $+0.0$\,pp result
+for ABL\_B (Table~\ref{tab:distill_disentangle}; Track 1 v3 LoRA
+$+$ commit-v3 with \code{COMMIT\_N\_BLOCKS=1}, full-response
+training) was consistent with either (i) the adapter firing as
+designed but landing downstream of the already-pinned reasoning
+(the mechanism story we tell) or (ii) a silent loader failure
+where the adapter does not modify inference at all.  A direct
+probe~\citep{abl_b_result} compared the
+Track-1-v3-only output against the
+Track-1-v3-plus-commit-v3 output at $\tau{=}0$ on $5$ spot-check
+GSM8K-dev problems.  All $5/5$ problems show a systematic format
+shift (\code{\#\#\#\#\,N} $\to$ \code{Answer:\,N}); the commit
+adapter is loaded and modifies inference, ruling out the silent
+no-op reading.  The mechanism story stands.
+
+\paragraph{Per-problem error-set diff for v1 vs.\ v2 not done.}
+Track 2 v1 and v2 both produce $141/200$ correct on test
+(\S\ref{subsec:distill_plateau}).  Whether the per-problem error
+sets are identical or merely aggregate-equal is itself
+informative: identical sets support a stronger ``the late-block
+bottleneck binds the failure mode to specific problems''
+reading, while non-identical sets support a weaker ``different
+adapters fail and pass on different problems but the late-block
+bottleneck caps both at the same total'' reading.  The body
+makes the weaker claim.
+
+\paragraph{LCH-centroid mechanism figure for Track 1 was not
+produced.}  A latent-cluster-heatmap-style figure separating
+prefix-robust LoRA representations from base \LLaDA{}
+representations would harden the structural-separation thesis
+from behavioural to mechanistic.  The JVP feasibility spike
+failed because PEFT~\citep{mangrulkar2022peft} wraps LoRA in a
+\code{lora\_magnitude\_vector} ModuleDict that requires a custom
+JVP shim.  Deferred to a follow-up.
+
+\paragraph{Track 1 v1 catastrophe is documented in
+\code{e2/RESULTS\_TRACK1.md} but not in the body.}  v1 used $r{=}16$,
+$\alpha{=}32$, learning rate $1\mathrm{e}{-}4$, $p_\text{mask}
+\sim U(\epsilon, 1{-}\epsilon)$, and $14$k steps; the resulting
+adapter regressed \ctwo{} from $74\%$ to $59.5\%$ ($-14.5$\,pp)
+via bigram-repetition mode collapse (the model learned a
+copy-back-context heuristic at training time and defaulted to it
+at inference).  v2 fixed this with four hyperparameter changes
+(smaller $r$, gentler LR, narrower $p_\text{mask}$ range, fewer
+steps).  We mention v1 only in passing in
+\appref{app:hyperparameters}; the contrast with v2 is a
+publishable masked-diffusion SFT pitfall on its own and is
+preserved in the source draft for a follow-up.
+
+\paragraph{No cross-task transfer.}  All experiments are on
+GSM8K-test~\citep{cobbe2021gsm8k}.  The diversity-expansion
+finding in \S\ref{sec:axis3} in particular is suspicious-looking
+on a single benchmark and deserves a multi-task replication
+(MATH-Easy, ARC-Challenge are the natural next targets).
+
+\paragraph{No comparison to BD3-LMs and DiffuLLaMA on the same
+eval.}  The literature claims we discuss in
+\S\ref{sec:discussion} are reconciled \emph{by reading} other
+authors' results through the three-axis frame, not by re-running
+their adapters under our prefix conditions.  A formal multi-DDLM
+ablation (BD3-LMs~\citep{arriola2025bd3lms},
+DiffuLLaMA~\citep{gong2024diffullama}, \LLaDA{}, possibly hybrid
+multimodal models~\citep{zhou2024transfusion,xie2024showo,ma2025janusflow})
+on the same prefix-tier dataset would be the cleanest
+falsification target for the three-axis framing.  Out of scope
+for this draft.
+
+\paragraph{Diversity-mechanism test deferred.}  Whether the
+diversity uptick in \S\ref{sec:axis3} is an
+implicit-temperature effect or a real content-diversity effect
+is open.  The cheap test (base \LLaDA{} at $t \in \{0.8, 0.9,
+1.0\}$ on the same eval, read the $5/5$-same rate) was deferred
+to revision.
+
+\paragraph{Temporal self-consistency: closed (negatively).}
+A schedule-conditional temporal-SC variant on top of \cmajc{} is
+reported in \S\ref{subsec:parallel_negatives}.  Zhang et
+al.~\citep{zhang2025timefeature}'s exponential-decay weighting on
+diffusion LMs is the direct prior; we did not match or extend it on
+\LLaDA{}-class samplers, and a positive temporal-SC result under
+their weighting on this substrate remains open.
+
+\paragraph{Reranker baseline: closed (negatively).}  Earlier
+drafts flagged a small classifier over $5$ \cmaj{} branches as a
+compute-time alternative to v3's param-time commit.
+\S\ref{sec:voting_gap} reports the result: $17$ peer-class
+verifier architectures (text-bag, $0.5$B--$72$B chat-LMs,
+embedding and reward models, process-feature MLPs, step-PRMs,
+symbolic arithmetic) all underperform majority vote at our
+substrate scale, with three robust negative findings
+(\S\ref{subsec:three_negatives}) and a monotone but insufficient
+encoder-scaling trend (\S\ref{subsec:encoder_scaling}).  The
+reranker direction is not closed in the absolute sense --- a
+$32$B$+$ encoder, a process-reward verifier on Workstream-C
+traces, or PRM800K-style step-level supervision are still
+candidate Phase-3 paths --- but the simplest version of the
+hypothesis (small per-branch classifier substitutes for
+param-time commit) is falsified.
