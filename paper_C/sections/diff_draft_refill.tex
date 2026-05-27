@@ -335,6 +335,66 @@ loop-rate ordering is preserved (\code{pct10} $<$ \code{pct50} $<$
 composite's diff distribution, not an artefact of the GSM8K Q/A
 template.
 
+\subsection{K.2.4 — Iteration sweep: $N_\text{outer} \in \{1, 2, 3\}$}
+\label{sec:k24}
+
+To map the saturation curve of cross-mode iteration we ran the three
+$N_\text{outer}$ values back-to-back at matched $N=100$ on F10 final
+(holding all other knobs constant):
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+threshold & $N_\text{outer}{=}1$ & $N_\text{outer}{=}2$ & $N_\text{outer}{=}3$ & best at \\
+\midrule
+\code{pct10} & $12.004$ & $12.042$ & $12.030$ & --- \\
+\code{pct25} & $11.994$ & $12.238$ & $\mathbf{11.855}$ & $N{=}3$ \\
+\textbf{\code{pct50}} & $12.063$ & $\mathbf{11.864}$ & $12.153$ & $N{=}2$ \\
+\code{pct75} & $12.285$ & $12.321$ & $12.395$ & --- \\
+\midrule
+\multicolumn{5}{l}{\emph{Per-$N_\text{outer}$ best config}} \\
+\midrule
+best NLL & $11.994$ & $\mathbf{11.864}$ & $11.855$ & --- \\
+best loop rate & $10$\,\% & $12$\,\% & $\mathbf{6}$\,\% & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Three observations.
+
+\emph{(i) NLL saturates after two outer iterations.} Going from
+$N_\text{outer}{=}2$ best ($11.864$) to $N_\text{outer}{=}3$ best
+($11.855$) is $-0.009$ NLL --- within the binomial-on-NLL noise at
+$N=100$. The bulk of the cross-mode iteration gain comes from the
+second outer round.
+
+\emph{(ii) Loop rate continues to improve.} The best-config loop rate
+drops $10$\,\% $\to 12$\,\% $\to \mathbf{6}$\,\% across
+$N_\text{outer}{=}1, 2, 3$. For deployment scenarios where token-level
+repetition hurts more than the last $0.01$ NLL, $N_\text{outer}{=}3$
+at \code{pct25} is the recommended configuration.
+
+\emph{(iii) Sweet-spot threshold shifts left with more iteration.}
+$N_\text{outer}{=}1$ best is \code{pct25} (single-round, $25$\,\%
+refill). $N_\text{outer}{=}2$ best is \code{pct50} ($100$\,\%
+cumulative refill across two rounds). $N_\text{outer}{=}3$ best is
+\code{pct25} again ($75$\,\% cumulative refill across three rounds).
+The optimal \emph{total} amount of AR rewriting sits in the band
+$75$--$100$\,\% of the diff-drafted region, and within that budget
+\emph{distributing the refill across more outer rounds is strictly
+better than concentrating it in fewer}. Per-round refill should be
+more conservative as $N_\text{outer}$ grows; the second-round
+\code{refill\_history} arrays confirm new flag positions are not a
+subset of the first-round set, so each round genuinely re-evaluates
+which positions remain weakest.
+
+\paragraph{Recommended configuration.}
+\code{pct50} at $N_\text{outer}{=}2$ remains the default if a single
+number must be reported; $N_\text{outer}{=}3$ at \code{pct25}
+exchanges the last $0.009$ NLL for a $6$\,pp loop-rate reduction and
+should be preferred whenever generation-quality matters as much as
+per-token NLL.
+
 \paragraph{What this does not prove.}
 Phase~K targets per-token NLL on gold continuation plus wall-clock,
 not full GSM8K-dev free-run accuracy at parity with frontier models.

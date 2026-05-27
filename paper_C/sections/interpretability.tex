@@ -85,6 +85,49 @@ decomposed, interpretable structure.
 representation, two readouts''.} The two heads operate on disjoint
 sparse feature bases inside the same backbone weights.
 
+\subsection{P.2b — specialisation by depth}
+\label{sec:p2b}
+
+The P.2 measurement above is at \code{ln\_f} only (the pre-head
+residual). To test whether specialisation is a pre-head artefact
+(arising from the explicit \code{head\_diff\_proj} projection) or a
+backbone-wide property, we train symmetric AR-mode and diff-mode
+SAEs at every layer in the divergence zone (blocks $6$--$15$, ten
+blocks each side) and compute cross-head best-cosine at each depth.
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+layer & mean cos & median & max & \% sibling $\geq 0.7$ \\
+\midrule
+block\_6  & $0.162$ & $0.128$ & $0.924$ & $0.2$\,\% \\
+block\_7  & $0.159$ & $0.128$ & $0.905$ & $0.1$\,\% \\
+block\_8  & $0.161$ & $0.128$ & $0.914$ & $0.1$\,\% \\
+block\_9  & $0.162$ & $0.127$ & $0.924$ & $0.1$\,\% \\
+block\_10 & $0.161$ & $0.127$ & $0.932$ & $0.1$\,\% \\
+block\_11 & $0.159$ & $0.126$ & $0.913$ & $0.1$\,\% \\
+block\_12 & $0.159$ & $0.126$ & $0.951$ & $0.1$\,\% \\
+block\_13 & $0.158$ & $0.126$ & $0.845$ & $0.1$\,\% \\
+block\_14 & $0.158$ & $0.127$ & $0.845$ & $0.1$\,\% \\
+block\_15 & $0.157$ & $0.127$ & $0.904$ & $0.2$\,\% \\
+\midrule
+\code{ln\_f} & $0.169$ & $0.129$ & $0.904$ & $0.4$\,\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Specialisation is uniform-by-depth.} Block-level mean cosine
+sits in the tight band $[0.157, 0.162]$ across blocks $6$--$15$ (range
+$0.005$, coefficient of variation $\sim 1$\,\%). The ``modes
+specialise'' finding is a backbone-wide property, not a pre-head
+phenomenon. Notably, \code{ln\_f} ($0.169$) is slightly \emph{less}
+specialised than internal blocks --- opposite to what we'd expect if
+the explicit \code{head\_diff\_proj} layer caused the disjointness.
+The bridge-feature tail (cosine $\geq 0.7$) accounts for under
+$0.5$\,\% of features at every depth. The original P.2 measurement
+at \code{ln\_f} was, if anything, a slight under-statement of how
+disjoint the circuits are internally.
+
 \subsection{P.3 — per-prompt confirmation across 12 prompts}
 
 We rerun on 4 GSM8K, 4 prose, and 4 explicit math-mode prompts;
