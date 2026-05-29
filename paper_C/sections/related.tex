@@ -18,6 +18,29 @@ train unified $7$B models with separate visual-understanding and
 visual-generation encoders, with AR text generation. The architecture
 is closer to multi-modal AR than to AR+diffusion-text training.
 
+\textbf{MonoFormer}~\citep{zhao2024monoformer} is the closest
+architectural precedent: one transformer serves both AR (text) and
+diffusion (images), switching between causal and bidirectional
+attention masks --- exactly the mechanism we use. It is cross-modal
+(text vs.\ image), demonstrates joint training is feasible, and does
+not analyse whether the two modes share or specialise internal
+features. We are text-only and add the mechanistic analysis
+(\textsection\ref{sec:interp}).
+
+\textbf{Dual-objective Language Models}~\citep{samuel2025dualobjective}
+are the nearest \emph{text-only} neighbour: they combine AR and
+masked-diffusion objectives on a single backbone with no architectural
+modification, train $50$ models across data-repetition settings, and
+conclude it is ``optimal to combine both objectives under all
+evaluated settings.'' Our data-efficiency curve refines this: we
+find a \emph{crossover} --- composite wins the AR axis below
+$\sim\!1{,}000$ math problems but pays a measurable tax above it
+(\textsection\ref{sec:results-curve}) --- so ``always combine'' holds
+for the diffusion axis and the low-data AR axis, but not for the
+AR axis in the high-data regime. We also add the compute-matched
+control, the SAE specialisation analysis, and the Phase~K inference
+recipe, none of which appear in that work.
+
 \subsection{Pre-trained AR $\to$ diffusion adaptation}
 
 \textbf{DiffuLLaMA}~\citep{gong2024diffullama} adapts a pre-trained
@@ -47,6 +70,16 @@ data-efficiency curve replicates this regime effect in
 math-reasoning rather than the language-modelling substrate DiFFPO
 used.
 
+\textbf{Super data learners}~\citep{gao2025superdata} attribute the
+data efficiency of diffusion LMs specifically to \emph{random masking
+acting as stochastic regularisation} (with comparable gains from MLP
+dropout and weight decay), not to the diffusion objective per se.
+This is independent support for the regularisation reading of our
+crossover (\textsection\ref{sec:results-curve} discussion): in the
+data-scarce regime the diffusion head's masking regularises the
+shared backbone, and the benefit fades once the AR signal is
+abundant enough to no longer need it.
+
 \subsection{Mode-switching and interleaved inference}
 
 The original Sfumato planning document proposed a learned mode-router
@@ -57,3 +90,21 @@ mode-switching policies (e.g., AR-then-diffusion-revise) as the
 inference recipe. \textbf{SongBloom}~\citep{wang2025songbloom}
 interleaves AR-sketch and diffusion-refine for music; the loop
 pattern is analogous but the domain is different.
+
+\subsection{Mechanistic interpretability of diffusion LMs}
+
+\textbf{DLM-Scope}~\citep{wang2026dlmscope} is, to our knowledge, the
+first SAE-based interpretability framework for diffusion language
+models; it trains sparse autoencoders on \emph{pure} discrete-diffusion
+models (e.g.\ Dream, LLaDA) and shows the features support
+diffusion-time interventions and decoding-order selection. Our Phase~P
+analysis (\textsection\ref{sec:interp}) extends the SAE methodology to
+a \emph{composite two-head} model and asks a question that does not
+arise in the pure-diffusion setting: \emph{do the AR head and the
+diffusion head, sharing one backbone, converge to the same features or
+specialise into different ones?} We find near-disjoint sparse feature
+bases (mean cross-head cosine $0.157$--$0.169$, uniform across all ten
+backbone blocks), which to our knowledge is not reported for any
+shared-backbone AR+diffusion model. DLM-Scope provides the
+methodological foundation; the composite mode-specialisation result is
+new.

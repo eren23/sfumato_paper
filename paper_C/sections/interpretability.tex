@@ -5,7 +5,11 @@ A natural follow-up to the empirical claims in Sections~\ref{sec:results-curve}-
 features inside the shared backbone, or do they specialise?} Phase~P
 answers this with a mechanistic-interpretability layer built on top
 of the F10 ($305$\,M, $d{=}1024$, $L{=}20$) checkpoint --- no retrain,
-no architecture change, $\sim\$3$ of compute.
+no architecture change, $\sim\$3$ of compute. We adapt the
+SAE-for-diffusion methodology of DLM-Scope~\citep{wang2026dlmscope}
+(which studies \emph{pure} diffusion LMs) to the composite setting,
+where the new question is whether the two heads sharing one backbone
+specialise or share features.
 
 \subsection{Setup}
 

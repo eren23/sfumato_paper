@@ -33,7 +33,10 @@ is converging on two distinct lanes that neither covers our recipe:
         up to $3\times$ wall-clock speedup, training-free, also at
         block granularity. \citet{wu2025fastdllmv2} (Fast-dLLM v2,
         2509.26328) converts an AR backbone to block-dLLM via
-        complementary attention masks.
+        complementary attention masks. \citet{fang2026feffree}
+        (May 2026) remove factorisation error in the diffusion drafter
+        via prefix-conditioned speculative decoding --- again
+        block-level, AR-verified.
   \item \textbf{Per-token routing intra-diffusion.} \citet{starr2026}
         (STaRR, 2601.04205, Jan 2026) uses spatial-temporal token
         dynamics to dynamically re-mask within the diffusion sampler;
