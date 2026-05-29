@@ -202,11 +202,37 @@ the same prompt:
         mode and $k$.
 \end{itemize}
 
-The SAE-extracted feature directions are not just correlational ---
-they have measurable causal influence on F10 generation. The
-content-conditional behaviour (large effect only on prompts where
-the feature already participates) is the expected pattern for a
-learned direction.
+\paragraph{P.4b --- the matched-magnitude control.}
+Divergence alone is not evidence the \emph{direction} matters: any
+large enough perturbation moves greedy generation. We therefore hold
+magnitude fixed (unit direction $\times\,k{=}4$) and compare the
+mean token-divergence (over $6$ prompts, AR mode) of the AR-feature
+direction against $4$ random unit directions and a diff-feature
+direction:
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+steering direction & mean divergence \\
+\midrule
+AR-feature \#$8435$ & $0.258$ \\
+diff-feature \#$8435$ & $0.308$ \\
+random unit dirs ($n{=}4$) & $0.155 \pm 0.035$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Learned feature directions move generation $\sim\!1.7\times$
+more than a matched-magnitude random direction, well outside the
+random spread ($0.258$ vs $0.155 \pm 0.035$). So the steered
+directions carry generation-relevant signal --- the effect is
+\textbf{direction-specific, not generic perturbation}. We stop short
+of claiming full directed causation of \emph{mode-specific} behaviour:
+the effect is moderate, and a diff-mode direction injected into AR
+generation is in fact \emph{more} disruptive than the AR feature
+(plausibly because it is off-manifold for the AR head). The honest
+reading is that steering is \emph{controlled-and-consistent-with}, not
+\emph{proof-of}, the specialisation story.
 
 \subsection{What this opens}
 

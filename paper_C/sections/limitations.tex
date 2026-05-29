@@ -66,20 +66,25 @@ only: the by-depth result (\textsection\ref{sec:p2b}) reports
 cross-mode cosine at each of the ten blocks but not a per-block
 same-mode null, so the depth-uniformity claim is anchored on the
 \code{ln\_f} control rather than a null at every layer. The
-causal-steering evidence (P.4) is \emph{suggestive, not
-dispositive}: amplifying an AR-specific feature changes generation in
-a content-conditional way, but we did not run the random-direction and
-diff-feature steering controls that separate directed causation from
-generic perturbation. We frame the steering as consistent-with, not
-proof-of, the specialisation claim.
+causal-steering evidence (P.4/P.4b) is \emph{controlled but moderate}:
+against a matched-magnitude random-direction null, learned feature
+directions move generation $\sim\!1.7\times$ more ($0.258$ vs
+$0.155 \pm 0.035$ mean divergence), so the effect is direction-specific
+rather than generic perturbation --- but the magnitude is modest and a
+diff-mode direction is itself disruptive in AR mode, so we frame
+steering as controlled-and-consistent-with, not proof-of, directed
+causation. True causal mediation (activation patching / feature
+ablation) remains future work.
 
 \subsection{Future work}
 
 \begin{enumerate}
   \item Test the data-efficiency crossover on a non-math substrate
         (e.g., a $\sim 10$M-token slice of a code corpus).
-  \item Add random-direction / diff-feature
-        steering controls, to harden the specialisation result.
+  \item Move from steering to true causal mediation (activation
+        patching / feature ablation) to test whether the specialised
+        features \emph{cause} mode-specific behaviour, not just
+        correlate with it.
   \item Extend the compute-matched control to AR-only-at-$2\times$ as
         well, to test "does composite also beat compute-matched
         pure-AR on its own axis at small data?"
