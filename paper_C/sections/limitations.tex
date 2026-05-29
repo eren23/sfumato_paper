@@ -62,7 +62,12 @@ is the correct null; but that second SAE was trained for $2{,}000$
 steps vs.\ $8{,}000$ for the originals, so $0.286$ is a conservative
 (low) estimate of same-mode alignment --- a matched-length retrain is
 the clean follow-up and would, if anything, widen the specialisation
-gap. The causal-steering evidence (P.4) is \emph{suggestive, not
+gap. The null is measured at the pre-head residual (\code{ln\_f})
+only: the by-depth result (\textsection\ref{sec:p2b}) reports
+cross-mode cosine at each of the ten blocks but not a per-block
+same-mode null, so the depth-uniformity claim is anchored on the
+\code{ln\_f} control rather than a null at every layer. The
+causal-steering evidence (P.4) is \emph{suggestive, not
 dispositive}: amplifying an AR-specific feature changes generation in
 a content-conditional way, but we did not run the random-direction and
 diff-feature steering controls that separate directed causation from
