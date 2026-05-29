@@ -52,10 +52,12 @@ Our central findings are:
   \item Composite \textbf{beats compute-matched pure diffusion} by
         $-0.69$ NLL at $200$M --- joint training is structural, not
         an artefact of more total gradient signal. The advantage
-        replicates at $60$M and $300$M.
-  \item A \textbf{clean data-efficiency crossover} near $1{,}000$
-        problems: composite wins by $-0.40$ NLL ($5.7\sigma$) at
-        $500$ problems; loses by $+0.22$ NLL at the full $7{,}473$.
+        replicates and grows with scale ($-0.21$ at $120$M to
+        $-0.74$ at $300$M).
+  \item A \textbf{clean data-efficiency crossover} localised to the
+        $800$--$1{,}200$ problem band: composite wins by $-0.40$ NLL
+        at $500$ problems (composite lower for all $3$ seeds,
+        $p<0.01$); loses by $+0.22$ NLL at the full $7{,}473$.
   \item At $305$M, composite delivers a $\mathbf{5.43\times}$
         parallel-decode speedup, a structurally unique FIM
         capability, and a $-0.74$ NLL/token revision via

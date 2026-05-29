@@ -44,28 +44,29 @@ We train an autoregressive (AR) head and a discrete-diffusion
 training --- at toy scale ($60$M--$305$M parameters).
 
 \textbf{Mechanistic headline.} Sparse-autoencoder analysis of the
-F10 ($305$M) backbone shows the two heads operate on \emph{near-disjoint
-feature bases}: mean cross-head cosine $0.169$ on $16{,}384$ TopK SAE
-features at the pre-head residual, $0$ index overlap on top-$8$
-features across $12$ prompts, and causal steering on
-AR-mode-specific features measurably changes generation (Phase~P).
-The composite at this scale does not converge to ``one representation,
-two readouts'' --- the heads share weights but learn separate sparse
-circuits. The trade-offs we measure are consequences: the diff-axis
-advantage and the AR-axis tax are the symmetric upside and cost of
-carrying two specialised circuits in one backbone, and Phase~K's
-per-token cross-mode inference recipe exploits the disjoint circuits
-at decoding time.
+F10 ($305$M) backbone shows the two heads learn \emph{substantially
+specialised feature bases}. Against a same-mode different-seed null
+baseline of $0.286$ mean best-cosine (and a $0.124$ chance floor),
+the cross-head AR$\to$diff cosine is only $0.169$ --- going cross-mode
+loses $\sim\!70\%$ of the above-chance feature alignment, uniformly
+across all ten backbone blocks (Phase~P). The composite at this scale
+does not converge to ``one representation, two readouts''; the heads
+share weights but a shared ``bridge'' subspace is small. The
+trade-offs we measure are consequences: the diff-axis advantage and
+the AR-axis tax are the upside and cost of carrying two specialised
+circuits in one backbone, and Phase~K's per-token cross-mode inference
+recipe exploits the partly-separated circuits at decoding time.
 
 \textbf{Training axes.} On the diffusion task, composite beats a
 \textbf{compute-matched} pure-diffusion baseline by $-0.69$ NLL at
 $200$M --- pure-diffusion at $2\times$ the steps still loses,
 ruling out "more gradient signal" as the explanation. On the AR
 task, composite \emph{loses} by $+0.22$ NLL at $7{,}473$ problems
-(mild AR tax) but \emph{wins} by $-0.40$ NLL ($5.7\sigma$) at $500$
-problems --- a clean data-efficiency crossover near $1{,}000$ problems.
-Joint-training advantage at the diffusion task replicates across $60$M
-/ $120$M / $300$M scales.
+(mild AR tax) but \emph{wins} by $-0.40$ NLL at $500$ problems
+(composite lower for all $3$ seeds, $p<0.01$) --- a clean
+data-efficiency crossover localised to the $800$--$1{,}200$ problem
+band. The diffusion-axis advantage replicates and \emph{grows with
+scale} ($-0.21$ NLL at $120$M to $-0.74$ at $300$M).
 
 \textbf{Inference axes.} Composite at $305$M delivers three measured
 capabilities pure AR cannot: $5.43\times$ parallel-decode speedup, FIM
@@ -76,9 +77,11 @@ routing recipe --- diff drafts in parallel, AR refills the
 percentile-bottom-$K\%$ positions by commit-time confidence. At $N=200$
 on F10 (305M), this beats pure AR by $-0.58$ NLL/token at the same
 generation length. A diff-heavy fine-tune (F11, $\alpha\!=\!0.30$ fixed
-for $30$k more steps from F10) sharpens the routing signal a further
-$-0.58$ NLL/token. An $\alpha$-sensitivity sweep ($\alpha \in \{0.20,
-0.30, 0.40\}$) shows $\alpha\!=\!0.30$ is the joint Pareto-optimum for
+for $30$k more steps from F10) sharpens it further: pct50 NLL
+$11.98 \to 11.40$ (this F10$\to$F11 gain is measured at $N{=}100$; the
+$-0.58$ vs.\ pure-AR above is the $N{=}200$ figure). An
+$\alpha$-sensitivity sweep ($\alpha \in \{0.20, 0.30, 0.40\}$, $3$
+seeds each) shows $\alpha\!=\!0.30$ is the joint Pareto-optimum for
 K.2 NLL and AR-axis accuracy.
 
 \textbf{Honest negatives.} Composite is uniformly $+0.1$--$0.2$ NLL
@@ -133,7 +136,7 @@ diffusion head) that recover coherent generations without retraining.
 \label{sec:diff-draft-refill}
 \input{sections/diff_draft_refill}
 
-\section{Mechanistic Interpretability — AR and diff use disjoint feature bases}
+\section{Mechanistic Interpretability — AR and diff specialise into largely distinct feature bases}
 \label{sec:interpretability}
 \input{sections/interpretability}
 

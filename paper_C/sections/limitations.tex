@@ -52,11 +52,31 @@ improvement on gold continuation. The Phase~I null and the Phase~J
 wins are independent claims about different axes; the null does not
 undermine the wins.
 
+\subsection{Interpretability controls}
+
+The specialisation result (Section~\ref{sec:interp}) rests on a
+best-cosine metric whose dynamic range is compressed in high dimension
+(the chance floor is $0.124$, not $0$). We anchor the cross-mode
+$0.169$ against a same-mode different-seed baseline ($0.286$), which
+is the correct null; but that second SAE was trained for $2{,}000$
+steps vs.\ $8{,}000$ for the originals, so $0.286$ is a conservative
+(low) estimate of same-mode alignment --- a matched-length retrain is
+the clean follow-up and would, if anything, widen the specialisation
+gap. The causal-steering evidence (P.4) is \emph{suggestive, not
+dispositive}: amplifying an AR-specific feature changes generation in
+a content-conditional way, but we did not run the random-direction and
+diff-feature steering controls that separate directed causation from
+generic perturbation. We frame the steering as consistent-with, not
+proof-of, the specialisation claim.
+
 \subsection{Future work}
 
 \begin{enumerate}
   \item Test the data-efficiency crossover on a non-math substrate
         (e.g., a $\sim 10$M-token slice of a code corpus).
+  \item Retrain the same-mode null-baseline SAE at matched length
+        ($8{,}000$ steps) and add random-direction / diff-feature
+        steering controls, to harden the specialisation result.
   \item Extend the compute-matched control to AR-only-at-$2\times$ as
         well, to test "does composite also beat compute-matched
         pure-AR on its own axis at small data?"

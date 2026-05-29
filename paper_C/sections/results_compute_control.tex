@@ -55,9 +55,30 @@ both ($5.42$). \textbf{The composite advantage cannot be explained as
 
 \subsection{Multi-Scale Replication}
 
-We replicate the experiment at $60$M, $120$M, and $300$M to test scale
-invariance.
-\textsc{[TODO: fill from \texttt{e5/results/e3b\_multiscale\_d2/summary.json}]}.
+We replicate the compute-matched comparison (composite-$3$k vs.\
+pure-diffusion-$6$k, diff-axis NLL) at additional scales to test
+whether the structural advantage is scale-invariant.
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+scale & composite-$3$k & pure-diff-$6$k & $\Delta$ \\
+\midrule
+$120$M & $5.85$ ($n{=}3$) & $6.06$ ($n{=}3$) & $\mathbf{-0.21}$ \\
+$200$M & $5.42$ ($n{=}3$) & $6.11$ ($n{=}3$) & $\mathbf{-0.69}$ \\
+$300$M & $5.35$ ($n{=}1$) & $6.09$ ($n{=}3$) & $\mathbf{-0.74}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The advantage is present at every measured scale and \emph{grows
+monotonically} ($-0.21 \to -0.69 \to -0.74$ across $120$M / $200$M /
+$300$M), consistent with the joint-training advantage being structural
+rather than a small-scale artefact. Two honest caveats: the $300$M
+composite-$3$k cell is single-seed (the $-0.74$ is one run, not a
+$3$-seed mean), and the $60$M compute-matched cell was not scored on
+the diff axis (no composite-$3$k diff-NLL run exists at $60$M), so the
+trend is anchored on three points ($120$M–$300$M), not four.
 
 \subsection{Why this matters}
 

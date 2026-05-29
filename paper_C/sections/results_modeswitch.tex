@@ -56,12 +56,36 @@ carries much of the mean. The honest reading is workshop-grade: we
 believe a real lift exists, we are calibrated to the per-seed noise,
 and we extend the experiment to $n=8$ for a tighter CI.
 
-\subsection{Multi-seed expansion ($n=8$)}
+\subsection{Multi-seed expansion ($5$ fresh seeds)}
 
-We train $5$ additional fresh seeds at $200$M-$3$k for both composite
-and AR-only, run the same probe-5 protocol, and aggregate with the
-original $n=3$.
-\textsc{[TODO: fill from \texttt{e5/results/e3a\_probe5\_n8/summary.json}]}.
+We train $5$ fresh seeds at $200$M-$3$k for both composite and AR-only
+and re-run the probe-5 protocol. Accuracy (mean $\pm$ SEM over the $5$
+seeds, GSM8K-dev $N{=}50$):
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+mode & composite & AR-only ckpt \\
+\midrule
+\code{ar\_only}          & $2.8 \pm 1.0$\,\% & $2.0 \pm 0.6$\,\% \\
+\code{mode\_switch\_96\_32} & $2.8 \pm 1.2$\,\% & $1.6 \pm 0.4$\,\% \\
+\textbf{\code{mode\_switch\_64\_32}} & $\mathbf{4.0 \pm 0.6}$\,\% & $1.6 \pm 0.4$\,\% \\
+\code{paired\_64\_64}    & $2.4 \pm 0.8$\,\% & $1.6 \pm 0.8$\,\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The $5$-seed run reproduces the $n{=}3$ direction: composite
+\code{mode\_switch\_64\_32} reaches $4.0\%$ (SEM $0.6$) vs.\ the best
+AR-only baseline $1.6\%$, a $+2.4$\,pp lift with a tighter CI than the
+original $\{0,8,6\}\%$ spread. We do not pool the two runs into a
+single $n{=}8$ statistic (the original $3$ used a different seed set);
+we report the $5$-seed run as an independent replication. At GSM8K-dev
+accuracies this low, this remains a \emph{workshop-grade} lift, not a
+headline claim --- the headline is the NLL-space evidence
+(\textsection\ref{sec:results-compute}, \textsection\ref{sec:phase-k})
+and the mechanistic specialisation result
+(\textsection\ref{sec:interp}).
 
 \subsection{Interpretation}
 

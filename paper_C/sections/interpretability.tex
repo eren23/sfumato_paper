@@ -77,17 +77,52 @@ maximum & $0.904$ \\
 \end{tabular}
 \end{center}
 
-Per the pre-committed brief hypotheses ($>\!0.8$ = shared rep,
-$0.4$--$0.8$ = partial sharing, $<\!0.4$ = modes specialise), we
-land cleanly in the ``modes specialise'' regime. Reconciling with
-the raw $0.54$ cosine at the final layer (P.0): that number is on
-dense $1024$-dim activation vectors dominated by shared embedding
-contributions; the SAE feature-direction view at $0.169$ is the
-decomposed, interpretable structure.
+\paragraph{P.2c --- the control that anchors the number.}
+A mean best-cosine of $0.169$ is only meaningful against two
+baselines, because TopK SAEs have no canonical basis: two SAEs need
+not align even on identical data. We measure both.
+\emph{(i) Chance floor.} The mean best-cosine of the AR decoder to a
+random unit dictionary of the same size ($16{,}384$ columns in
+$\mathbb{R}^{1024}$) is $0.124$ --- in this dimensionality, best-of-many
+cosine is non-trivial by construction.
+\emph{(ii) Same-mode null.} We retrain a \emph{second} AR-mode SAE at
+a different seed and compute AR-seed0 $\to$ AR-seed1: $0.286$.
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+comparison & mean best-cosine \\
+\midrule
+AR-seed0 $\to$ AR-seed1 (same mode, diff.\ seed) & $0.286$ \\
+\textbf{AR $\to$ diff (cross-mode)} & $\mathbf{0.169}$ \\
+AR $\to$ random dictionary (chance floor) & $0.124$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The cross-mode alignment ($0.169$) sits \emph{below} the
+same-mode baseline ($0.286$) and only $+0.045$ above chance, whereas
+the same-mode baseline is $+0.162$ above chance. Going from same-mode
+to cross-mode therefore loses $\sim\!72\%$ of the above-chance feature
+alignment ($1 - 0.045/0.162$). This is the rigorous statement of the
+result: \textbf{the two heads share substantially less feature
+structure than two independently-trained SAEs of the \emph{same} head
+do.} (The seed-1 SAE was trained for $2{,}000$ steps vs.\ $8{,}000$
+for the originals, so $0.286$ is a conservative --- low --- estimate
+of same-mode alignment; a matched run would only widen the gap.) The
+pre-committed ``$<\!0.4$ = specialise'' threshold is thus empirically
+anchored: the relevant comparison is the $0.286$ same-mode baseline,
+not an arbitrary cut.
+
+We therefore avoid the over-strong word ``disjoint'': cross-mode
+cosine is above chance, so a small shared ``bridge'' subspace exists
+(consistent with the $\sim\!20$ high-cosine matched pairs in P.3).
+The defensible claim is \textbf{substantial specialisation}, not
+orthogonality.
 
 \textbf{The composite at $305$\,M does not converge to ``one
-representation, two readouts''.} The two heads operate on disjoint
-sparse feature bases inside the same backbone weights.
+representation, two readouts''.} The two heads operate on largely
+distinct sparse feature bases inside the same backbone weights.
 
 \subsection{P.2b — specialisation by depth}
 \label{sec:p2b}
@@ -126,11 +161,11 @@ $0.005$, coefficient of variation $\sim 1$\,\%). The ``modes
 specialise'' finding is a backbone-wide property, not a pre-head
 phenomenon. Notably, \code{ln\_f} ($0.169$) is slightly \emph{less}
 specialised than internal blocks --- opposite to what we'd expect if
-the explicit \code{head\_diff\_proj} layer caused the disjointness.
+the explicit \code{head\_diff\_proj} layer caused the specialisation.
 The bridge-feature tail (cosine $\geq 0.7$) accounts for under
 $0.5$\,\% of features at every depth. The original P.2 measurement
 at \code{ln\_f} was, if anything, a slight under-statement of how
-disjoint the circuits are internally.
+specialised the circuits are internally.
 
 \subsection{P.3 — per-prompt confirmation across 12 prompts}
 
@@ -175,7 +210,7 @@ learned direction.
 \subsection{What this opens}
 
 \paragraph{Distillation candidate.} If AR and diff feature bases are
-near-disjoint, F10's backbone is effectively two specialised
+substantially specialised, F10's backbone is effectively two specialised
 subnetworks sharing only the bottom-most layers and a small
 ``bridge'' subspace. A distillation into AR-only and diff-only
 models with shared embeddings could recover most of F10's capability
