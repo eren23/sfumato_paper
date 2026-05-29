@@ -41,29 +41,29 @@ class TitleScene(Scene):
         self.camera.background_color = BG
 
         title = title_text(
-            "Composite AR + Discrete-Diffusion",
+            "Mode Specialisation in Composite",
             color=FG,
             weight=BOLD,
-        ).scale(1.0).to_edge(UP, buff=1.0)
+        ).scale(0.95).to_edge(UP, buff=1.0)
 
         title2 = title_text(
-            "Training at Toy Scale",
+            "AR + Discrete-Diffusion LMs",
             color=FG,
             weight=BOLD,
-        ).scale(1.0).next_to(title, DOWN, buff=0.2)
+        ).scale(0.95).next_to(title, DOWN, buff=0.2)
 
         tagline = body_text(
-            "A trade-off characterisation with a data-efficiency crossover.",
+            "Two heads on one backbone learn near-disjoint feature bases.",
             color=ACCENT,
         ).scale(0.7).next_to(title2, DOWN, buff=0.8)
 
         sub = body_text(
-            "Plus: how we kept a 305M composite from generating",
+            "A mechanistic account of the toy-scale trade-off",
             color=MUTED,
         ).scale(0.55).next_to(tagline, DOWN, buff=0.8)
 
         sub2 = body_text(
-            "\"eggs eggs eggs eggs\" on its first 3B-token run.",
+            "+ a per-token cross-mode inference recipe (Phase K).",
             color=MUTED,
         ).scale(0.55).next_to(sub, DOWN, buff=0.1)
 
@@ -74,5 +74,5 @@ class TitleScene(Scene):
 
         all_text = VGroup(title, title2, tagline, sub, sub2, meta)
         self.play(FadeIn(all_text), run_time=1.2)
-        self.wait(20)
+        self.wait(7)
         fade_out_all(self, run_time=0.5)

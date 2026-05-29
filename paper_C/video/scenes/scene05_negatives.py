@@ -34,13 +34,22 @@ class NegativesScene(Scene):
         ood_grp = VGroup(ood_title, ood_rows)
         ece_grp = VGroup(ece_title, ece_rows)
 
-        foot = body_text("Composite does not transfer to OOD prose. Calibration is not improved.",
-                         size=20, color=WARN, weight=BOLD).to_edge(DOWN, buff=0.6)
+        # Folded-in negatives (each was its own scene in the long cut)
+        more = VGroup(
+            body_text("also measured, also negative:", size=15, color=MUTED, weight=BOLD),
+            body_text("GSM8K SFT (305M): learns format, not arithmetic — 0/50", size=14, color=WARN),
+            body_text("REINFORCE mode-router: loop-rate → 0, but no accuracy lift", size=14, color=WARN),
+            body_text("Exclusive Self-Attention (XSA): no benefit at 60M", size=14, color=WARN),
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.18).move_to(DOWN * 1.7)
+
+        foot = body_text("We report every negative alongside the wins.",
+                         size=20, color=WARN, weight=BOLD).to_edge(DOWN, buff=0.5)
 
         self.play(FadeIn(title), FadeIn(sub), run_time=0.5)
         self.play(FadeIn(ood_grp), run_time=0.6)
         self.wait(0.3)
         self.play(FadeIn(ece_grp), run_time=0.6)
+        self.play(FadeIn(more), run_time=0.6)
         self.play(FadeIn(foot), run_time=0.5)
-        self.wait(25)
+        self.wait(10)
         fade_out_all(self, run_time=0.5)

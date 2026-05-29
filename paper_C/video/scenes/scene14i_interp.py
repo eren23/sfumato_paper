@@ -66,24 +66,29 @@ class InterpScene(Scene):
                              size=13, color=DIFF, weight=BOLD)
         ctr_head.next_to(ctr_box.get_top(), DOWN, buff=0.12)
 
-        cosine_big = title_text("0.169", size=44, color=DIFF, weight=BOLD)
-        cosine_big.move_to(ctr_box.get_center() + UP * 0.35)
-        cosine_sub = body_text("mean best-cosine across 16384 features",
+        cosine_big = title_text("0.169", size=42, color=DIFF, weight=BOLD)
+        cosine_big.move_to(ctr_box.get_center() + UP * 0.62)
+        cosine_sub = body_text("mean cross-head cosine, pre-head (ln_f)",
                                size=11, color=FG)
-        cosine_sub.move_to(ctr_box.get_center() + DOWN * 0.10)
+        cosine_sub.move_to(ctr_box.get_center() + UP * 0.18)
+
+        # P.2b by-depth: the strengthened claim — uniform across the backbone
+        byd = body_text("0.157–0.162 uniform across all 10 blocks",
+                        size=12, color=ACCENT_2, weight=BOLD)
+        byd.move_to(ctr_box.get_center() + DOWN * 0.18)
 
         # 3 rows of small percentages
         rows = VGroup(
-            body_text("only 1.84% with sibling ≥ 0.5", size=11, color=MUTED),
-            body_text("only 0.42% with sibling ≥ 0.7", size=11, color=MUTED),
-            body_text("only 0.01% with sibling ≥ 0.9", size=11, color=MUTED),
-        ).arrange(DOWN, aligned_edge=LEFT, buff=0.12)
-        rows.move_to(ctr_box.get_center() + DOWN * 0.85)
+            body_text("only 1.84% with sibling ≥ 0.5", size=10, color=MUTED),
+            body_text("only 0.42% with sibling ≥ 0.7", size=10, color=MUTED),
+            body_text("only 0.01% with sibling ≥ 0.9", size=10, color=MUTED),
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.10)
+        rows.move_to(ctr_box.get_center() + DOWN * 0.95)
 
         ctr_foot = body_text("modes SPECIALISE",
                              size=14, color=DIFF, weight=BOLD)
         ctr_foot.next_to(ctr_box.get_bottom(), UP, buff=0.18)
-        ctr_group = VGroup(ctr_box, ctr_head, cosine_big, cosine_sub, rows, ctr_foot)
+        ctr_group = VGroup(ctr_box, ctr_head, cosine_big, cosine_sub, byd, rows, ctr_foot)
 
         # ---- RIGHT PANEL: per-prompt zero overlap ----
         right_box = _panel_box(4.6, 4.2, GOOD).move_to(RIGHT * 4.7 + DOWN * 0.3)
@@ -115,11 +120,11 @@ class InterpScene(Scene):
 
         # ---- Bottom synthesis ----
         synthesis = body_text(
-            "Three independent measurements support 'modes use disjoint internal features'",
+            "THE HEADLINE: two heads on one backbone learn disjoint sparse circuits",
             size=14, color=ACCENT_2, weight=BOLD,
         ).to_edge(DOWN, buff=0.40)
         synth_sub = body_text(
-            "Mechanistic support for paper's trade-off claim. ~$3 of compute, no retraining.",
+            "Uniform across all 10 blocks. The AR tax, diff gain, and Phase K are consequences. ~$3, no retraining.",
             size=12, color=MUTED,
         ).next_to(synthesis, DOWN, buff=0.10)
 

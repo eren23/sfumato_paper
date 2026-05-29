@@ -1,5 +1,41 @@
 # Sfumato Paper C — Video Storyboard
 
+## Re-cut v2 (2026-05-27) — CURRENT
+
+The video was re-cut to mirror the paper's pivot to **mode
+specialisation** as the headline. Rendered length: **4 min 31 s**
+(1080p60), 12 scenes. The earlier long cut (9 min 30 s, 24 scenes,
+led with the data-efficiency crossover and ran the full Phase H+
+sample-quality saga) is superseded; its per-scene detail survives in
+the "original long-cut" section below for provenance.
+
+**New order (mirrors the pivoted abstract — finding first, consequences after):**
+
+1. `scene00_title` — *Mode Specialisation in Composite AR + Discrete-Diffusion LMs* (rebuilt headline).
+2. `scene01_composite` — what composite training is (one backbone, two heads).
+3. `scene14i_interp` — **HEADLINE**: SAEs show near-disjoint feature bases; mean cosine 0.169 pre-head, **uniform 0.157–0.162 across all 10 blocks** (P.2b, added), 0 top-8 overlap across 12 prompts. Moved to the front; reframed from "support for the trade-off" to "the headline; the trade-off + Phase K are consequences."
+4. `scene03_symmetric` — the compute-stable trade-off (AR tax vs diff gain), now framed as a *consequence* of specialisation.
+5. `scene04_crossover` — data-efficiency crossover (~1k problems).
+6. `scene14c_phase_j` — measured capabilities (5.4× speed, FIM, revision).
+7. `scene14e_phase_k` — per-token diff-draft + AR-refill; **+ iteration sweep (×2 → 11.86, saturates; loop-rate 6% at ×3) + WikiText transfer (pct50 = 10.38, same sweet spot)** (added).
+8. `scene14f_f11_head2head` — α=0.30 fine-tune sharpens the routing signal.
+9. `scene05_negatives` — OOD + ECE, **plus folded-in** GSM8K-SFT (0/50), REINFORCE mode-router (loops→0, no acc lift), XSA (no benefit at 60M).
+10. `scene08_shock` — sample-quality saga, compressed (1/2): the "eggs eggs eggs" loop.
+11. `scene12_countrep` — sample-quality saga, compressed (2/2): the count-based repetition-penalty patch (reusable for any mask-fill LM).
+12. `scene15_close` — deliverables + claims, **reordered to lead with mode specialisation**; "F10 in flight" removed (F10/F11 shipped, paper submission-ready).
+
+**Cut from the long version** (scene .py kept on disk, omitted from the
+manifest): envelope, modeswitch (E3a N=50 noise), fseries, and the
+sample-quality saga middle (nllhid, causes, tier0, tier05bars,
+beforeafter, generation), the multiround interleaving viz, and the
+two standalone negatives (sft, i3_router — folded into scene05).
+
+To restore the long cut, re-add the dropped ids to `scene_manifest.yml`.
+
+---
+
+## Original long-cut storyboard (superseded — archival)
+
 Silent companion video, ~8–9 minutes, 1080p60. Sixteen scenes in one
 through-line that mirrors the paper plus the Phase H+ sample-quality
 investigation appendix.

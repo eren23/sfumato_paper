@@ -115,14 +115,14 @@ class PhaseKScene(Scene):
         synthesis_lbl.move_to([0, -2.6, 0])
         result_a = body_text("pure AR (128 tok): NLL = 12.56",
                              size=13, color=WARN).move_to([0, -2.95, 0])
-        result_b = body_text("K.2 pct50 (128 tok): NLL = 11.98",
-                             size=13, color=GOOD, weight=BOLD).move_to([0, -3.25, 0])
+        result_b = body_text("K.2 pct50: 11.98   ·   iterate ×2: 11.86   ·   WikiText pct50: 10.38",
+                             size=12, color=GOOD, weight=BOLD).move_to([0, -3.25, 0])
         synthesis = VGroup(synthesis_lbl, result_a, result_b)
         self.play(FadeIn(synthesis), run_time=0.5)
 
-        head = body_text("−0.58 NLL/token  ·  composite-specific recipe",
-                         size=15, color=ACCENT_2, weight=BOLD).to_edge(DOWN, buff=0.20)
+        head = body_text("−0.58 vs AR  ·  saturates at 2 rounds (loop-rate 6% at ×3)  ·  same sweet spot on prose",
+                         size=13, color=ACCENT_2, weight=BOLD).to_edge(DOWN, buff=0.20)
         self.play(FadeIn(head), run_time=0.4)
 
-        self.wait(8)
+        self.wait(6)
         fade_out_all(self, run_time=0.5)

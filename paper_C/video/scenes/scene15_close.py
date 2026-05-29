@@ -27,21 +27,21 @@ class CloseScene(Scene):
 
         left = _panel(
             "trained + measured",
-            ["F10: 305M composite, 3B mixed tokens",
-             "F11: α=0.30 fine-tune (+30k steps)",
+            ["F10/F11: 305M composite (+α=0.30 ft)",
+             "Phase P: 22 SAEs → modes specialise",
              "Phase J: 5.4× speed, FIM, revision",
-             "Phase K: K.2 pct50 = 11.40 NLL",
-             "    (−0.58 vs F10 base of 11.98)"],
+             "Phase K: pct50 = 11.40 NLL",
+             "    (−0.58 vs pure-AR 11.98)"],
             ACCENT,
         ).move_to(LEFT * 3.6 + DOWN * 0.2)
 
         right = _panel(
             "what we claim",
-            ["1. small AR tax, big diff gain",
-             "2. data-efficiency crossover ~1k",
-             "3. per-token cross-mode routing",
-             "    (diff drafts + AR refills the worst)",
-             "4. α=0.30 sharpens the routing signal"],
+            ["1. two heads → disjoint feature bases",
+             "2. small AR tax, big diff gain",
+             "3. data-efficiency crossover ~1k",
+             "4. Phase K cross-mode routing (faster)",
+             "5. α=0.30 sharpens the routing"],
             GOOD,
         ).move_to(RIGHT * 3.6 + DOWN * 0.2)
 

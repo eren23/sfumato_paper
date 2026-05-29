@@ -1,5 +1,7 @@
-# Sfumato Paper C — silent companion video, ~8m30s.
-# See storyboard.md for the full script.
+# Sfumato Paper C — silent companion video.
+# RE-CUT 2026-05-27 (v2): ~4.5 min, 12 scenes, leads with mode
+# specialisation to mirror the pivoted paper. render_story.sh renders
+# these in order and ffmpeg-concats them. See storyboard.md "Re-cut v2".
 scenes:
   - id: scene00_title
     file: scenes/scene00_title.py
@@ -7,69 +9,48 @@ scenes:
   - id: scene01_composite
     file: scenes/scene01_composite.py
     class: CompositeScene
-  - id: scene02_envelope
-    file: scenes/scene02_envelope.py
-    class: EnvelopeScene
+  - id: scene14i_interp          # headline — moved to front
+    file: scenes/scene14i_interp.py
+    class: InterpScene
   - id: scene03_symmetric
     file: scenes/scene03_symmetric.py
     class: SymmetricScene
   - id: scene04_crossover
     file: scenes/scene04_crossover.py
     class: CrossoverScene
-  - id: scene05_negatives
-    file: scenes/scene05_negatives.py
-    class: NegativesScene
-  - id: scene06_modeswitch
-    file: scenes/scene06_modeswitch.py
-    class: ModeSwitchScene
-  - id: scene07_fseries
-    file: scenes/scene07_fseries.py
-    class: FSeriesScene
-  - id: scene08_shock
-    file: scenes/scene08_shock.py
-    class: ShockScene
-  - id: scene09_nllhid
-    file: scenes/scene09_nllhid.py
-    class: NLLHidScene
-  - id: scene10_causes
-    file: scenes/scene10_causes.py
-    class: CausesScene
-  - id: scene11_tier0
-    file: scenes/scene11_tier0.py
-    class: Tier0Scene
-  - id: scene12_countrep
-    file: scenes/scene12_countrep.py
-    class: CountRepScene
-  - id: scene13_tier05bars
-    file: scenes/scene13_tier05bars.py
-    class: Tier05BarsScene
-  - id: scene14_beforeafter
-    file: scenes/scene14_beforeafter.py
-    class: BeforeAfterScene
-  - id: scene14b_generation
-    file: scenes/scene14b_generation.py
-    class: GenerationScene
   - id: scene14c_phase_j
     file: scenes/scene14c_phase_j.py
     class: PhaseJScene
-  - id: scene14d_multiround
-    file: scenes/scene14d_multiround.py
-    class: MultiRoundScene
-  - id: scene14e_phase_k
+  - id: scene14e_phase_k          # + iteration sweep + WikiText transfer
     file: scenes/scene14e_phase_k.py
     class: PhaseKScene
   - id: scene14f_f11_head2head
     file: scenes/scene14f_f11_head2head.py
     class: F11Head2HeadScene
-  - id: scene14g_sft_negative
-    file: scenes/scene14g_sft_negative.py
-    class: SFTNegativeScene
-  - id: scene14h_i3_router
-    file: scenes/scene14h_i3_router.py
-    class: I3RouterScene
-  - id: scene14i_interp
-    file: scenes/scene14i_interp.py
-    class: InterpScene
+  - id: scene05_negatives         # folds SFT + mode-router + XSA negatives
+    file: scenes/scene05_negatives.py
+    class: NegativesScene
+  - id: scene08_shock             # sample-quality saga, compressed (1/2)
+    file: scenes/scene08_shock.py
+    class: ShockScene
+  - id: scene12_countrep          # sample-quality saga, compressed (2/2)
+    file: scenes/scene12_countrep.py
+    class: CountRepScene
   - id: scene15_close
     file: scenes/scene15_close.py
     class: CloseScene
+
+# --- Dropped from the re-cut (scene .py files kept on disk, just omitted
+#     from the cut; re-add to the list above to restore the long cut) ---
+# scene02_envelope        toy-scale setup (folded verbally)
+# scene06_modeswitch      E3a accuracy — N=50 noise floor, workshop-grade
+# scene07_fseries         F-series montage
+# scene09_nllhid          teacher-forced vs free-run (sample-quality saga)
+# scene10_causes          3 root causes (sample-quality saga)
+# scene11_tier0           AR anti-rep fix (sample-quality saga)
+# scene13_tier05bars      loop-rate deltas (sample-quality saga)
+# scene14_beforeafter     before/after sample text (sample-quality saga)
+# scene14b_generation     generation mechanism
+# scene14d_multiround     interleaved AR<->diff viz (Phase I mental model)
+# scene14g_sft_negative   -> folded into scene05_negatives
+# scene14h_i3_router      -> folded into scene05_negatives
