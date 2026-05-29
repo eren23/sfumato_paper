@@ -86,33 +86,34 @@ random unit dictionary of the same size ($16{,}384$ columns in
 $\mathbb{R}^{1024}$) is $0.124$ --- in this dimensionality, best-of-many
 cosine is non-trivial by construction.
 \emph{(ii) Same-mode null.} We retrain a \emph{second} AR-mode SAE at
-a different seed and compute AR-seed0 $\to$ AR-seed1: $0.286$.
+a different seed, at matched length ($8{,}000$ steps), and compute
+AR-seed0 $\to$ AR-seed1: $0.329$.
 
 \begin{center}
 \begin{tabular}{lr}
 \toprule
 comparison & mean best-cosine \\
 \midrule
-AR-seed0 $\to$ AR-seed1 (same mode, diff.\ seed) & $0.286$ \\
+AR-seed0 $\to$ AR-seed1 (same mode, diff.\ seed) & $0.329$ \\
 \textbf{AR $\to$ diff (cross-mode)} & $\mathbf{0.169}$ \\
 AR $\to$ random dictionary (chance floor) & $0.124$ \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent The cross-mode alignment ($0.169$) sits \emph{below} the
-same-mode baseline ($0.286$) and only $+0.045$ above chance, whereas
-the same-mode baseline is $+0.162$ above chance. Going from same-mode
-to cross-mode therefore loses $\sim\!72\%$ of the above-chance feature
-alignment ($1 - 0.045/0.162$). This is the rigorous statement of the
-result: \textbf{the two heads share substantially less feature
-structure than two independently-trained SAEs of the \emph{same} head
-do.} (The seed-1 SAE was trained for $2{,}000$ steps vs.\ $8{,}000$
-for the originals, so $0.286$ is a conservative --- low --- estimate
-of same-mode alignment; a matched run would only widen the gap.) The
-pre-committed ``$<\!0.4$ = specialise'' threshold is thus empirically
-anchored: the relevant comparison is the $0.286$ same-mode baseline,
-not an arbitrary cut.
+\noindent The cross-mode alignment ($0.169$) sits well \emph{below}
+the same-mode baseline ($0.329$): cross-mode is only $+0.045$ above
+chance, whereas the same-mode baseline is $+0.205$ above chance. Going
+from same-mode to cross-mode therefore loses $\sim\!78\%$ of the
+above-chance feature alignment ($1 - 0.045/0.205$). This is the
+rigorous statement of the result: \textbf{the two heads share
+substantially less feature structure than two independently-trained
+SAEs of the \emph{same} head do.} (An earlier $2{,}000$-step seed-1
+SAE gave a more conservative $0.286$; the matched $8{,}000$-step
+retrain reported here \emph{widened} the gap, as predicted, so $0.329$
+is the figure we report.) The pre-committed ``$<\!0.4$ = specialise''
+threshold is thus empirically anchored: the relevant comparison is the
+$0.329$ same-mode baseline, not an arbitrary cut.
 
 We therefore avoid the over-strong word ``disjoint'': cross-mode
 cosine is above chance, so a small shared ``bridge'' subspace exists

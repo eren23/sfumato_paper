@@ -57,12 +57,11 @@ undermine the wins.
 The specialisation result (Section~\ref{sec:interp}) rests on a
 best-cosine metric whose dynamic range is compressed in high dimension
 (the chance floor is $0.124$, not $0$). We anchor the cross-mode
-$0.169$ against a same-mode different-seed baseline ($0.286$), which
-is the correct null; but that second SAE was trained for $2{,}000$
-steps vs.\ $8{,}000$ for the originals, so $0.286$ is a conservative
-(low) estimate of same-mode alignment --- a matched-length retrain is
-the clean follow-up and would, if anything, widen the specialisation
-gap. The null is measured at the pre-head residual (\code{ln\_f})
+$0.169$ against a same-mode different-seed baseline ($0.329$, from a
+matched-length $8{,}000$-step retrain), which is the correct null; a
+shorter $2{,}000$-step pilot gave a more conservative $0.286$, and the
+matched run widened the gap as expected. The null is measured at the
+pre-head residual (\code{ln\_f})
 only: the by-depth result (\textsection\ref{sec:p2b}) reports
 cross-mode cosine at each of the ten blocks but not a per-block
 same-mode null, so the depth-uniformity claim is anchored on the
@@ -79,8 +78,7 @@ proof-of, the specialisation claim.
 \begin{enumerate}
   \item Test the data-efficiency crossover on a non-math substrate
         (e.g., a $\sim 10$M-token slice of a code corpus).
-  \item Retrain the same-mode null-baseline SAE at matched length
-        ($8{,}000$ steps) and add random-direction / diff-feature
+  \item Add random-direction / diff-feature
         steering controls, to harden the specialisation result.
   \item Extend the compute-matched control to AR-only-at-$2\times$ as
         well, to test "does composite also beat compute-matched
