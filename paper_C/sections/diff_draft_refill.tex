@@ -58,11 +58,12 @@ intra-diff style in \textsection\ref{sec:k22} below.
 We tried four routing signals on F10 final:
 
 \begin{center}
-\begin{tabular}{lll}
+\small
+\begin{tabular}{@{}p{0.30\linewidth}p{0.21\linewidth}p{0.42\linewidth}@{}}
 \toprule
 Signal & Result & Why \\
 \midrule
-Diff single-mask placed-token prob & useless (mean $\sim 0.01$) & marginal $P$ at 50 k vocab too diffuse \\
+Diff single-mask placed-token prob & useless (mean $\sim 0.01$) & marginal $P$ at 50\,k vocab too diffuse \\
 Diff single-mask top-1 agreement & useless (97\,\% disagree) & calibration mismatch (joint vs single mask) \\
 AR-verifier teacher-forced prob & useless (mean $\sim 0.003$) & AR and diff have divergent distributions despite shared backbone \\
 \textbf{Commit-time conf, percentile rank} & \textbf{works} & relative ordering picks worst placements even if absolute level is low \\

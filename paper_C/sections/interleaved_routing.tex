@@ -125,14 +125,16 @@ Phase~I.3 to put a number on the routing question that the
 hand-tuned heuristics couldn't: \emph{can a learned router at least
 solve the loop-coherence problem, even if not the capability problem?}
 
-We attach a $526$\,K-parameter \code{RouterMLP} (two-layer MLP, action
-space $\{\text{ar\_chunk}, \text{diff\_short}, \text{diff\_long},
-\text{end}\}$) to the final hidden state of F10. Backbone and both
+We attach a $526$\,K-parameter \code{RouterMLP} (two-layer MLP; four
+actions: \code{ar\_chunk}, \code{diff\_short}, \code{diff\_long},
+\code{end}) to the final hidden state of F10. Backbone and both
 heads are \emph{frozen}; only the router updates. Per step we sample
 $K=4$ rollouts per prompt $\times\,4$ prompts and compute REINFORCE
-with per-prompt baseline:
-$\hat{R} = \mathbb{1}[\text{correct}] - 0.1\!\cdot\!\mathbb{1}[\text{loopy}]
-$, plus a small entropy bonus to prevent action collapse. $100$
+with per-prompt baseline,
+\[
+  \hat{R} = \mathbb{1}[\text{correct}] - 0.1\cdot\mathbb{1}[\text{loopy}],
+\]
+plus a small entropy bonus to prevent action collapse. $100$
 gradient steps total, $\sim 7$ minutes on MacBook MPS.
 
 \begin{center}
@@ -261,7 +263,8 @@ without flipping the discrete sample.
 
 \paragraph{Synthesis.}
 \begin{center}
-\begin{tabular}{lll}
+\small
+\begin{tabular}{@{}p{0.30\linewidth}p{0.30\linewidth}p{0.34\linewidth}@{}}
 \toprule
 Composite capability & Measurement & Result \\
 \midrule
